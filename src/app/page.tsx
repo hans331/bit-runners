@@ -13,25 +13,25 @@ export default function Dashboard() {
   const month = now.getMonth() + 1;
 
   return (
-    <div className="max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-5 md:space-y-6">
+    <div className="max-w-3xl lg:max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 space-y-6 md:space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base md:text-lg font-bold text-[var(--foreground)]">{month}월 대시보드</h2>
-          <p className="text-[11px] text-[var(--muted)]">실시간 업데이트</p>
+          <h2 className="text-xl md:text-2xl font-extrabold text-[var(--foreground)]">{month}월 대시보드</h2>
+          <p className="text-sm text-[var(--muted)] mt-0.5">실시간 업데이트</p>
         </div>
-        <Link href="/history" className="text-sm text-[var(--accent)] hover:underline font-medium">
+        <Link href="/history" className="text-sm text-[var(--accent)] hover:underline font-semibold px-3 py-2 rounded-xl hover:bg-[var(--accent)]/5 transition-colors">
           히스토리 →
         </Link>
       </div>
 
       <StatsCards year={year} month={month} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
         <Leaderboard year={year} month={month} />
         <GoalProgress year={year} month={month} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
         <RunCalendar />
         <RunCountChart year={year} month={month} />
       </div>

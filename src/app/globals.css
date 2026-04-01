@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1e293b;
-  --card-bg: #f8fafc;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
   --card-border: #e2e8f0;
-  --sidebar-bg: #f1f5f9;
-  --header-bg: rgba(255, 255, 255, 0.85);
+  --sidebar-bg: #ffffff;
+  --header-bg: rgba(248, 250, 252, 0.92);
   --muted: #64748b;
   --accent: #2563eb;
   --accent-green: #059669;
@@ -16,12 +16,12 @@
 }
 
 .dark {
-  --background: #0b1120;
-  --foreground: #e2e8f0;
-  --card-bg: #131c31;
-  --card-border: #1e2d4a;
-  --sidebar-bg: #0f1829;
-  --header-bg: rgba(11, 17, 32, 0.85);
+  --background: #0a0f1a;
+  --foreground: #f1f5f9;
+  --card-bg: #111827;
+  --card-border: #1e293b;
+  --sidebar-bg: #111827;
+  --header-bg: rgba(10, 15, 26, 0.92);
   --muted: #94a3b8;
   --accent: #3b82f6;
   --accent-green: #10b981;
@@ -42,10 +42,12 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), 'Pretendard', -apple-system, sans-serif;
   transition: background-color 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 스크롤바 */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 .dark ::-webkit-scrollbar-thumb { background: #334155; }
@@ -54,16 +56,34 @@ body {
 .card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 20px;
   transition: background-color 0.3s, border-color 0.3s;
 }
 
 /* Recharts 반응형 텍스트 */
-.recharts-text { font-size: 11px; }
+.recharts-text { font-size: 12px; }
 
 /* 모바일 최적화 */
 @media (max-width: 640px) {
-  .recharts-text { font-size: 9px; }
-  .card { padding: 14px; border-radius: 12px; }
+  .recharts-text { font-size: 10px; }
+  .card { padding: 16px; border-radius: 16px; }
+}
+
+/* 슬라이드 인 애니메이션 */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slideIn 0.25s ease-out;
+}
+
+/* 페이드 인 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
 }

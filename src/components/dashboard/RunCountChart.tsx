@@ -27,8 +27,8 @@ export default function RunCountChart({ year, month }: Props) {
 
   return (
     <div className="card">
-      <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">{month}월 러닝 횟수</h3>
-      <div className="h-56 md:h-64">
+      <h3 className="text-base font-bold text-[var(--foreground)] mb-5">{month}월 러닝 횟수</h3>
+      <div className="h-64 md:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
