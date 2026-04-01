@@ -2,26 +2,36 @@ import { Member, MonthlyRecord, Award, RunningLog } from '@/types';
 
 // ===== 멤버 데이터 (노션에서 마이그레이션) =====
 export const members: Member[] = [
-  { id: '1', name: '최철용', member_number: 1, join_date: '2025-06-19', join_location: '도쿄' },
-  { id: '2', name: '성차민', member_number: 2, join_date: '2025-06-19', join_location: '도쿄' },
-  { id: '3', name: '이승우', member_number: 3, join_date: '2025-06-19', join_location: '방콕' },
-  { id: '4', name: '오민혁', member_number: 4, join_date: '2025-06-19', join_location: '방콕' },
-  { id: '5', name: '이지영', member_number: 5, join_date: '2025-06-23', join_location: '방콕' },
-  { id: '6', name: '강수남', member_number: 6, join_date: '2025-09-13', join_location: '제주' },
-  { id: '7', name: '최명훈', member_number: 7, join_date: '2025-09-13', join_location: '제주' },
-  { id: '8', name: '김창옥', member_number: 8, join_date: '2025-09-13', join_location: '제주' },
-  { id: '9', name: '손승현', member_number: 9, join_date: '2025-09-13', join_location: '제주' },
-  { id: '10', name: '심성재', member_number: 10, join_date: '2025-09-13', join_location: '제주' },
-  { id: '11', name: '박현용', member_number: 11, join_date: '2025-09-13', join_location: '제주' },
-  { id: '12', name: '박영건', member_number: 12, join_date: '2025-09-21', join_location: '공주' },
-  { id: '13', name: '윤화식', member_number: 13, join_date: '2025-09-23', join_location: '공주' },
-  { id: '14', name: '정성원', member_number: 14, join_date: '2025-09-23', join_location: '공주' },
-  { id: '15', name: '문신기', member_number: 15, join_date: '2025-10-09', join_location: '추천' },
-  { id: '16', name: '김연주', member_number: 16, join_date: '2025-10-23', join_location: '추천' },
-  { id: '17', name: '이상화', member_number: 17, join_date: '2025-11-15', join_location: '추천' },
-  { id: '18', name: '강도균', member_number: 18, join_date: null, join_location: null },
-  { id: '19', name: '김태현', member_number: 19, join_date: null, join_location: null },
+  { id: '1', name: '최철용', member_number: 1, join_date: '2025-06-19', join_location: '도쿄', status: 'active' },
+  { id: '2', name: '성차민', member_number: 2, join_date: '2025-06-19', join_location: '도쿄', status: 'active' },
+  { id: '3', name: '이승우', member_number: 3, join_date: '2025-06-19', join_location: '방콕', status: 'active' },
+  { id: '4', name: '오민혁', member_number: 4, join_date: '2025-06-19', join_location: '방콕', status: 'active' },
+  { id: '5', name: '이지영', member_number: 5, join_date: '2025-06-23', join_location: '방콕', status: 'active' },
+  { id: '6', name: '강수남', member_number: 6, join_date: '2025-09-13', join_location: '제주', status: 'active' },
+  { id: '7', name: '최명훈', member_number: 7, join_date: '2025-09-13', join_location: '제주', status: 'active' },
+  { id: '8', name: '김창옥', member_number: 8, join_date: '2025-09-13', join_location: '제주', status: 'active' },
+  { id: '9', name: '손승현', member_number: 9, join_date: '2025-09-13', join_location: '제주', status: 'dormant' },
+  { id: '10', name: '심성재', member_number: 10, join_date: '2025-09-13', join_location: '제주', status: 'active' },
+  { id: '11', name: '박현용', member_number: 11, join_date: '2025-09-13', join_location: '제주', status: 'active' },
+  { id: '12', name: '박영건', member_number: 12, join_date: '2025-09-21', join_location: '공주', status: 'active' },
+  { id: '13', name: '윤화식', member_number: 13, join_date: '2025-09-23', join_location: '공주', status: 'active' },
+  { id: '14', name: '정성원', member_number: 14, join_date: '2025-09-23', join_location: '공주', status: 'dormant' },
+  { id: '15', name: '문신기', member_number: 15, join_date: '2025-10-09', join_location: '추천', status: 'active' },
+  { id: '16', name: '김연주', member_number: 16, join_date: '2025-10-23', join_location: '추천', status: 'active' },
+  { id: '17', name: '이상화', member_number: 17, join_date: '2025-11-15', join_location: '추천', status: 'dormant' },
+  { id: '18', name: '강도균', member_number: 18, join_date: null, join_location: null, status: 'active' },
+  { id: '19', name: '김태현', member_number: 19, join_date: null, join_location: null, status: 'active' },
 ];
+
+// 활동 중인 멤버만
+export function getActiveMembers(): Member[] {
+  return members.filter(m => m.status === 'active');
+}
+
+// 휴면 멤버만
+export function getDormantMembers(): Member[] {
+  return members.filter(m => m.status === 'dormant');
+}
 
 // ===== 월별 기록 (노션 레거시 데이터) =====
 export const monthlyRecords: MonthlyRecord[] = [

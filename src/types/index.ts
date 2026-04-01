@@ -1,9 +1,12 @@
+export type MemberStatus = 'active' | 'dormant';
+
 export interface Member {
   id: string;
   name: string;
   member_number: number;
   join_date: string | null;
   join_location: string | null;
+  status: MemberStatus;
 }
 
 export interface RunningLog {

@@ -155,11 +155,16 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { getTotalDistance: _gtd } = require('@/lib/data');
 
   const memberData = require('@/lib/data');
-  const sorted = [...memberData.members]
-    .map((m: { id: string; name: string }) => ({
+  const allMembers = [...memberData.members]
+    .map((m: { id: string; name: string; status: string }) => ({
       ...m,
       total: memberData.getTotalDistance(m.id),
-    }))
+    }));
+  const activeMembers = allMembers
+    .filter((m: { status: string }) => m.status === 'active')
+    .sort((a: { total: number }, b: { total: number }) => b.total - a.total);
+  const dormantMembers = allMembers
+    .filter((m: { status: string }) => m.status === 'dormant')
     .sort((a: { total: number }, b: { total: number }) => b.total - a.total);
 
   const isActive = (path: string) => pathname === path;
@@ -191,6 +196,19 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         시상
       </Link>
 
+      <Link
+        href="/admin"
+        onClick={onNavigate}
+        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-3
+          ${isActive('/admin') ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        회원 관리
+      </Link>
+
       <div className="border-t border-[var(--card-border)] pt-3 mb-2">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] px-3 mb-2">
           개인 기록
@@ -198,7 +216,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="space-y-0.5">
-        {sorted.map((m: { id: string; name: string; total: number }, i: number) => (
+        {activeMembers.map((m: { id: string; name: string; total: number }, i: number) => (
           <Link
             key={m.id}
             href={`/member/${encodeURIComponent(m.name)}`}
@@ -217,6 +235,34 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         ))}
       </div>
+
+      {dormantMembers.length > 0 && (
+        <>
+          <div className="border-t border-[var(--card-border)] pt-3 mt-3 mb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] px-3 mb-2">
+              휴면 ({dormantMembers.length})
+            </p>
+          </div>
+          <div className="space-y-0.5 opacity-50">
+            {dormantMembers.map((m: { id: string; name: string; total: number }) => (
+              <Link
+                key={m.id}
+                href={`/member/${encodeURIComponent(m.name)}`}
+                onClick={onNavigate}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all group
+                  ${isActive(`/member/${encodeURIComponent(m.name)}`)
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold'
+                    : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
+                  }`}
+              >
+                <span className="w-5 text-center text-[10px] text-[var(--muted)]">💤</span>
+                <span className="flex-1 truncate">{m.name}</span>
+                <span className="text-[10px] font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
