@@ -66,14 +66,36 @@ export function getAllTimeLeaderboard(members: Member[], records: MonthlyRecord[
   }).sort((a, b) => b.totalDistance - a.totalDistance);
 }
 
+// ===== 월별 멤버별 러닝 일수 계산 =====
+export function getMemberMonthlyRunDays(runningLogs: DailyRun[], memberId: string, year: number, month: number): number {
+  const days = new Set<string>();
+  for (const l of runningLogs) {
+    if (l.member_id !== memberId) continue;
+    const d = new Date(l.run_date);
+    if (d.getFullYear() === year && d.getMonth() + 1 === month && l.distance_km >= 3) {
+      days.add(l.run_date);
+    }
+  }
+  return days.size;
+}
+
+// ===== 개근상 수상자 (월별 러닝 일수 1위) =====
+export function getAttendanceWinner(members: Member[], runningLogs: DailyRun[], year: number, month: number): { member: Member; days: number } | null {
+  let maxDays = 0;
+  let winner: Member | null = null;
+  for (const m of members) {
+    const days = getMemberMonthlyRunDays(runningLogs, m.id, year, month);
+    if (days > maxDays) { maxDays = days; winner = m; }
+  }
+  return winner && maxDays > 0 ? { member: winner, days: maxDays } : null;
+}
+
 // ===== 훈장 (배지) 시스템 =====
 export function getMemberBadges(members: Member[], records: MonthlyRecord[], runningLogs: DailyRun[], memberId: string) {
-  const mr = records.filter(r => r.member_id === memberId);
-
   // 피니셔 횟수
-  const finisherCount = mr.filter(r => r.goal_km > 0 && r.achieved_km >= r.goal_km).length;
+  const finisherCount = records.filter(r => r.member_id === memberId && r.goal_km > 0 && r.achieved_km >= r.goal_km).length;
 
-  // 롱런상 횟수 (해당 월 1위)
+  // 롱런상 횟수 (해당 월 거리 1위)
   let longRunCount = 0;
   const monthSet = new Set(records.map(r => `${r.year}-${r.month}`));
   for (const key of monthSet) {
@@ -82,35 +104,32 @@ export function getMemberBadges(members: Member[], records: MonthlyRecord[], run
     if (lb.length > 0 && lb[0].member.id === memberId && lb[0].distance > 0) longRunCount++;
   }
 
-  // 개근상: 월 러닝 횟수 (3km 이상) 기준, 월 15회 이상인 달 수
-  const memberLogs = runningLogs.filter(l => l.member_id === memberId && l.distance_km >= 3);
-  const monthRuns = new Map<string, number>();
-  for (const l of memberLogs) {
-    const d = new Date(l.run_date);
-    const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-    monthRuns.set(key, (monthRuns.get(key) || 0) + 1);
-  }
-  // 각 월에서 러닝 횟수 최다인 멤버인 달 수
+  // 개근상 횟수 (해당 월 러닝 일수 1위)
   let attendanceCount = 0;
   for (const key of monthSet) {
     const [y, m] = key.split('-').map(Number);
-    let maxRuns = 0;
-    let maxMemberId = '';
-    for (const mem of members) {
-      const logs = runningLogs.filter(l => l.member_id === mem.id && l.distance_km >= 3);
-      const count = logs.filter(l => {
-        const d = new Date(l.run_date);
-        return d.getFullYear() === y && d.getMonth() + 1 === m;
-      }).length;
-      if (count > maxRuns) { maxRuns = count; maxMemberId = mem.id; }
-    }
-    if (maxMemberId === memberId && maxRuns > 0) attendanceCount++;
+    const winner = getAttendanceWinner(members, runningLogs, y, m);
+    if (winner && winner.member.id === memberId) attendanceCount++;
   }
 
   // 총 러닝 횟수
   const totalRuns = runningLogs.filter(l => l.member_id === memberId).length;
 
   return { finisherCount, longRunCount, attendanceCount, totalRuns };
+}
+
+// ===== 이전 달 목표 가져오기 (현재 달 목표 미설정시) =====
+export function getGoalWithFallback(records: MonthlyRecord[], memberId: string, year: number, month: number): { goal: number; isFallback: boolean } {
+  const current = records.find(r => r.member_id === memberId && r.year === year && r.month === month);
+  if (current && current.goal_km > 0) return { goal: current.goal_km, isFallback: false };
+
+  // 이전 달 목표 찾기
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const prev = records.find(r => r.member_id === memberId && r.year === prevYear && r.month === prevMonth);
+  if (prev && prev.goal_km > 0) return { goal: prev.goal_km, isFallback: true };
+
+  return { goal: 0, isFallback: false };
 }
 
 // ===== 달력 데이터 =====

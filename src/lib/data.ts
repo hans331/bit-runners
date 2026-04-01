@@ -19,8 +19,8 @@ export const members: Member[] = [
   { id: '15', name: '문신기', member_number: 15, join_date: '2025-10-09', join_location: '추천', status: 'active' },
   { id: '16', name: '김연주', member_number: 16, join_date: '2025-10-23', join_location: '추천', status: 'active' },
   { id: '17', name: '이상화', member_number: 17, join_date: '2025-11-15', join_location: '추천', status: 'dormant' },
-  { id: '18', name: '강도균', member_number: 18, join_date: null, join_location: null, status: 'active' },
-  { id: '19', name: '김태현', member_number: 19, join_date: null, join_location: null, status: 'active' },
+  { id: '18', name: '강도균', member_number: 18, join_date: '2025-12-22', join_location: '추천', status: 'active' },
+  { id: '19', name: '김태현', member_number: 19, join_date: '2026-02-01', join_location: '추천', status: 'active' },
 ];
 
 // 활동 중인 멤버만
