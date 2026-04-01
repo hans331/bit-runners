@@ -1,44 +1,91 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useData, getTotalDistance } from '@/components/DataProvider';
+import { useData, getGoalWithFallback } from '@/components/DataProvider';
 
 export default function DataPage() {
   const { members, records, runningLogs, loading } = useData();
-  const [view, setView] = useState<'monthly' | 'daily'>('monthly');
-  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [filterMember, setFilterMember] = useState<string>('all');
-  const [dailyPage, setDailyPage] = useState(0);
-  const PAGE_SIZE = 50;
-
-  if (loading) return <div className="max-w-6xl mx-auto px-6 py-6"><div className="card animate-pulse h-96" /></div>;
+  const [filterMonth, setFilterMonth] = useState<string>('all');
 
   const sorted = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-
-  // 월별 데이터: 월별로 그룹핑
-  const monthKeys = Array.from(new Set(records.map(r => `${r.year}-${String(r.month).padStart(2, '0')}`))).sort().reverse();
-
-  // 일별 데이터
-  const filteredLogs = filterMember === 'all'
-    ? [...runningLogs]
-    : runningLogs.filter(l => l.member_id === filterMember);
-  const sortedLogs = filteredLogs.sort((a, b) => b.run_date.localeCompare(a.run_date));
-  const pagedLogs = sortedLogs.slice(dailyPage * PAGE_SIZE, (dailyPage + 1) * PAGE_SIZE);
-  const totalPages = Math.ceil(sortedLogs.length / PAGE_SIZE);
-
   const getMemberName = (id: string) => members.find(m => m.id === id)?.name || '?';
 
-  // 월 클릭 → 해당 월 일별 기록
-  const getMonthDailyLogs = (monthKey: string) => {
-    const [y, m] = monthKey.split('-').map(Number);
-    return runningLogs
-      .filter(l => {
+  // 월 목록
+  const monthOptions = useMemo(() => {
+    const set = new Set<string>();
+    runningLogs.forEach(l => {
+      const d = new Date(l.run_date);
+      set.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
+    });
+    return Array.from(set).sort().reverse().map(k => {
+      const [y, m] = k.split('-').map(Number);
+      return { key: k, label: y === 2025 ? `'25.${m}월` : `'26.${m}월`, year: y, month: m };
+    });
+  }, [runningLogs]);
+
+  // 통합 테이블 데이터: 날짜 | 이름 | 그날 거리 | 월 누적 | 총 누적 | 월 목표 | 달성률
+  const tableData = useMemo(() => {
+    let filtered = [...runningLogs];
+    if (filterMember !== 'all') filtered = filtered.filter(l => l.member_id === filterMember);
+    if (filterMonth !== 'all') {
+      const [fy, fm] = filterMonth.split('-').map(Number);
+      filtered = filtered.filter(l => {
         const d = new Date(l.run_date);
-        return d.getFullYear() === y && d.getMonth() + 1 === m;
-      })
-      .sort((a, b) => a.run_date.localeCompare(b.run_date) || getMemberName(a.member_id).localeCompare(getMemberName(b.member_id), 'ko'));
-  };
+        return d.getFullYear() === fy && d.getMonth() + 1 === fm;
+      });
+    }
+
+    // 날짜 내림차순 정렬
+    filtered.sort((a, b) => b.run_date.localeCompare(a.run_date) || getMemberName(a.member_id).localeCompare(getMemberName(b.member_id), 'ko'));
+
+    // 각 row에 누적 계산
+    return filtered.map(l => {
+      const d = new Date(l.run_date);
+      const year = d.getFullYear();
+      const month = d.getMonth() + 1;
+      const name = getMemberName(l.member_id);
+
+      // 월 누적: 해당 월의 이 멤버 전체 로그 중 이 날짜 이전까지 합산
+      const monthCumulative = runningLogs
+        .filter(r => r.member_id === l.member_id && new Date(r.run_date).getFullYear() === year && new Date(r.run_date).getMonth() + 1 === month && r.run_date <= l.run_date)
+        .reduce((s, r) => s + r.distance_km, 0);
+
+      // 총 누적: 이 멤버의 모든 monthly_records 합 + 현재 월 로그 기반
+      const prevMonthsTotal = records
+        .filter(r => r.member_id === l.member_id && (r.year < year || (r.year === year && r.month < month)))
+        .reduce((s, r) => s + r.achieved_km, 0);
+      const totalCumulative = prevMonthsTotal + monthCumulative;
+
+      // 월 목표
+      const { goal, isFallback } = getGoalWithFallback(records, l.member_id, year, month);
+      const rate = goal > 0 ? (monthCumulative / goal) * 100 : 0;
+
+      return {
+        id: `${l.run_date}-${l.member_id}-${l.id}`,
+        date: l.run_date,
+        memberId: l.member_id,
+        name,
+        distance: l.distance_km,
+        monthCumulative,
+        totalCumulative,
+        goal,
+        isFallback,
+        rate,
+        year,
+        month,
+      };
+    });
+  }, [runningLogs, records, members, filterMember, filterMonth]);
+
+  // 페이징
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
+  const totalPages = Math.ceil(tableData.length / PAGE_SIZE);
+  const pagedData = tableData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  if (loading) return <div className="max-w-6xl mx-auto px-6 py-6"><div className="card animate-pulse h-96" /></div>;
 
   return (
     <div className="max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-5">
@@ -47,198 +94,108 @@ export default function DataPage() {
       </Link>
 
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[var(--foreground)]">데이터</h1>
-        <div className="flex items-center gap-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-0.5">
-          <button onClick={() => { setView('monthly'); setDailyPage(0); }}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${view === 'monthly' ? 'bg-[var(--accent)] text-white font-medium' : 'text-[var(--muted)] hover:text-[var(--foreground)]'}`}>
-            월별
-          </button>
-          <button onClick={() => { setView('daily'); setDailyPage(0); }}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${view === 'daily' ? 'bg-[var(--accent)] text-white font-medium' : 'text-[var(--muted)] hover:text-[var(--foreground)]'}`}>
-            일별
-          </button>
-        </div>
+        <h1 className="text-xl font-bold text-[var(--foreground)]">러닝 데이터</h1>
+        <span className="text-xs text-[var(--muted)]">{tableData.length}건</span>
       </div>
 
-      {/* 총 요약 */}
+      {/* 요약 카드 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="card text-center !p-4">
-          <p className="text-2xl font-extrabold text-[var(--foreground)]">{records.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">월별 레코드</p>
-        </div>
-        <div className="card text-center !p-4">
           <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{runningLogs.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">일별 러닝 기록</p>
+          <p className="text-[10px] text-[var(--muted)]">총 러닝 기록</p>
         </div>
         <div className="card text-center !p-4">
-          <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{members.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">멤버</p>
+          <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{new Set(runningLogs.map(l => l.run_date)).size}</p>
+          <p className="text-[10px] text-[var(--muted)]">활동 일수</p>
+        </div>
+        <div className="card text-center !p-4">
+          <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{members.filter(m => m.status === 'active').length}</p>
+          <p className="text-[10px] text-[var(--muted)]">활동 멤버</p>
         </div>
       </div>
 
-      {/* ===== 월별 뷰 ===== */}
-      {view === 'monthly' && (
-        <div className="space-y-3">
-          {monthKeys.map(monthKey => {
-            const [y, m] = monthKey.split('-').map(Number);
-            const monthRecords = records
-              .filter(r => r.year === y && r.month === m)
-              .map(r => ({ ...r, name: getMemberName(r.member_id) }))
-              .sort((a, b) => b.achieved_km - a.achieved_km);
-            const totalKm = monthRecords.reduce((s, r) => s + r.achieved_km, 0);
-            const activeCount = monthRecords.filter(r => r.achieved_km > 0).length;
-            const isExpanded = expandedMonth === monthKey;
-            const dailyLogs = isExpanded ? getMonthDailyLogs(monthKey) : [];
+      {/* 필터 */}
+      <div className="flex gap-2 flex-wrap">
+        <select value={filterMonth} onChange={(e) => { setFilterMonth(e.target.value); setPage(0); }}
+          className="bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+          <option value="all">전체 월</option>
+          {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+        </select>
+        <select value={filterMember} onChange={(e) => { setFilterMember(e.target.value); setPage(0); }}
+          className="bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+          <option value="all">전체 멤버</option>
+          {sorted.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+        </select>
+      </div>
 
-            return (
-              <div key={monthKey} className="card !p-0 overflow-hidden">
-                {/* 월 헤더 (클릭으로 일별 펼침) */}
-                <button
-                  onClick={() => setExpandedMonth(isExpanded ? null : monthKey)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-[var(--card-border)]/30 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-[var(--foreground)]">
-                      {y === 2025 ? `'25.${m}월` : `'26.${m}월`}
-                    </span>
-                    <span className="text-xs text-[var(--muted)]">{activeCount}명 활동</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-mono font-semibold text-[var(--accent)]">{totalKm.toFixed(0)}km</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                      className={`text-[var(--muted)] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                      <path d="m6 9 6 6 6-6"/>
-                    </svg>
-                  </div>
-                </button>
-
-                {/* 월별 멤버 테이블 */}
-                <div className="border-t border-[var(--card-border)]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-[var(--muted)] text-left bg-[var(--sidebar-bg)]">
-                          <th className="py-2 px-4 font-medium text-xs">이름</th>
-                          <th className="py-2 px-4 text-right font-medium text-xs">목표</th>
-                          <th className="py-2 px-4 text-right font-medium text-xs">달성</th>
-                          <th className="py-2 px-4 text-right font-medium text-xs">달성률</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {monthRecords.map(r => {
-                          const rate = r.goal_km > 0 ? (r.achieved_km / r.goal_km) * 100 : 0;
-                          const isFinisher = r.goal_km > 0 && r.achieved_km >= r.goal_km;
-                          return (
-                            <tr key={r.member_id} className="border-t border-[var(--card-border)] hover:bg-[var(--card-border)]/30">
-                              <td className="py-2 px-4">
-                                <Link href={`/member/${encodeURIComponent(r.name)}`} className="text-[var(--foreground)] hover:text-[var(--accent)] font-medium">{r.name}</Link>
-                              </td>
-                              <td className="py-2 px-4 text-right text-[var(--muted)] font-mono text-xs">{r.goal_km > 0 ? `${r.goal_km}km` : '-'}</td>
-                              <td className="py-2 px-4 text-right font-mono text-xs font-semibold">{r.achieved_km > 0 ? `${r.achieved_km.toFixed(1)}km` : '-'}</td>
-                              <td className={`py-2 px-4 text-right font-mono text-xs font-semibold ${isFinisher ? 'text-emerald-600 dark:text-emerald-400' : rate >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-[var(--muted)]'}`}>
-                                {r.goal_km > 0 && r.achieved_km > 0 ? `${rate.toFixed(0)}%` : '-'}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* 일별 펼침 */}
-                {isExpanded && (
-                  <div className="border-t-2 border-[var(--accent)]/30 bg-[var(--sidebar-bg)]">
-                    <div className="px-4 py-3 flex items-center justify-between">
-                      <p className="text-xs font-bold text-[var(--accent)]">일별 기록 ({dailyLogs.length}건)</p>
-                    </div>
-                    {dailyLogs.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-[var(--muted)] text-left">
-                              <th className="py-2 px-4 font-medium text-xs">날짜</th>
-                              <th className="py-2 px-4 font-medium text-xs">이름</th>
-                              <th className="py-2 px-4 text-right font-medium text-xs">거리</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {dailyLogs.map((l, i) => (
-                              <tr key={`${l.run_date}-${l.member_id}-${i}`} className="border-t border-[var(--card-border)]/50 hover:bg-[var(--card-border)]/20">
-                                <td className="py-1.5 px-4 text-xs text-[var(--muted)] font-mono">{l.run_date}</td>
-                                <td className="py-1.5 px-4 text-xs font-medium text-[var(--foreground)]">{getMemberName(l.member_id)}</td>
-                                <td className="py-1.5 px-4 text-right text-xs font-mono font-semibold text-[var(--accent)]">{l.distance_km.toFixed(2)}km</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-[var(--muted)] px-4 pb-3">일별 기록 없음</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ===== 일별 뷰 ===== */}
-      {view === 'daily' && (
-        <div className="space-y-4">
-          {/* 멤버 필터 */}
-          <select value={filterMember} onChange={(e) => { setFilterMember(e.target.value); setDailyPage(0); }}
-            className="bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
-            <option value="all">전체 멤버</option>
-            {sorted.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-
-          <div className="card !p-0 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-[var(--muted)] text-left bg-[var(--sidebar-bg)]">
-                    <th className="py-3 px-4 font-medium text-xs">날짜</th>
-                    <th className="py-3 px-4 font-medium text-xs">이름</th>
-                    <th className="py-3 px-4 text-right font-medium text-xs">거리</th>
+      {/* 데이터 테이블 */}
+      <div className="card !p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm whitespace-nowrap">
+            <thead>
+              <tr className="text-[var(--muted)] text-left bg-[var(--sidebar-bg)] border-b border-[var(--card-border)]">
+                <th className="py-3 px-3 font-medium text-xs sticky left-0 bg-[var(--sidebar-bg)]">날짜</th>
+                <th className="py-3 px-3 font-medium text-xs">이름</th>
+                <th className="py-3 px-3 text-right font-medium text-xs">그날 거리</th>
+                <th className="py-3 px-3 text-right font-medium text-xs">월 누적</th>
+                <th className="py-3 px-3 text-right font-medium text-xs">총 누적</th>
+                <th className="py-3 px-3 text-right font-medium text-xs">월 목표</th>
+                <th className="py-3 px-3 text-right font-medium text-xs">달성률</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedData.map((row, i) => {
+                const isFinisher = row.goal > 0 && row.monthCumulative >= row.goal;
+                return (
+                  <tr key={row.id} className="border-t border-[var(--card-border)] hover:bg-[var(--card-border)]/30 transition-colors">
+                    <td className="py-2.5 px-3 font-mono text-xs text-[var(--muted)] sticky left-0 bg-[var(--background)]">{row.date}</td>
+                    <td className="py-2.5 px-3">
+                      <Link href={`/member/${encodeURIComponent(row.name)}`}
+                        className="text-sm font-medium text-[var(--foreground)] hover:text-[var(--accent)]">{row.name}</Link>
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono text-xs font-semibold text-[var(--accent)]">
+                      +{row.distance.toFixed(2)}km
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono text-xs text-[var(--foreground)]">
+                      {row.monthCumulative.toFixed(1)}km
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono text-xs text-[var(--muted)]">
+                      {row.totalCumulative.toFixed(0)}km
+                    </td>
+                    <td className={`py-2.5 px-3 text-right font-mono text-xs ${row.isFallback ? 'text-[var(--muted)] opacity-40' : 'text-[var(--muted)]'}`}>
+                      {row.goal > 0 ? `${row.goal}km` : '-'}
+                      {row.isFallback && <span className="text-[8px] ml-0.5">(전월)</span>}
+                    </td>
+                    <td className={`py-2.5 px-3 text-right font-mono text-xs font-semibold ${
+                      isFinisher ? 'text-emerald-600 dark:text-emerald-400' :
+                      row.rate >= 80 ? 'text-amber-600 dark:text-amber-400' :
+                      'text-[var(--muted)]'
+                    }`}>
+                      {row.goal > 0 ? `${row.rate.toFixed(0)}%` : '-'}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {pagedLogs.map((l, i) => (
-                    <tr key={`${l.run_date}-${l.member_id}-${i}`} className="border-t border-[var(--card-border)] hover:bg-[var(--card-border)]/30">
-                      <td className="py-2.5 px-4 font-mono text-xs text-[var(--muted)]">{l.run_date}</td>
-                      <td className="py-2.5 px-4">
-                        <Link href={`/member/${encodeURIComponent(getMemberName(l.member_id))}`}
-                          className="text-sm font-medium text-[var(--foreground)] hover:text-[var(--accent)]">
-                          {getMemberName(l.member_id)}
-                        </Link>
-                      </td>
-                      <td className="py-2.5 px-4 text-right font-mono text-xs font-semibold text-[var(--accent)]">{l.distance_km.toFixed(2)}km</td>
-                    </tr>
-                  ))}
-                  {pagedLogs.length === 0 && (
-                    <tr><td colSpan={3} className="py-8 text-center text-sm text-[var(--muted)]">기록이 없습니다</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                );
+              })}
+              {pagedData.length === 0 && (
+                <tr><td colSpan={7} className="py-8 text-center text-sm text-[var(--muted)]">기록이 없습니다</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          {/* 페이징 */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button onClick={() => setDailyPage(p => Math.max(0, p - 1))} disabled={dailyPage === 0}
-                className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--foreground)] disabled:opacity-30">
-                이전
-              </button>
-              <span className="text-xs text-[var(--muted)]">{dailyPage + 1} / {totalPages}</span>
-              <button onClick={() => setDailyPage(p => Math.min(totalPages - 1, p + 1))} disabled={dailyPage >= totalPages - 1}
-                className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--foreground)] disabled:opacity-30">
-                다음
-              </button>
-            </div>
-          )}
+      {/* 페이징 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button onClick={() => setPage(0)} disabled={page === 0}
+            className="px-2 py-1.5 text-xs rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">처음</button>
+          <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+            className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">이전</button>
+          <span className="text-xs text-[var(--muted)] px-2">{page + 1} / {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+            className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">다음</button>
+          <button onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}
+            className="px-2 py-1.5 text-xs rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">마지막</button>
         </div>
       )}
     </div>
