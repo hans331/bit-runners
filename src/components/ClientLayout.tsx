@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeProvider, useTheme } from './ThemeProvider';
+import { DataProvider, useData, getTotalDistance } from './DataProvider';
 
 
 function Header({ sidebarOpen, onToggleSidebar }: { sidebarOpen: boolean; onToggleSidebar: () => void }) {
@@ -94,20 +95,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <ThemeProvider>
-      <div className="flex flex-col h-full min-h-screen">
-        <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
-        <div className="flex flex-1 overflow-hidden">
-          {!isLogPage && (
-            <div className={`hidden lg:block transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
-              <div className="w-64 h-[calc(100vh-57px)] sticky top-[57px] overflow-y-auto bg-[var(--sidebar-bg)] border-r border-[var(--card-border)]">
-                <SidebarContent />
+      <DataProvider>
+        <div className="flex flex-col h-full min-h-screen">
+          <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+          <div className="flex flex-1 overflow-hidden">
+            {!isLogPage && (
+              <div className={`hidden lg:block transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
+                <div className="w-64 h-[calc(100vh-57px)] sticky top-[57px] overflow-y-auto bg-[var(--sidebar-bg)] border-r border-[var(--card-border)]">
+                  <SidebarContent />
+                </div>
               </div>
-            </div>
-          )}
-          {!isLogPage && <MobileSidebar />}
-          <main className="flex-1 overflow-y-auto min-w-0">{children}</main>
+            )}
+            {!isLogPage && <MobileSidebar />}
+            <main className="flex-1 overflow-y-auto min-w-0">{children}</main>
+          </div>
         </div>
-      </div>
+      </DataProvider>
     </ThemeProvider>
   );
 }
@@ -152,20 +155,18 @@ function MobileSidebar() {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { getTotalDistance: _gtd } = require('@/lib/data');
+  const { members, records } = useData();
 
-  const memberData = require('@/lib/data');
-  const allMembers = [...memberData.members]
-    .map((m: { id: string; name: string; status: string }) => ({
-      ...m,
-      total: memberData.getTotalDistance(m.id),
-    }));
+  const allMembers = members.map(m => ({
+    ...m,
+    total: getTotalDistance(records, m.id),
+  }));
   const activeMembers = allMembers
-    .filter((m: { status: string }) => m.status === 'active')
-    .sort((a: { total: number }, b: { total: number }) => b.total - a.total);
+    .filter(m => m.status === 'active')
+    .sort((a, b) => b.total - a.total);
   const dormantMembers = allMembers
-    .filter((m: { status: string }) => m.status === 'dormant')
-    .sort((a: { total: number }, b: { total: number }) => b.total - a.total);
+    .filter(m => m.status === 'dormant')
+    .sort((a, b) => b.total - a.total);
 
   const isActive = (path: string) => pathname === path;
 

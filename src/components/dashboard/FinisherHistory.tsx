@@ -1,18 +1,19 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
-import { getClubMonthlyTotals, getLeaderboard } from '@/lib/data';
+import { useData, getClubMonthlyTotals, getLeaderboard } from '@/components/DataProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
 
 export default function FinisherHistory() {
   const { theme } = useTheme();
+  const { members, records } = useData();
   const isDark = theme === 'dark';
-  const months = getClubMonthlyTotals().filter(d => d.total > 0);
+  const months = getClubMonthlyTotals(records).filter(d => d.total > 0);
 
   const data = months.map(m => {
-    const leaderboard = getLeaderboard(m.year, m.month);
-    const withGoal = leaderboard.filter(e => e.goal > 0);
+    const lb = getLeaderboard(members, records, m.year, m.month);
+    const withGoal = lb.filter(e => e.goal > 0);
     const finishers = withGoal.filter(e => e.distance >= e.goal).length;
     const total = withGoal.length;
     const rate = total > 0 ? (finishers / total) * 100 : 0;
@@ -30,9 +31,7 @@ export default function FinisherHistory() {
             <YAxis tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value) => [`${Number(value).toFixed(0)}%`, '피니셔율']} />
             <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
-              {data.map((entry, i) => (
-                <Cell key={i} fill={entry.rate >= 70 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
-              ))}
+              {data.map((entry, i) => <Cell key={i} fill={entry.rate >= 70 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />)}
               <LabelList dataKey="display" position="top" style={{ fill: getTextColor(isDark), fontSize: 10, fontWeight: 600 }} />
             </Bar>
           </BarChart>
