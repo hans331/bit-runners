@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import StatsCards from '@/components/dashboard/StatsCards';
 import MonthlyTrendChart from '@/components/dashboard/MonthlyTrendChart';
 import FinisherHistory from '@/components/dashboard/FinisherHistory';
 import MemberGrowthChart from '@/components/dashboard/MemberGrowthChart';
+import AllTimeRanking from '@/components/dashboard/AllTimeRanking';
 import Leaderboard from '@/components/dashboard/Leaderboard';
 import GoalProgress from '@/components/dashboard/GoalProgress';
 import RunCountChart from '@/components/dashboard/RunCountChart';
@@ -20,7 +22,7 @@ export default function HistoryPage() {
         <div>
           <Link href="/" className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors mb-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-            현재 대시보드
+            대시보드
           </Link>
           <h2 className="text-base md:text-lg font-bold text-[var(--foreground)]">히스토리</h2>
         </div>
@@ -31,6 +33,9 @@ export default function HistoryPage() {
         />
       </div>
 
+      {/* 선택 월 요약 */}
+      <StatsCards year={selectedYear} month={selectedMonth} />
+
       {/* 선택 월 리더보드 + 달성률 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Leaderboard year={selectedYear} month={selectedMonth} />
@@ -39,6 +44,9 @@ export default function HistoryPage() {
 
       {/* 선택 월 러닝 횟수 */}
       <RunCountChart year={selectedYear} month={selectedMonth} />
+
+      {/* 통산 랭킹 */}
+      <AllTimeRanking />
 
       {/* 전체 추이 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
