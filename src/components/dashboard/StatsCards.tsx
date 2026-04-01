@@ -3,68 +3,91 @@
 import { members, monthlyRecords, getLeaderboard, getFinisherRate } from '@/lib/data';
 
 export default function StatsCards() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-
-  // 전달 기준 (3월 데이터가 없으므로 2월 데이터 사용)
-  const prevMonth = month === 1 ? 12 : month - 1;
-  const prevYear = month === 1 ? year - 1 : year;
+  const prevYear = 2026;
+  const prevMonth = 3;
 
   const leaderboard = getLeaderboard(prevYear, prevMonth);
   const clubTotal = leaderboard.reduce((sum, e) => sum + e.distance, 0);
   const activeMembers = leaderboard.filter(e => e.distance > 0).length;
   const avgDistance = activeMembers > 0 ? clubTotal / activeMembers : 0;
   const finisherRate = getFinisherRate(prevYear, prevMonth);
-
-  // 전체 통산 거리
   const allTimeDistance = monthlyRecords.reduce((sum, r) => sum + r.achieved_km, 0);
 
   const cards = [
     {
       label: `${prevMonth}월 클럽 총 거리`,
-      value: `${clubTotal.toFixed(0)}km`,
+      value: `${clubTotal.toFixed(0)}`,
+      unit: 'km',
       sub: `${activeMembers}명 활동`,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30',
+      gradient: 'from-blue-500/10 to-blue-600/5',
+      border: 'border-blue-200 dark:border-blue-500/20',
+      valueColor: 'text-blue-600 dark:text-blue-400',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      ),
     },
     {
-      label: `${prevMonth}월 평균 거리`,
-      value: `${avgDistance.toFixed(1)}km`,
-      sub: `인당 평균`,
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/10',
-      borderColor: 'border-emerald-500/30',
+      label: `${prevMonth}월 인당 평균`,
+      value: `${avgDistance.toFixed(1)}`,
+      unit: 'km',
+      sub: '활동 멤버 기준',
+      gradient: 'from-emerald-500/10 to-emerald-600/5',
+      border: 'border-emerald-200 dark:border-emerald-500/20',
+      valueColor: 'text-emerald-600 dark:text-emerald-400',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      ),
     },
     {
       label: `${prevMonth}월 피니셔율`,
-      value: `${finisherRate.toFixed(0)}%`,
-      sub: `목표 달성률`,
-      color: 'text-amber-400',
-      bgColor: 'bg-amber-500/10',
-      borderColor: 'border-amber-500/30',
+      value: `${finisherRate.toFixed(0)}`,
+      unit: '%',
+      sub: '목표 달성률',
+      gradient: 'from-amber-500/10 to-amber-600/5',
+      border: 'border-amber-200 dark:border-amber-500/20',
+      valueColor: 'text-amber-600 dark:text-amber-400',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+          <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+        </svg>
+      ),
     },
     {
       label: '클럽 통산 누적',
-      value: `${(allTimeDistance / 1000).toFixed(1)}천km`,
+      value: `${(allTimeDistance / 1000).toFixed(1)}`,
+      unit: '천km',
       sub: `총 ${members.length}명`,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/30',
+      gradient: 'from-purple-500/10 to-purple-600/5',
+      border: 'border-purple-200 dark:border-purple-500/20',
+      valueColor: 'text-purple-600 dark:text-purple-400',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
+          <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+        </svg>
+      ),
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`${card.bgColor} border ${card.borderColor} rounded-xl p-4 md:p-5`}
+          className={`bg-gradient-to-br ${card.gradient} border ${card.border} rounded-2xl p-4 md:p-5 transition-all hover:shadow-md`}
         >
-          <p className="text-xs text-slate-400 mb-1">{card.label}</p>
-          <p className={`text-2xl md:text-3xl font-bold ${card.color}`}>{card.value}</p>
-          <p className="text-xs text-slate-500 mt-1">{card.sub}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-medium text-[var(--muted)]">{card.label}</p>
+            {card.icon}
+          </div>
+          <p className={`text-2xl md:text-3xl font-extrabold ${card.valueColor} tracking-tight`}>
+            {card.value}
+            <span className="text-sm font-medium ml-0.5">{card.unit}</span>
+          </p>
+          <p className="text-[11px] text-[var(--muted)] mt-1">{card.sub}</p>
         </div>
       ))}
     </div>

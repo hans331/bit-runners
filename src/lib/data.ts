@@ -34,7 +34,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '1', year: 2025, month: 12, goal_km: 200, achieved_km: 234.25 },
   { member_id: '1', year: 2026, month: 1, goal_km: 200, achieved_km: 201.39 },
   { member_id: '1', year: 2026, month: 2, goal_km: 200, achieved_km: 203.70 },
-  { member_id: '1', year: 2026, month: 3, goal_km: 200, achieved_km: 0 },
+  { member_id: '1', year: 2026, month: 3, goal_km: 200, achieved_km: 201.38 },
 
   // 성차민
   { member_id: '2', year: 2025, month: 7, goal_km: 100, achieved_km: 137.00 },
@@ -45,7 +45,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '2', year: 2025, month: 12, goal_km: 130, achieved_km: 168.40 },
   { member_id: '2', year: 2026, month: 1, goal_km: 100, achieved_km: 100.20 },
   { member_id: '2', year: 2026, month: 2, goal_km: 200, achieved_km: 130.00 },
-  { member_id: '2', year: 2026, month: 3, goal_km: 150, achieved_km: 0 },
+  { member_id: '2', year: 2026, month: 3, goal_km: 150, achieved_km: 119.90 },
 
   // 이승우
   { member_id: '3', year: 2025, month: 7, goal_km: 100, achieved_km: 107.34 },
@@ -56,7 +56,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '3', year: 2025, month: 12, goal_km: 120, achieved_km: 50.87 },
   { member_id: '3', year: 2026, month: 1, goal_km: 120, achieved_km: 69.94 },
   { member_id: '3', year: 2026, month: 2, goal_km: 120, achieved_km: 64.28 },
-  { member_id: '3', year: 2026, month: 3, goal_km: 100, achieved_km: 0 },
+  { member_id: '3', year: 2026, month: 3, goal_km: 100, achieved_km: 60.62 },
 
   // 오민혁
   { member_id: '4', year: 2025, month: 7, goal_km: 100, achieved_km: 152.30 },
@@ -67,7 +67,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '4', year: 2025, month: 12, goal_km: 80, achieved_km: 90.09 },
   { member_id: '4', year: 2026, month: 1, goal_km: 126, achieved_km: 69.92 },
   { member_id: '4', year: 2026, month: 2, goal_km: 120, achieved_km: 120.40 },
-  { member_id: '4', year: 2026, month: 3, goal_km: 120, achieved_km: 0 },
+  { member_id: '4', year: 2026, month: 3, goal_km: 120, achieved_km: 80.95 },
 
   // 이지영
   { member_id: '5', year: 2025, month: 7, goal_km: 100, achieved_km: 116.00 },
@@ -78,7 +78,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '5', year: 2025, month: 12, goal_km: 140, achieved_km: 148.40 },
   { member_id: '5', year: 2026, month: 1, goal_km: 145, achieved_km: 147.27 },
   { member_id: '5', year: 2026, month: 2, goal_km: 100, achieved_km: 100.00 },
-  { member_id: '5', year: 2026, month: 3, goal_km: 100, achieved_km: 0 },
+  { member_id: '5', year: 2026, month: 3, goal_km: 100, achieved_km: 100.27 },
 
   // 강수남
   { member_id: '6', year: 2025, month: 9, goal_km: 15, achieved_km: 40.98 },
@@ -87,7 +87,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '6', year: 2025, month: 12, goal_km: 60, achieved_km: 60.63 },
   { member_id: '6', year: 2026, month: 1, goal_km: 60, achieved_km: 30.29 },
   { member_id: '6', year: 2026, month: 2, goal_km: 60, achieved_km: 61.16 },
-  { member_id: '6', year: 2026, month: 3, goal_km: 60, achieved_km: 0 },
+  { member_id: '6', year: 2026, month: 3, goal_km: 60, achieved_km: 50.98 },
 
   // 최명훈
   { member_id: '7', year: 2025, month: 9, goal_km: 30, achieved_km: 62.71 },
@@ -96,7 +96,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '7', year: 2025, month: 12, goal_km: 70, achieved_km: 74.38 },
   { member_id: '7', year: 2026, month: 1, goal_km: 70, achieved_km: 71.69 },
   { member_id: '7', year: 2026, month: 2, goal_km: 70, achieved_km: 71.79 },
-  { member_id: '7', year: 2026, month: 3, goal_km: 60, achieved_km: 0 },
+  { member_id: '7', year: 2026, month: 3, goal_km: 60, achieved_km: 67.17 },
 
   // 김창옥
   { member_id: '8', year: 2025, month: 9, goal_km: 70, achieved_km: 76.42 },
@@ -105,7 +105,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '8', year: 2025, month: 12, goal_km: 130, achieved_km: 95.27 },
   { member_id: '8', year: 2026, month: 1, goal_km: 110, achieved_km: 37.56 },
   { member_id: '8', year: 2026, month: 2, goal_km: 110, achieved_km: 110.00 },
-  { member_id: '8', year: 2026, month: 3, goal_km: 100, achieved_km: 0 },
+  { member_id: '8', year: 2026, month: 3, goal_km: 100, achieved_km: 76.30 },
 
   // 손승현
   { member_id: '9', year: 2025, month: 9, goal_km: 100, achieved_km: 87.65 },
@@ -123,7 +123,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '10', year: 2025, month: 12, goal_km: 60, achieved_km: 50.54 },
   { member_id: '10', year: 2026, month: 1, goal_km: 60, achieved_km: 60.28 },
   { member_id: '10', year: 2026, month: 2, goal_km: 60, achieved_km: 60.06 },
-  { member_id: '10', year: 2026, month: 3, goal_km: 60, achieved_km: 0 },
+  { member_id: '10', year: 2026, month: 3, goal_km: 60, achieved_km: 56.72 },
 
   // 박현용
   { member_id: '11', year: 2025, month: 9, goal_km: 130, achieved_km: 182.40 },
@@ -132,7 +132,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '11', year: 2025, month: 12, goal_km: 100, achieved_km: 163.30 },
   { member_id: '11', year: 2026, month: 1, goal_km: 150, achieved_km: 158.70 },
   { member_id: '11', year: 2026, month: 2, goal_km: 150, achieved_km: 177.00 },
-  { member_id: '11', year: 2026, month: 3, goal_km: 150, achieved_km: 0 },
+  { member_id: '11', year: 2026, month: 3, goal_km: 150, achieved_km: 226.98 },
 
   // 박영건
   { member_id: '12', year: 2025, month: 9, goal_km: 10, achieved_km: 10.01 },
@@ -141,7 +141,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '12', year: 2025, month: 12, goal_km: 50, achieved_km: 51.20 },
   { member_id: '12', year: 2026, month: 1, goal_km: 50, achieved_km: 50.98 },
   { member_id: '12', year: 2026, month: 2, goal_km: 50, achieved_km: 68.91 },
-  { member_id: '12', year: 2026, month: 3, goal_km: 50, achieved_km: 0 },
+  { member_id: '12', year: 2026, month: 3, goal_km: 50, achieved_km: 50.75 },
 
   // 윤화식
   { member_id: '13', year: 2025, month: 9, goal_km: 10, achieved_km: 18.44 },
@@ -150,7 +150,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '13', year: 2025, month: 12, goal_km: 50, achieved_km: 50.52 },
   { member_id: '13', year: 2026, month: 1, goal_km: 50, achieved_km: 50.25 },
   { member_id: '13', year: 2026, month: 2, goal_km: 50, achieved_km: 51.05 },
-  { member_id: '13', year: 2026, month: 3, goal_km: 50, achieved_km: 0 },
+  { member_id: '13', year: 2026, month: 3, goal_km: 50, achieved_km: 52.38 },
 
   // 정성원
   { member_id: '14', year: 2025, month: 9, goal_km: 25, achieved_km: 25.17 },
@@ -167,7 +167,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '15', year: 2025, month: 12, goal_km: 100, achieved_km: 118.40 },
   { member_id: '15', year: 2026, month: 1, goal_km: 100, achieved_km: 101.80 },
   { member_id: '15', year: 2026, month: 2, goal_km: 120, achieved_km: 123.30 },
-  { member_id: '15', year: 2026, month: 3, goal_km: 150, achieved_km: 0 },
+  { member_id: '15', year: 2026, month: 3, goal_km: 150, achieved_km: 162.90 },
 
   // 김연주
   { member_id: '16', year: 2025, month: 10, goal_km: 30, achieved_km: 12.62 },
@@ -175,7 +175,7 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '16', year: 2025, month: 12, goal_km: 110, achieved_km: 110.00 },
   { member_id: '16', year: 2026, month: 1, goal_km: 120, achieved_km: 121.22 },
   { member_id: '16', year: 2026, month: 2, goal_km: 120, achieved_km: 120.58 },
-  { member_id: '16', year: 2026, month: 3, goal_km: 100, achieved_km: 0 },
+  { member_id: '16', year: 2026, month: 3, goal_km: 100, achieved_km: 100.37 },
 
   // 이상화
   { member_id: '17', year: 2025, month: 11, goal_km: 0, achieved_km: 2.25 },
@@ -188,11 +188,11 @@ export const monthlyRecords: MonthlyRecord[] = [
   { member_id: '18', year: 2025, month: 12, goal_km: 150, achieved_km: 150.69 },
   { member_id: '18', year: 2026, month: 1, goal_km: 160, achieved_km: 160.60 },
   { member_id: '18', year: 2026, month: 2, goal_km: 165, achieved_km: 167.29 },
-  { member_id: '18', year: 2026, month: 3, goal_km: 170, achieved_km: 0 },
+  { member_id: '18', year: 2026, month: 3, goal_km: 170, achieved_km: 171.83 },
 
   // 김태현
   { member_id: '19', year: 2026, month: 2, goal_km: 85, achieved_km: 120.46 },
-  { member_id: '19', year: 2026, month: 3, goal_km: 100, achieved_km: 0 },
+  { member_id: '19', year: 2026, month: 3, goal_km: 100, achieved_km: 108.43 },
 ];
 
 // ===== 유틸리티 함수 =====

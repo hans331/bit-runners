@@ -1,9 +1,13 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { getClubMonthlyTotals, getLeaderboard, monthlyRecords } from '@/lib/data';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
+import { getClubMonthlyTotals, getLeaderboard } from '@/lib/data';
+import { useTheme } from '@/components/ThemeProvider';
+import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
 
 export default function FinisherHistory() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const months = getClubMonthlyTotals().filter(d => d.total > 0);
 
   const data = months.map(m => {
@@ -12,53 +16,24 @@ export default function FinisherHistory() {
     const finishers = withGoal.filter(e => e.distance >= e.goal).length;
     const total = withGoal.length;
     const rate = total > 0 ? (finishers / total) * 100 : 0;
-
-    return {
-      label: m.label,
-      finishers,
-      total,
-      rate,
-    };
+    return { label: m.label, finishers, total, rate, display: `${finishers}/${total}` };
   });
 
   return (
-    <div className="bg-[#1e293b] border border-[#334155] rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-slate-300 mb-4">월별 피니셔율 추이</h3>
-      <div className="h-48">
+    <div className="card">
+      <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">월별 피니셔율</h3>
+      <div className="h-56 md:h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis
-              dataKey="label"
-              tick={{ fill: '#94a3b8', fontSize: 10 }}
-              axisLine={{ stroke: '#475569' }}
-            />
-            <YAxis
-              tick={{ fill: '#94a3b8', fontSize: 11 }}
-              axisLine={{ stroke: '#475569' }}
-              domain={[0, 100]}
-              tickFormatter={(v) => `${v}%`}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid #475569',
-                borderRadius: '8px',
-                color: '#e2e8f0',
-                fontSize: 12,
-              }}
-              formatter={(value) => [
-                `${Number(value).toFixed(0)}%`,
-                '피니셔율',
-              ]}
-            />
-            <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
+          <BarChart data={data} margin={{ top: 20, right: 5, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
+            <XAxis dataKey="label" tick={{ fill: getTextColor(isDark), fontSize: 10 }} axisLine={{ stroke: getAxisColor(isDark) }} />
+            <YAxis tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+            <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value) => [`${Number(value).toFixed(0)}%`, '피니셔율']} />
+            <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
               {data.map((entry, i) => (
-                <Cell
-                  key={i}
-                  fill={entry.rate >= 70 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'}
-                />
+                <Cell key={i} fill={entry.rate >= 70 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
               ))}
+              <LabelList dataKey="display" position="top" style={{ fill: getTextColor(isDark), fontSize: 10, fontWeight: 600 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

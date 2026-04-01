@@ -11,18 +11,15 @@ import FinisherHistory from '@/components/dashboard/FinisherHistory';
 import MonthSelector from '@/components/dashboard/MonthSelector';
 
 export default function Dashboard() {
-  // 2월(가장 최근 완료 데이터가 있는 달)을 기본으로 표시
   const [selectedYear, setSelectedYear] = useState(2026);
-  const [selectedMonth, setSelectedMonth] = useState(2);
+  const [selectedMonth, setSelectedMonth] = useState(3);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      {/* 요약 카드 */}
+    <div className="max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-5 md:space-y-6">
       <StatsCards />
 
-      {/* 월 선택 */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">월간 리포트</h2>
+        <h2 className="text-base md:text-lg font-bold text-[var(--foreground)]">월간 리포트</h2>
         <MonthSelector
           year={selectedYear}
           month={selectedMonth}
@@ -30,20 +27,17 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* 리더보드 + 목표달성률 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Leaderboard year={selectedYear} month={selectedMonth} />
         <GoalProgress year={selectedYear} month={selectedMonth} />
       </div>
 
-      {/* 클럽 추이 차트 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <MonthlyTrendChart />
         <FinisherHistory />
       </div>
 
-      {/* 멤버별 추이 + 통산 랭킹 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
         <div className="lg:col-span-2">
           <MemberGrowthChart />
         </div>
