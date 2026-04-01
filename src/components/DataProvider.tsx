@@ -32,10 +32,21 @@ export function getLeaderboard(members: Member[], records: MonthlyRecord[], year
   return members.map(m => {
     const record = records.find(r => r.member_id === m.id && r.year === year && r.month === month);
     const distance = record?.achieved_km ?? 0;
-    const goal = record?.goal_km ?? 0;
+    const { goal, isFallback } = getGoalWithFallback(records, m.id, year, month);
     const rate = goal > 0 ? (distance / goal) * 100 : 0;
-    return { member: m, distance, goal, rate };
+    return { member: m, distance, goal, rate, isFallback };
   }).filter(e => e.goal > 0 || e.distance > 0).sort((a, b) => b.distance - a.distance);
+}
+
+// getGoalWithFallback는 아래에 정의됨 - 순서 이슈로 여기서 선언
+export function getGoalWithFallback(records: MonthlyRecord[], memberId: string, year: number, month: number): { goal: number; isFallback: boolean } {
+  const current = records.find(r => r.member_id === memberId && r.year === year && r.month === month);
+  if (current && current.goal_km > 0) return { goal: current.goal_km, isFallback: false };
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const prev = records.find(r => r.member_id === memberId && r.year === prevYear && r.month === prevMonth);
+  if (prev && prev.goal_km > 0) return { goal: prev.goal_km, isFallback: true };
+  return { goal: 0, isFallback: false };
 }
 
 export function getClubMonthlyTotals(records: MonthlyRecord[]) {
@@ -118,19 +129,6 @@ export function getMemberBadges(members: Member[], records: MonthlyRecord[], run
   return { finisherCount, longRunCount, attendanceCount, totalRuns };
 }
 
-// ===== 이전 달 목표 가져오기 (현재 달 목표 미설정시) =====
-export function getGoalWithFallback(records: MonthlyRecord[], memberId: string, year: number, month: number): { goal: number; isFallback: boolean } {
-  const current = records.find(r => r.member_id === memberId && r.year === year && r.month === month);
-  if (current && current.goal_km > 0) return { goal: current.goal_km, isFallback: false };
-
-  // 이전 달 목표 찾기
-  const prevMonth = month === 1 ? 12 : month - 1;
-  const prevYear = month === 1 ? year - 1 : year;
-  const prev = records.find(r => r.member_id === memberId && r.year === prevYear && r.month === prevMonth);
-  if (prev && prev.goal_km > 0) return { goal: prev.goal_km, isFallback: true };
-
-  return { goal: 0, isFallback: false };
-}
 
 // ===== 달력 데이터 =====
 export function getCalendarData(runningLogs: DailyRun[], members: Member[], year: number, month: number) {
