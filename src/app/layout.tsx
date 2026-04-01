@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "BIT Runners",
   description: "BIT Runners 러닝 클럽 대시보드 - Run to Boost, Run for Impact, Run Together",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

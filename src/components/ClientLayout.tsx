@@ -38,7 +38,7 @@ function Header({ sidebarOpen, onToggleSidebar }: { sidebarOpen: boolean; onTogg
           </button>
 
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="text-xl">🏃🏻</span>
+            <img src="/favicon.png" alt="BIT Runners" className="w-6 h-6" />
             <div className="leading-none">
               <h1 className="text-base font-bold text-[var(--foreground)]">BIT Runners</h1>
               <p className="text-[9px] text-[var(--muted)] tracking-[0.15em] mt-0.5">BOOST · IMPACT · TOGETHER</p>
