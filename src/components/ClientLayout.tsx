@@ -211,6 +211,18 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </Link>
 
       <Link
+        href="/data"
+        onClick={onNavigate}
+        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-0.5
+          ${isActive('/data') ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>
+        </svg>
+        데이터
+      </Link>
+
+      <Link
         href="/admin"
         onClick={onNavigate}
         className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-3
