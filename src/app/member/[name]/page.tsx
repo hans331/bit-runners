@@ -110,6 +110,31 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
           })}
         </tbody></table></div>
       </div>
+      {/* 일별 러닝 기록 */}
+      {(() => {
+        const memberLogs = runningLogs.filter(l => l.member_id === member.id).sort((a, b) => b.run_date.localeCompare(a.run_date));
+        if (memberLogs.length === 0) return null;
+        return (
+          <div className="card overflow-hidden !p-0">
+            <h3 className="text-sm font-bold text-[var(--foreground)] p-4 pb-0">일별 러닝 기록 <span className="font-normal text-[var(--muted)]">({memberLogs.length}건)</span></h3>
+            <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-[var(--muted)] text-left border-b border-[var(--card-border)]">
+              <th className="py-3 px-4 font-medium text-xs">날짜</th>
+              <th className="py-3 px-4 text-right font-medium text-xs">거리</th>
+              <th className="py-3 px-4 text-right font-medium text-xs">시간</th>
+              <th className="py-3 px-4 font-medium text-xs">메모</th>
+            </tr></thead><tbody>
+              {memberLogs.slice(0, 100).map((l, i) => (
+                <tr key={i} className="border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--card-border)]/50">
+                  <td className="py-2 px-4 font-mono text-xs text-[var(--muted)]">{l.run_date}</td>
+                  <td className="py-2 px-4 text-right font-mono text-xs font-semibold text-[var(--accent)]">{l.distance_km.toFixed(2)}km</td>
+                  <td className="py-2 px-4 text-right font-mono text-xs text-[var(--muted)]">{l.duration_minutes ? `${l.duration_minutes}분` : '-'}</td>
+                  <td className="py-2 px-4 text-xs text-[var(--muted)] truncate max-w-[200px]">{l.memo || '-'}</td>
+                </tr>
+              ))}
+            </tbody></table></div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

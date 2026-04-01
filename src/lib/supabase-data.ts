@@ -10,7 +10,6 @@ export interface DailyRun {
   memo: string | null;
 }
 
-// ===== 멤버 =====
 export async function fetchMembers(): Promise<Member[]> {
   const { data, error } = await supabase.from('members').select('*').order('member_number');
   if (error) throw error;
@@ -20,7 +19,6 @@ export async function fetchMembers(): Promise<Member[]> {
   }));
 }
 
-// ===== 월별 기록 =====
 export async function fetchMonthlyRecords(): Promise<MonthlyRecord[]> {
   const { data, error } = await supabase.from('monthly_records').select('*').order('year').order('month');
   if (error) throw error;
@@ -30,7 +28,6 @@ export async function fetchMonthlyRecords(): Promise<MonthlyRecord[]> {
   }));
 }
 
-// ===== 일별 러닝 기록 =====
 export async function fetchRunningLogs(): Promise<DailyRun[]> {
   const { data, error } = await supabase.from('running_logs').select('*').order('run_date');
   if (error) throw error;
@@ -40,13 +37,11 @@ export async function fetchRunningLogs(): Promise<DailyRun[]> {
   }));
 }
 
-// ===== 회원 상태 변경 =====
 export async function updateMemberStatus(memberId: string, status: MemberStatus) {
   const { error } = await supabase.from('members').update({ status }).eq('id', memberId);
   if (error) throw error;
 }
 
-// ===== 신규 회원 등록 =====
 export async function addMember(name: string, joinLocation: string | null, joinDate: string | null) {
   const { data: members } = await supabase.from('members').select('member_number').order('member_number', { ascending: false }).limit(1);
   const nextNumber = (members && members.length > 0) ? members[0].member_number + 1 : 1;
@@ -58,7 +53,6 @@ export async function addMember(name: string, joinLocation: string | null, joinD
   return data;
 }
 
-// ===== 러닝 기록 입력 =====
 export async function addRunningLog(memberId: string, runDate: string, distanceKm: number, durationMinutes?: number, memo?: string) {
   const { error } = await supabase.from('running_logs').insert({
     member_id: memberId, run_date: runDate, distance_km: distanceKm,
@@ -86,7 +80,22 @@ export async function addRunningLog(memberId: string, runDate: string, distanceK
   }
 }
 
-// ===== 전체 데이터 한번에 로드 =====
+// ===== 월 목표 설정/업데이트 =====
+export async function setMonthlyGoal(memberId: string, year: number, month: number, goalKm: number) {
+  const { data: existing } = await supabase.from('monthly_records').select('id')
+    .eq('member_id', memberId).eq('year', year).eq('month', month).single();
+
+  if (existing) {
+    const { error } = await supabase.from('monthly_records').update({ goal_km: goalKm }).eq('id', existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('monthly_records').insert({
+      member_id: memberId, year, month, goal_km: goalKm, achieved_km: 0,
+    });
+    if (error) throw error;
+  }
+}
+
 export async function fetchDashboardData() {
   const [members, records, runningLogs] = await Promise.all([
     fetchMembers(), fetchMonthlyRecords(), fetchRunningLogs(),
