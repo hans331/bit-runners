@@ -29,6 +29,8 @@ export default function AdminPage() {
   const dormantCount = allMembers.filter(m => m.status === 'dormant').length;
 
   const handleStatusToggle = async (id: string, current: MemberStatus) => {
+    const pw = prompt('관리자 비밀번호를 입력하세요');
+    if (pw !== 'bit1004') { if (pw !== null) setSuccessMsg('비밀번호가 틀립니다'); return; }
     setLoading(true);
     try {
       await updateMemberStatus(id, current === 'active' ? 'dormant' : 'active');
@@ -42,6 +44,8 @@ export default function AdminPage() {
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
+    const pw = prompt('관리자 비밀번호를 입력하세요');
+    if (pw !== 'bit1004') { if (pw !== null) setSuccessMsg('비밀번호가 틀립니다'); return; }
     setLoading(true);
     try {
       await addMember(newName, newLocation || null, newDate || null);
