@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeProvider, useTheme } from './ThemeProvider';
-import { DataProvider, useData, getTotalDistance } from './DataProvider';
+import { DataProvider, useData, getTotalDistance, getMemberBadges } from './DataProvider';
+import Badges from './Badges';
 
 
 function Header({ sidebarOpen, onToggleSidebar }: { sidebarOpen: boolean; onToggleSidebar: () => void }) {
@@ -155,7 +156,7 @@ function MobileSidebar() {
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { members, records } = useData();
+  const { members, records, runningLogs } = useData();
 
   const allMembers = members.map(m => ({
     ...m,
@@ -183,6 +184,18 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
         </svg>
         종합 대시보드
+      </Link>
+
+      <Link
+        href="/history"
+        onClick={onNavigate}
+        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-0.5
+          ${isActive('/history') ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'}`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        히스토리
       </Link>
 
       <Link
@@ -217,24 +230,27 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="space-y-0.5">
-        {activeMembers.map((m: { id: string; name: string; total: number }, i: number) => (
-          <Link
-            key={m.id}
-            href={`/member/${encodeURIComponent(m.name)}`}
-            onClick={onNavigate}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all group
-              ${isActive(`/member/${encodeURIComponent(m.name)}`)
-                ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold'
-                : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
-              }`}
-          >
-            <span className={`w-5 text-center text-[10px] font-mono ${i < 3 ? 'font-bold text-[var(--accent-yellow)]' : 'text-[var(--muted)]'}`}>
-              {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
-            </span>
-            <span className="flex-1 truncate">{m.name}</span>
-            <span className="text-[10px] font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
-          </Link>
-        ))}
+        {activeMembers.map((m: { id: string; name: string; total: number }, i: number) => {
+          const badges = getMemberBadges(members, records, runningLogs, m.id);
+          return (
+            <Link
+              key={m.id}
+              href={`/member/${encodeURIComponent(m.name)}`}
+              onClick={onNavigate}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all group
+                ${isActive(`/member/${encodeURIComponent(m.name)}`)
+                  ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold'
+                  : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
+                }`}
+            >
+              <span className={`w-5 text-center text-[10px] font-mono ${i < 3 ? 'font-bold text-[var(--accent-yellow)]' : 'text-[var(--muted)]'}`}>
+                {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
+              </span>
+              <span className="flex-1 truncate">{m.name}<Badges {...badges} compact /></span>
+              <span className="text-[10px] font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
+            </Link>
+          );
+        })}
       </div>
 
       {dormantMembers.length > 0 && (

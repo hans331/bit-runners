@@ -3,14 +3,15 @@
 import { use } from 'react';
 import Link from 'next/link';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList } from 'recharts';
-import { useData, getTotalDistance, getMemberRecords } from '@/components/DataProvider';
+import { useData, getTotalDistance, getMemberRecords, getMemberBadges, getMonthlyRunCounts } from '@/components/DataProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
+import Badges from '@/components/Badges';
 
 export default function MemberPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = use(params);
   const { theme } = useTheme();
-  const { members, records, loading } = useData();
+  const { members, records, runningLogs, loading } = useData();
   const isDark = theme === 'dark';
   const decodedName = decodeURIComponent(name);
   const member = members.find(m => m.name === decodedName);
@@ -38,7 +39,11 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold">{member.name[0]}</div>
-            <div><h1 className="text-xl font-bold text-[var(--foreground)]">{member.name}</h1><p className="text-xs text-[var(--muted)]">#{member.member_number} · {member.join_location || '-'}{member.join_date && ` · ${member.join_date}`}</p></div>
+            <div>
+              <h1 className="text-xl font-bold text-[var(--foreground)]">{member.name}</h1>
+              <p className="text-xs text-[var(--muted)]">#{member.member_number} · {member.join_location || '-'}{member.join_date && ` · ${member.join_date}`}</p>
+              <div className="mt-1.5"><Badges {...getMemberBadges(members, records, runningLogs, member.id)} /></div>
+            </div>
           </div>
           <div className="flex gap-5 sm:gap-8">
             <div className="text-center"><p className="text-xl md:text-2xl font-extrabold text-blue-600 dark:text-blue-400">{totalDistance.toFixed(0)}<span className="text-sm font-medium">km</span></p><p className="text-[10px] text-[var(--muted)]">통산</p></div>
