@@ -2,7 +2,8 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList } from 'recharts';
+import { useState, useMemo } from 'react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList, ComposedChart, Area } from 'recharts';
 import { useData, getTotalDistance, getMemberRecords, getMemberBadges, getMonthlyRunCounts } from '@/components/DataProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
@@ -110,31 +111,117 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
           })}
         </tbody></table></div>
       </div>
-      {/* 일별 러닝 기록 */}
-      {(() => {
-        const memberLogs = runningLogs.filter(l => l.member_id === member.id).sort((a, b) => b.run_date.localeCompare(a.run_date));
-        if (memberLogs.length === 0) return null;
-        return (
-          <div className="card overflow-hidden !p-0">
-            <h3 className="text-sm font-bold text-[var(--foreground)] p-4 pb-0">일별 러닝 기록 <span className="font-normal text-[var(--muted)]">({memberLogs.length}건)</span></h3>
-            <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-[var(--muted)] text-left border-b border-[var(--card-border)]">
-              <th className="py-3 px-4 font-medium text-xs">날짜</th>
-              <th className="py-3 px-4 text-right font-medium text-xs">거리</th>
-              <th className="py-3 px-4 text-right font-medium text-xs">시간</th>
-              <th className="py-3 px-4 font-medium text-xs">메모</th>
-            </tr></thead><tbody>
-              {memberLogs.slice(0, 100).map((l, i) => (
-                <tr key={i} className="border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--card-border)]/50">
-                  <td className="py-2 px-4 font-mono text-xs text-[var(--muted)]">{l.run_date}</td>
-                  <td className="py-2 px-4 text-right font-mono text-xs font-semibold text-[var(--accent)]">{l.distance_km.toFixed(2)}km</td>
-                  <td className="py-2 px-4 text-right font-mono text-xs text-[var(--muted)]">{l.duration_minutes ? `${l.duration_minutes}분` : '-'}</td>
-                  <td className="py-2 px-4 text-xs text-[var(--muted)] truncate max-w-[200px]">{l.memo || '-'}</td>
-                </tr>
-              ))}
-            </tbody></table></div>
-          </div>
-        );
-      })()}
+      {/* 일별 러닝 차트 + 기록 */}
+      <DailyRunSection memberId={member.id} runningLogs={runningLogs} isDark={isDark} />
     </div>
+  );
+}
+
+function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; runningLogs: { run_date: string; member_id: string; distance_km: number; duration_minutes: number | null; memo: string | null }[]; isDark: boolean }) {
+  const memberLogs = useMemo(() =>
+    runningLogs.filter(l => l.member_id === memberId).sort((a, b) => a.run_date.localeCompare(b.run_date)),
+    [runningLogs, memberId]
+  );
+
+  // 월 목록
+  const monthOptions = useMemo(() => {
+    const set = new Set<string>();
+    memberLogs.forEach(l => { const d = new Date(l.run_date); set.add(`${d.getFullYear()}-${d.getMonth() + 1}`); });
+    return Array.from(set).sort().reverse().map(k => {
+      const [y, m] = k.split('-').map(Number);
+      return { key: k, label: y === 2025 ? `'25.${m}월` : `'26.${m}월`, year: y, month: m };
+    });
+  }, [memberLogs]);
+
+  const [filterMonth, setFilterMonth] = useState<string>('all');
+
+  // 차트 데이터
+  const chartData = useMemo(() => {
+    let logs = memberLogs;
+    if (filterMonth !== 'all') {
+      const [fy, fm] = filterMonth.split('-').map(Number);
+      logs = logs.filter(l => { const d = new Date(l.run_date); return d.getFullYear() === fy && d.getMonth() + 1 === fm; });
+    }
+    let cumulative = 0;
+    return logs.map(l => {
+      cumulative += l.distance_km;
+      const d = new Date(l.run_date);
+      return {
+        date: `${d.getMonth() + 1}/${d.getDate()}`,
+        fullDate: l.run_date,
+        거리: l.distance_km,
+        누적: Math.round(cumulative * 10) / 10,
+        duration: l.duration_minutes,
+        memo: l.memo,
+      };
+    });
+  }, [memberLogs, filterMonth]);
+
+  // 평균
+  const avg = chartData.length > 0 ? chartData.reduce((s, d) => s + d.거리, 0) / chartData.length : 0;
+
+  // 테이블용 역순
+  const tableLogs = useMemo(() => [...chartData].reverse(), [chartData]);
+
+  if (memberLogs.length === 0) return null;
+
+  return (
+    <>
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold text-[var(--foreground)]">일별 러닝 거리</h3>
+          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}
+            className="bg-[var(--background)] border border-[var(--card-border)] text-[var(--foreground)] text-xs rounded-lg px-2 py-1 focus:outline-none">
+            <option value="all">전체</option>
+            {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+          </select>
+        </div>
+        <div className="h-56 md:h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
+              <XAxis dataKey="date" tick={{ fill: getTextColor(isDark), fontSize: 10 }} axisLine={{ stroke: getAxisColor(isDark) }} interval={chartData.length > 30 ? Math.floor(chartData.length / 15) : 0} />
+              <YAxis yAxisId="left" tick={{ fill: getTextColor(isDark), fontSize: 10 }} axisLine={{ stroke: getAxisColor(isDark) }} unit="km" />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#8b5cf6', fontSize: 10 }} axisLine={{ stroke: '#8b5cf6' }} unit="km" />
+              <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value, name) => [`${Number(value).toFixed(1)}km`, String(name)]} labelFormatter={(label) => {
+                const item = chartData.find(d => d.date === label);
+                return item ? item.fullDate : label;
+              }} />
+              <ReferenceLine yAxisId="left" y={avg} stroke="#d97706" strokeDasharray="5 5" label={{ value: `평균 ${avg.toFixed(1)}km`, fill: '#d97706', fontSize: 10 }} />
+              <Bar yAxisId="left" dataKey="거리" radius={[4, 4, 0, 0]} barSize={chartData.length > 50 ? 6 : 14}>
+                {chartData.map((e, i) => <Cell key={i} fill={e.거리 >= avg ? '#3b82f6' : isDark ? '#334155' : '#93c5fd'} />)}
+              </Bar>
+              <Line yAxisId="right" type="monotone" dataKey="누적" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex gap-4 mt-3 text-[10px] text-[var(--muted)] justify-center">
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block" /> 일별 거리</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-purple-500 inline-block" /> 누적 거리</span>
+          <span className="flex items-center gap-1"><span className="w-5 h-0 border-t-2 border-dashed border-amber-500 inline-block" /> 평균 {avg.toFixed(1)}km</span>
+        </div>
+      </div>
+
+      <div className="card overflow-hidden !p-0">
+        <h3 className="text-sm font-bold text-[var(--foreground)] p-4 pb-0">일별 러닝 기록 <span className="font-normal text-[var(--muted)]">({tableLogs.length}건)</span></h3>
+        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-[var(--muted)] text-left border-b border-[var(--card-border)]">
+          <th className="py-3 px-4 font-medium text-xs">날짜</th>
+          <th className="py-3 px-4 text-right font-medium text-xs">거리</th>
+          <th className="py-3 px-4 text-right font-medium text-xs">누적</th>
+          <th className="py-3 px-4 text-right font-medium text-xs">시간</th>
+          <th className="py-3 px-4 font-medium text-xs">메모</th>
+        </tr></thead><tbody>
+          {tableLogs.slice(0, 100).map((l, i) => (
+            <tr key={i} className="border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--card-border)]/50">
+              <td className="py-2 px-4 font-mono text-xs text-[var(--muted)]">{l.fullDate}</td>
+              <td className="py-2 px-4 text-right font-mono text-xs font-semibold text-[var(--accent)]">+{l.거리.toFixed(2)}km</td>
+              <td className="py-2 px-4 text-right font-mono text-xs text-purple-600 dark:text-purple-400">{l.누적.toFixed(1)}km</td>
+              <td className="py-2 px-4 text-right font-mono text-xs text-[var(--muted)]">{l.duration ? `${l.duration}분` : '-'}</td>
+              <td className="py-2 px-4 text-xs text-[var(--muted)] truncate max-w-[200px]">{l.memo || '-'}</td>
+            </tr>
+          ))}
+        </tbody></table></div>
+      </div>
+    </>
   );
 }
