@@ -19,7 +19,9 @@ export default function GoalProgress({ year, month }: Props) {
           return (
             <div key={entry.member.id}>
               <div className="flex items-center justify-between mb-1.5">
-                <Link href={`/member/${encodeURIComponent(entry.member.name)}`} className="text-sm text-[var(--foreground)] hover:text-[var(--accent)] transition-colors font-medium">{entry.member.name}</Link>
+                <Link href={`/member/${encodeURIComponent(entry.member.name)}`} className={`text-sm hover:text-[var(--accent)] transition-colors font-medium ${entry.member.status === 'dormant' ? 'text-[var(--muted)] opacity-50' : 'text-[var(--foreground)]'}`}>
+                  {entry.member.status === 'dormant' && <span title="휴면">💤</span>}{entry.member.name}
+                </Link>
                 <span className={`text-xs font-mono ${isFinished ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-[var(--muted)]'}`}>{entry.distance.toFixed(1)} / {entry.goal}km</span>
               </div>
               <div className="relative h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">

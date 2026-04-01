@@ -40,7 +40,10 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold">{member.name[0]}</div>
             <div>
-              <h1 className="text-xl font-bold text-[var(--foreground)]">{member.name}</h1>
+              <h1 className="text-xl font-bold text-[var(--foreground)]">
+                {member.name}
+                {member.status === 'dormant' && <span className="ml-2 text-sm font-normal text-[var(--muted)] bg-amber-500/10 px-2 py-0.5 rounded-full">💤 휴면</span>}
+              </h1>
               <p className="text-xs text-[var(--muted)]">#{member.member_number} · {member.join_location || '-'}{member.join_date && ` · ${member.join_date}`}</p>
               <div className="mt-1.5"><Badges {...getMemberBadges(members, records, runningLogs, member.id)} /></div>
             </div>

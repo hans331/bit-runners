@@ -22,7 +22,9 @@ export default function Leaderboard({ year, month }: Props) {
             <div key={entry.member.id}>
               <div className="flex items-center gap-2 md:gap-3">
                 <span className="w-6 text-center text-xs">{i < 3 ? medals[i] : <span className="text-[var(--muted)] font-mono">{i + 1}</span>}</span>
-                <Link href={`/member/${encodeURIComponent(entry.member.name)}`} className="w-14 md:w-16 text-sm text-[var(--foreground)] hover:text-[var(--accent)] transition-colors truncate font-medium">{entry.member.name}</Link>
+                <Link href={`/member/${encodeURIComponent(entry.member.name)}`} className={`w-14 md:w-16 text-sm hover:text-[var(--accent)] transition-colors truncate font-medium ${entry.member.status === 'dormant' ? 'text-[var(--muted)] opacity-50' : 'text-[var(--foreground)]'}`}>
+                  {entry.member.status === 'dormant' && <span title="휴면">💤</span>}{entry.member.name}
+                </Link>
                 <div className="flex-1 h-7 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden relative">
                   <div className={`h-full rounded-full transition-all duration-700 flex items-center justify-end pr-2 ${isFinisher ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 dark:from-emerald-600 dark:to-emerald-400' : 'bg-gradient-to-r from-blue-400 to-blue-500 dark:from-blue-600 dark:to-blue-400'}`} style={{ width: `${Math.max(barWidth, 8)}%` }}>
                     {barWidth > 25 && <span className="text-[10px] font-bold text-white">{entry.distance.toFixed(1)}km</span>}
