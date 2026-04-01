@@ -8,13 +8,25 @@ import { DataProvider, useData, getTotalDistance, getMemberBadges } from './Data
 import Badges from './Badges';
 
 
-function Header({ sidebarOpen, onToggleSidebar }: { sidebarOpen: boolean; onToggleSidebar: () => void }) {
+function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: boolean; onToggleSidebar: () => void; onMobileMenu: () => void }) {
   const { theme, toggle } = useTheme();
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl">
       <div className="px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          {/* 모바일 햄버거 */}
+          <button
+            onClick={onMobileMenu}
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--card-border)] transition-colors text-[var(--muted)]"
+            aria-label="메뉴"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
           {/* PC 사이드바 토글 */}
           <button
             onClick={onToggleSidebar}
@@ -91,6 +103,7 @@ function Header({ sidebarOpen, onToggleSidebar }: { sidebarOpen: boolean; onTogg
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const isLogPage = pathname === '/log';
 
@@ -98,7 +111,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <ThemeProvider>
       <DataProvider>
         <div className="flex flex-col h-full min-h-screen">
-          <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+          <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen(prev => !prev)} onMobileMenu={() => setMobileOpen(true)} />
           <div className="flex flex-1 overflow-hidden">
             {!isLogPage && (
               <div className={`hidden lg:block transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
@@ -107,7 +120,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 </div>
               </div>
             )}
-            {!isLogPage && <MobileSidebar />}
+            {!isLogPage && <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />}
             <main className="flex-1 overflow-y-auto min-w-0">{children}</main>
           </div>
         </div>
@@ -116,41 +129,24 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   );
 }
 
-function MobileSidebar() {
-  const [open, setOpen] = useState(false);
+function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
 
   return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="lg:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full bg-[var(--accent)] text-white shadow-lg shadow-blue-500/25 flex items-center justify-center active:scale-95 transition-transform"
-        aria-label="멤버 목록"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-      </button>
-
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <aside className="absolute top-0 left-0 bottom-0 w-72 bg-[var(--background)] border-r border-[var(--card-border)] overflow-y-auto animate-slide-in">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--card-border)]">
-              <h2 className="text-sm font-bold text-[var(--foreground)]">Members</h2>
-              <button onClick={() => setOpen(false)} className="text-[var(--muted)] p-1">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <SidebarContent onNavigate={() => setOpen(false)} />
-          </aside>
+    <div className="lg:hidden fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <aside className="absolute top-0 left-0 bottom-0 w-72 bg-[var(--background)] border-r border-[var(--card-border)] overflow-y-auto animate-slide-in">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--card-border)]">
+          <h2 className="text-sm font-bold text-[var(--foreground)]">메뉴</h2>
+          <button onClick={onClose} className="text-[var(--muted)] p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
-      )}
-    </>
+        <SidebarContent onNavigate={onClose} />
+      </aside>
+    </div>
   );
 }
 
