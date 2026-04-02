@@ -17,6 +17,7 @@ export default function AwardsPage() {
     const longRunner = lb.length > 0 ? { name: lb[0].member.name, distance: lb[0].distance } : null;
     const finisherRate = withGoal.length > 0 ? (finishers.length / withGoal.length) * 100 : 0;
     const attendance = getAttendanceWinner(members, runningLogs, y, m);
+    if (y === 2026 && m === 3) console.log('DEBUG 2026-03 attendance:', attendance, 'runningLogs count:', runningLogs.length, 'sample run_date:', runningLogs[0]?.run_date);
     return { year: y, month: m, label: y === 2025 ? `2025년 ${m}월` : `2026년 ${m}월`, finishers, longRunner, finisherRate, attendance };
   }).sort((a, b) => (b.year * 100 + b.month) - (a.year * 100 + a.month));
 
