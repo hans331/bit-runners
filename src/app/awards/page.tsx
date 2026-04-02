@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useData, getLeaderboard, getAttendanceWinner } from '@/components/DataProvider';
+import { useData, getLeaderboard, getAttendanceWinner, getMemberMonthlyRunDays } from '@/components/DataProvider';
 
 export default function AwardsPage() {
   const { members, records, runningLogs, loading } = useData();
@@ -17,7 +17,12 @@ export default function AwardsPage() {
     const longRunner = lb.length > 0 ? { name: lb[0].member.name, distance: lb[0].distance } : null;
     const finisherRate = withGoal.length > 0 ? (finishers.length / withGoal.length) * 100 : 0;
     const attendance = getAttendanceWinner(members, runningLogs, y, m);
-    return { year: y, month: m, label: y === 2025 ? `2025년 ${m}월` : `2026년 ${m}월`, finishers, longRunner, finisherRate, attendance };
+    // 전체 멤버 러닝 일수 (개근상 상세)
+    const runDaysList = members
+      .map(mem => ({ name: mem.name, days: getMemberMonthlyRunDays(runningLogs, mem.id, y, m) }))
+      .filter(e => e.days > 0)
+      .sort((a, b) => b.days - a.days);
+    return { year: y, month: m, label: y === 2025 ? `2025년 ${m}월` : `2026년 ${m}월`, finishers, longRunner, finisherRate, attendance, runDaysList };
   }).sort((a, b) => (b.year * 100 + b.month) - (a.year * 100 + a.month));
 
   // 명예의 전당
@@ -88,10 +93,16 @@ export default function AwardsPage() {
                   </div>
                 )}
                 {a.attendance && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full">🔥 개근상</span>
-                    <Link href={`/member/${encodeURIComponent(a.attendance.member.name)}`} className="text-sm font-medium hover:text-[var(--accent)]">{a.attendance.member.name}</Link>
-                    <span className="text-xs text-[var(--muted)] font-mono">{a.attendance.days}일</span>
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full mt-0.5">🔥 개근상</span>
+                    <div className="flex flex-wrap gap-1">
+                      {a.runDaysList.map((rd, idx) => (
+                        <Link key={rd.name} href={`/member/${encodeURIComponent(rd.name)}`}
+                          className={`text-xs bg-[var(--card-border)] px-2 py-1 rounded-lg hover:text-[var(--accent)] ${idx === 0 ? 'font-bold text-red-500 dark:text-red-400' : 'text-[var(--foreground)]'}`}>
+                          {rd.name} <span className="font-mono text-[var(--muted)]">{rd.days}일</span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {a.finishers.length > 0 && (
