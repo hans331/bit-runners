@@ -16,8 +16,8 @@ export default function DataPage() {
   const monthOptions = useMemo(() => {
     const set = new Set<string>();
     runningLogs.forEach(l => {
-      const d = new Date(l.run_date);
-      set.add(`${d.getFullYear()}-${d.getMonth() + 1}`);
+      const [y, m] = l.run_date.split('-');
+      set.add(`${Number(y)}-${Number(m)}`);
     });
     return Array.from(set).sort().reverse().map(k => {
       const [y, m] = k.split('-').map(Number);
@@ -31,10 +31,7 @@ export default function DataPage() {
     if (filterMember !== 'all') filtered = filtered.filter(l => l.member_id === filterMember);
     if (filterMonth !== 'all') {
       const [fy, fm] = filterMonth.split('-').map(Number);
-      filtered = filtered.filter(l => {
-        const d = new Date(l.run_date);
-        return d.getFullYear() === fy && d.getMonth() + 1 === fm;
-      });
+      filtered = filtered.filter(l => l.run_date.startsWith(`${fy}-${String(fm).padStart(2, '0')}`));
     }
 
     // 날짜 내림차순 정렬
@@ -42,14 +39,15 @@ export default function DataPage() {
 
     // 각 row에 누적 계산
     return filtered.map(l => {
-      const d = new Date(l.run_date);
-      const year = d.getFullYear();
-      const month = d.getMonth() + 1;
+      const [yearStr, monthStr] = l.run_date.split('-');
+      const year = Number(yearStr);
+      const month = Number(monthStr);
       const name = getMemberName(l.member_id);
+      const prefix = `${year}-${String(month).padStart(2, '0')}`;
 
       // 월 누적: 해당 월의 이 멤버 전체 로그 중 이 날짜 이전까지 합산
       const monthCumulative = runningLogs
-        .filter(r => r.member_id === l.member_id && new Date(r.run_date).getFullYear() === year && new Date(r.run_date).getMonth() + 1 === month && r.run_date <= l.run_date)
+        .filter(r => r.member_id === l.member_id && r.run_date.startsWith(prefix) && r.run_date <= l.run_date)
         .reduce((s, r) => s + r.distance_km, 0);
 
       // 총 누적: 이 멤버의 모든 monthly_records 합 + 현재 월 로그 기반

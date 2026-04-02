@@ -5,6 +5,16 @@ import { fetchDashboardData, DailyRun } from '@/lib/supabase-data';
 import { supabase } from '@/lib/supabase';
 import type { Member, MonthlyRecord } from '@/types';
 
+// run_date "YYYY-MM-DD" 문자열에서 년/월/일 추출 (UTC 버그 방지)
+export function parseRunDate(dateStr: string): { year: number; month: number; day: number } {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return { year: y, month: m, day: d };
+}
+
+export function runDateMatchesMonth(dateStr: string, year: number, month: number): boolean {
+  return dateStr.startsWith(`${year}-${String(month).padStart(2, '0')}`);
+}
+
 interface DataContextType {
   members: Member[];
   records: MonthlyRecord[];
@@ -154,20 +164,14 @@ export function getCalendarData(runningLogs: DailyRun[], members: Member[], year
 
 // ===== 월별 러닝 횟수 =====
 export function getMonthlyRunCounts(runningLogs: DailyRun[], memberId: string) {
-  const counts = new Map<string, number>();
+  const daySet = new Set<string>();
   const logs = runningLogs.filter(l => l.member_id === memberId);
   for (const l of logs) {
-    const d = new Date(l.run_date);
-    const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-    // 같은 날 여러 기록은 1회로 카운트
-    const dayKey = `${key}-${d.getDate()}`;
-    if (!counts.has(dayKey)) counts.set(dayKey, 1);
+    daySet.add(l.run_date); // "YYYY-MM-DD" 그대로 사용
   }
-  // 월별로 집계
   const monthly = new Map<string, number>();
-  for (const [dayKey] of counts) {
-    const [y, m] = dayKey.split('-');
-    const monthKey = `${y}-${m}`;
+  for (const dateStr of daySet) {
+    const monthKey = dateStr.substring(0, 7); // "YYYY-MM"
     monthly.set(monthKey, (monthly.get(monthKey) || 0) + 1);
   }
   return monthly;

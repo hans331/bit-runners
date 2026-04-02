@@ -1,7 +1,7 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
-import { useData } from '@/components/DataProvider';
+import { useData, runDateMatchesMonth } from '@/components/DataProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
 
@@ -16,10 +16,7 @@ export default function RunCountChart({ year, month }: Props) {
     .filter(m => m.status === 'active')
     .map(m => {
       const logs = runningLogs.filter(l => l.member_id === m.id);
-      const uniqueDays = new Set(logs.filter(l => {
-        const d = new Date(l.run_date);
-        return d.getFullYear() === year && d.getMonth() + 1 === month;
-      }).map(l => l.run_date));
+      const uniqueDays = new Set(logs.filter(l => runDateMatchesMonth(l.run_date, year, month)).map(l => l.run_date));
       return { name: m.name, count: uniqueDays.size };
     })
     .filter(d => d.count > 0)

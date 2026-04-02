@@ -1,6 +1,6 @@
 'use client';
 
-import { useData, getLeaderboard } from '@/components/DataProvider';
+import { useData, getLeaderboard, runDateMatchesMonth } from '@/components/DataProvider';
 
 interface Props { year?: number; month?: number; }
 
@@ -17,10 +17,7 @@ export default function StatsCards({ year, month }: Props) {
   const activeMembers = leaderboard.filter(e => e.distance > 0).length;
   const avgDistance = activeMembers > 0 ? clubTotal / activeMembers : 0;
 
-  const monthLogs = runningLogs.filter(l => {
-    const d = new Date(l.run_date);
-    return d.getFullYear() === y && d.getMonth() + 1 === m;
-  });
+  const monthLogs = runningLogs.filter(l => runDateMatchesMonth(l.run_date, y, m));
   const totalRuns = new Set(monthLogs.map(l => `${l.member_id}-${l.run_date}`)).size;
 
   const daysInMonth = new Date(y, m, 0).getDate();

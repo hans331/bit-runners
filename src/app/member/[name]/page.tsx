@@ -126,7 +126,7 @@ function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; 
   // 월 목록
   const monthOptions = useMemo(() => {
     const set = new Set<string>();
-    memberLogs.forEach(l => { const d = new Date(l.run_date); set.add(`${d.getFullYear()}-${d.getMonth() + 1}`); });
+    memberLogs.forEach(l => { const [y, m] = l.run_date.split('-'); set.add(`${Number(y)}-${Number(m)}`); });
     return Array.from(set).sort().reverse().map(k => {
       const [y, m] = k.split('-').map(Number);
       return { key: k, label: y === 2025 ? `'25.${m}월` : `'26.${m}월`, year: y, month: m };
@@ -140,14 +140,14 @@ function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; 
     let logs = memberLogs;
     if (filterMonth !== 'all') {
       const [fy, fm] = filterMonth.split('-').map(Number);
-      logs = logs.filter(l => { const d = new Date(l.run_date); return d.getFullYear() === fy && d.getMonth() + 1 === fm; });
+      logs = logs.filter(l => l.run_date.startsWith(`${fy}-${String(fm).padStart(2, '0')}`));
     }
     let cumulative = 0;
     return logs.map(l => {
       cumulative += l.distance_km;
-      const d = new Date(l.run_date);
+      const [, mm, dd] = l.run_date.split('-').map(Number);
       return {
-        date: `${d.getMonth() + 1}/${d.getDate()}`,
+        date: `${mm}/${dd}`,
         fullDate: l.run_date,
         거리: l.distance_km,
         누적: Math.round(cumulative * 10) / 10,
