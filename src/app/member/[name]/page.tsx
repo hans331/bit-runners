@@ -8,6 +8,7 @@ import { useData, getTotalDistance, getMemberRecords, getMemberBadges, getMonthl
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
 import Badges from '@/components/Badges';
+import StravaConnect from '@/components/StravaConnect';
 
 export default function MemberPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = use(params);
@@ -47,6 +48,7 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
               </h1>
               <p className="text-xs text-[var(--muted)]">#{member.member_number} · {member.join_location || '-'}{member.join_date && ` · ${member.join_date}`}</p>
               <div className="mt-1.5"><Badges {...getMemberBadges(members, records, runningLogs, member.id)} /></div>
+              <div className="mt-2"><StravaConnect memberId={member.id} /></div>
             </div>
           </div>
           <div className="flex gap-5 sm:gap-8">
