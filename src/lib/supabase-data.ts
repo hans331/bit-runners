@@ -29,12 +29,22 @@ export async function fetchMonthlyRecords(): Promise<MonthlyRecord[]> {
 }
 
 export async function fetchRunningLogs(): Promise<DailyRun[]> {
-  const { data, error } = await supabase.from('running_logs').select('*').order('run_date');
-  if (error) throw error;
-  return (data || []).map(r => ({
-    id: r.id, member_id: r.member_id, run_date: r.run_date,
-    distance_km: Number(r.distance_km), duration_minutes: r.duration_minutes, memo: r.memo,
-  }));
+  // Supabase 기본 1000건 제한 해제 — 전체 running_logs 가져오기
+  const all: DailyRun[] = [];
+  let from = 0;
+  const PAGE = 1000;
+  while (true) {
+    const { data, error } = await supabase.from('running_logs').select('*').order('run_date').range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data.map(r => ({
+      id: r.id, member_id: r.member_id, run_date: r.run_date,
+      distance_km: Number(r.distance_km), duration_minutes: r.duration_minutes, memo: r.memo,
+    })));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
 }
 
 export async function updateMemberStatus(memberId: string, status: MemberStatus) {
