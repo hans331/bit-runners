@@ -75,15 +75,7 @@
     {
       "name": "이상화",
       "date": "2020-10-19",
-      "distance_km": 3.96,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 60
-    },
-    {
-      "name": "이상화",
-      "date": "2020-10-19",
-      "distance_km": 4.33,
+      "distance_km": 8.29,
       "year": 2026,
       "month": 2,
       "goal_km": 60
@@ -2088,15 +2080,7 @@
     {
       "name": "강수남",
       "date": "2025-09-17",
-      "distance_km": 6.29,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 15
-    },
-    {
-      "name": "강수남",
-      "date": "2025-09-17",
-      "distance_km": 3.02,
+      "distance_km": 9.31,
       "year": 2025,
       "month": 9,
       "goal_km": 15
@@ -2264,15 +2248,7 @@
     {
       "name": "최명훈",
       "date": "2025-09-19",
-      "distance_km": 1.81,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 30
-    },
-    {
-      "name": "최명훈",
-      "date": "2025-09-19",
-      "distance_km": 3.61,
+      "distance_km": 5.42,
       "year": 2025,
       "month": 9,
       "goal_km": 30
@@ -2512,15 +2488,7 @@
     {
       "name": "박현용",
       "date": "2025-09-23",
-      "distance_km": 8.3,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 130
-    },
-    {
-      "name": "박현용",
-      "date": "2025-09-23",
-      "distance_km": 4.9,
+      "distance_km": 13.2,
       "year": 2025,
       "month": 9,
       "goal_km": 130
@@ -2720,15 +2688,7 @@
     {
       "name": "김창옥",
       "date": "2025-09-27",
-      "distance_km": 5.21,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 70
-    },
-    {
-      "name": "김창옥",
-      "date": "2025-09-27",
-      "distance_km": 5.11,
+      "distance_km": 10.32,
       "year": 2025,
       "month": 9,
       "goal_km": 70
@@ -2912,15 +2872,7 @@
     {
       "name": "정성원",
       "date": "2025-09-29",
-      "distance_km": 5.04,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 25
-    },
-    {
-      "name": "정성원",
-      "date": "2025-09-29",
-      "distance_km": 3.67,
+      "distance_km": 8.71,
       "year": 2025,
       "month": 9,
       "goal_km": 25
@@ -2952,15 +2904,7 @@
     {
       "name": "성차민",
       "date": "2025-09-30",
-      "distance_km": 5.1,
-      "year": 2025,
-      "month": 9,
-      "goal_km": 180
-    },
-    {
-      "name": "성차민",
-      "date": "2025-09-30",
-      "distance_km": 9,
+      "distance_km": 14.1,
       "year": 2025,
       "month": 9,
       "goal_km": 180
@@ -3048,15 +2992,7 @@
     {
       "name": "강수남",
       "date": "2025-10-02",
-      "distance_km": 3,
-      "year": 2025,
-      "month": 10,
-      "goal_km": 50
-    },
-    {
-      "name": "강수남",
-      "date": "2025-10-02",
-      "distance_km": 3,
+      "distance_km": 6,
       "year": 2025,
       "month": 10,
       "goal_km": 50
@@ -3418,15 +3354,7 @@
     {
       "name": "박영건",
       "date": "2025-10-08",
-      "distance_km": 2.59,
-      "year": 2025,
-      "month": 10,
-      "goal_km": 30
-    },
-    {
-      "name": "박영건",
-      "date": "2025-10-08",
-      "distance_km": 2.21,
+      "distance_km": 4.8,
       "year": 2025,
       "month": 10,
       "goal_km": 30
@@ -4207,15 +4135,7 @@
     {
       "name": "강수남",
       "date": "2025-10-23",
-      "distance_km": 3,
-      "year": 2025,
-      "month": 10,
-      "goal_km": 50
-    },
-    {
-      "name": "강수남",
-      "date": "2025-10-23",
-      "distance_km": 3,
+      "distance_km": 6,
       "year": 2025,
       "month": 10,
       "goal_km": 50
@@ -4223,7 +4143,7 @@
     {
       "name": "김연주",
       "date": "2025-10-23",
-      "distance_km": 1.21,
+      "distance_km": 0.6,
       "year": 2025,
       "month": 10,
       "goal_km": 30
@@ -4376,15 +4296,7 @@
     {
       "name": "강수남",
       "date": "2025-10-26",
-      "distance_km": 3,
-      "year": 2025,
-      "month": 10,
-      "goal_km": 50
-    },
-    {
-      "name": "강수남",
-      "date": "2025-10-26",
-      "distance_km": 3,
+      "distance_km": 6,
       "year": 2025,
       "month": 10,
       "goal_km": 50
@@ -4553,7 +4465,7 @@
     {
       "name": "김연주",
       "date": "2025-10-29",
-      "distance_km": 2.58,
+      "distance_km": 1.29,
       "year": 2025,
       "month": 10,
       "goal_km": 30
@@ -4665,7 +4577,7 @@
     {
       "name": "김연주",
       "date": "2025-11-02",
-      "distance_km": 8.83,
+      "distance_km": 10.72,
       "year": 2025,
       "month": 10,
       "goal_km": 100
@@ -4673,10 +4585,11 @@
     {
       "name": "김연주",
       "date": "2025-11-02",
-      "distance_km": 42,
+      "distance_km": 52,
       "year": 2025,
       "month": 11,
-      "goal_km": 100
+      "goal_km": null,
+      "estimated": true
     },
     {
       "name": "김창옥",
@@ -4689,15 +4602,7 @@
     {
       "name": "박영건",
       "date": "2025-11-02",
-      "distance_km": 4.58,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 50
-    },
-    {
-      "name": "박영건",
-      "date": "2025-11-02",
-      "distance_km": 13.92,
+      "distance_km": 18.5,
       "year": 2025,
       "month": 11,
       "goal_km": 50
@@ -5016,15 +4921,6 @@
       "goal_km": 50
     },
     {
-      "name": "김연주",
-      "date": "2025-11-08",
-      "distance_km": 5,
-      "year": 2025,
-      "month": 11,
-      "goal_km": null,
-      "estimated": true
-    },
-    {
       "name": "김창옥",
       "date": "2025-11-08",
       "distance_km": 5.1,
@@ -5157,15 +5053,7 @@
     {
       "name": "이지영",
       "date": "2025-11-10",
-      "distance_km": 5.67,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 140
-    },
-    {
-      "name": "이지영",
-      "date": "2025-11-10",
-      "distance_km": 5.63,
+      "distance_km": 11.3,
       "year": 2025,
       "month": 11,
       "goal_km": 140
@@ -5303,15 +5191,7 @@
     {
       "name": "심성재",
       "date": "2025-11-14",
-      "distance_km": 4.01,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 60
-    },
-    {
-      "name": "심성재",
-      "date": "2025-11-14",
-      "distance_km": 10.24,
+      "distance_km": 14.25,
       "year": 2025,
       "month": 11,
       "goal_km": 60
@@ -5502,15 +5382,6 @@
       "goal_km": 50
     },
     {
-      "name": "김연주",
-      "date": "2025-11-17",
-      "distance_km": 5,
-      "year": 2025,
-      "month": 11,
-      "goal_km": null,
-      "estimated": true
-    },
-    {
       "name": "김창옥",
       "date": "2025-11-17",
       "distance_km": 7.01,
@@ -5572,15 +5443,7 @@
     {
       "name": "성차민",
       "date": "2025-11-18",
-      "distance_km": 4.9,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 170
-    },
-    {
-      "name": "성차민",
-      "date": "2025-11-18",
-      "distance_km": 6.4,
+      "distance_km": 11.3,
       "year": 2025,
       "month": 11,
       "goal_km": 170
@@ -5644,15 +5507,7 @@
     {
       "name": "이지영",
       "date": "2025-11-19",
-      "distance_km": 8.4,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 140
-    },
-    {
-      "name": "이지영",
-      "date": "2025-11-19",
-      "distance_km": 8.13,
+      "distance_km": 16.53,
       "year": 2025,
       "month": 11,
       "goal_km": 140
@@ -5741,15 +5596,7 @@
     {
       "name": "김창옥",
       "date": "2025-11-22",
-      "distance_km": 10.01,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 120
-    },
-    {
-      "name": "김창옥",
-      "date": "2025-11-22",
-      "distance_km": 7.01,
+      "distance_km": 17.02,
       "year": 2025,
       "month": 11,
       "goal_km": 120
@@ -5773,15 +5620,7 @@
     {
       "name": "이지영",
       "date": "2025-11-22",
-      "distance_km": 8.2,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 140
-    },
-    {
-      "name": "이지영",
-      "date": "2025-11-22",
-      "distance_km": 7.89,
+      "distance_km": 16.09,
       "year": 2025,
       "month": 11,
       "goal_km": 140
@@ -5829,15 +5668,7 @@
     {
       "name": "성차민",
       "date": "2025-11-23",
-      "distance_km": 5.1,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 170
-    },
-    {
-      "name": "성차민",
-      "date": "2025-11-23",
-      "distance_km": 4.5,
+      "distance_km": 9.6,
       "year": 2025,
       "month": 11,
       "goal_km": 170
@@ -5909,15 +5740,7 @@
     {
       "name": "이승우",
       "date": "2025-11-24",
-      "distance_km": 5.4,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2025-11-24",
-      "distance_km": 6.44,
+      "distance_km": 11.84,
       "year": 2025,
       "month": 11,
       "goal_km": 120
@@ -6061,15 +5884,7 @@
     {
       "name": "김창옥",
       "date": "2025-11-28",
-      "distance_km": 9.02,
-      "year": 2025,
-      "month": 11,
-      "goal_km": 120
-    },
-    {
-      "name": "김창옥",
-      "date": "2025-11-28",
-      "distance_km": 6.25,
+      "distance_km": 15.27,
       "year": 2025,
       "month": 11,
       "goal_km": 120
@@ -6247,15 +6062,7 @@
     {
       "name": "이지영",
       "date": "2025-12-02",
-      "distance_km": 8.05,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 140
-    },
-    {
-      "name": "이지영",
-      "date": "2025-12-02",
-      "distance_km": 8.01,
+      "distance_km": 16.06,
       "year": 2025,
       "month": 12,
       "goal_km": 140
@@ -6484,15 +6291,7 @@
     {
       "name": "김연주",
       "date": "2025-12-07",
-      "distance_km": 12,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 110
-    },
-    {
-      "name": "김연주",
-      "date": "2025-12-07",
-      "distance_km": 13,
+      "distance_km": 25,
       "year": 2025,
       "month": 12,
       "goal_km": 110
@@ -6833,15 +6632,7 @@
     {
       "name": "김연주",
       "date": "2025-12-12",
-      "distance_km": 7,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 110
-    },
-    {
-      "name": "김연주",
-      "date": "2025-12-12",
-      "distance_km": 8,
+      "distance_km": 15,
       "year": 2025,
       "month": 12,
       "goal_km": 110
@@ -7368,15 +7159,7 @@
     {
       "name": "김창옥",
       "date": "2025-12-21",
-      "distance_km": 7.02,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 130
-    },
-    {
-      "name": "김창옥",
-      "date": "2025-12-21",
-      "distance_km": 7.05,
+      "distance_km": 14.07,
       "year": 2025,
       "month": 12,
       "goal_km": 130
@@ -7512,15 +7295,7 @@
     {
       "name": "최명훈",
       "date": "2025-12-23",
-      "distance_km": 7.67,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 70
-    },
-    {
-      "name": "최명훈",
-      "date": "2025-12-23",
-      "distance_km": 8.67,
+      "distance_km": 16.34,
       "year": 2025,
       "month": 12,
       "goal_km": 70
@@ -7800,15 +7575,7 @@
     {
       "name": "이상화",
       "date": "2025-12-28",
-      "distance_km": 6,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 50
-    },
-    {
-      "name": "이상화",
-      "date": "2025-12-28",
-      "distance_km": 4,
+      "distance_km": 10,
       "year": 2025,
       "month": 12,
       "goal_km": 50
@@ -7896,23 +7663,7 @@
     {
       "name": "이승우",
       "date": "2025-12-29",
-      "distance_km": 28.36,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2025-12-29",
-      "distance_km": 3.56,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2025-12-29",
-      "distance_km": 4.63,
+      "distance_km": 36.55,
       "year": 2025,
       "month": 12,
       "goal_km": 120
@@ -8016,15 +7767,7 @@
     {
       "name": "강수남",
       "date": "2025-12-31",
-      "distance_km": 11.65,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 60
-    },
-    {
-      "name": "강수남",
-      "date": "2025-12-31",
-      "distance_km": 13.51,
+      "distance_km": 25.16,
       "year": 2025,
       "month": 12,
       "goal_km": 60
@@ -8056,15 +7799,7 @@
     {
       "name": "이상화",
       "date": "2025-12-31",
-      "distance_km": 4,
-      "year": 2025,
-      "month": 12,
-      "goal_km": 50
-    },
-    {
-      "name": "이상화",
-      "date": "2025-12-31",
-      "distance_km": 1,
+      "distance_km": 5,
       "year": 2025,
       "month": 12,
       "goal_km": 50
@@ -8312,15 +8047,7 @@
     {
       "name": "이상화",
       "date": "2026-01-05",
-      "distance_km": 3.28,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 50
-    },
-    {
-      "name": "이상화",
-      "date": "2026-01-05",
-      "distance_km": 2.01,
+      "distance_km": 5.29,
       "year": 2026,
       "month": 1,
       "goal_km": 50
@@ -8424,15 +8151,7 @@
     {
       "name": "윤화식",
       "date": "2026-01-07",
-      "distance_km": 2.03,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 50
-    },
-    {
-      "name": "윤화식",
-      "date": "2026-01-07",
-      "distance_km": 3.9,
+      "distance_km": 5.93,
       "year": 2026,
       "month": 1,
       "goal_km": 50
@@ -8801,15 +8520,7 @@
     {
       "name": "이승우",
       "date": "2026-01-14",
-      "distance_km": 5.1,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2026-01-14",
-      "distance_km": 5.83,
+      "distance_km": 10.93,
       "year": 2026,
       "month": 1,
       "goal_km": 120
@@ -8817,15 +8528,7 @@
     {
       "name": "이지영",
       "date": "2026-01-14",
-      "distance_km": 8,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 145
-    },
-    {
-      "name": "이지영",
-      "date": "2026-01-14",
-      "distance_km": 8,
+      "distance_km": 16,
       "year": 2026,
       "month": 1,
       "goal_km": 145
@@ -8914,15 +8617,7 @@
     {
       "name": "성차민",
       "date": "2026-01-16",
-      "distance_km": 3.8,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 100
-    },
-    {
-      "name": "성차민",
-      "date": "2026-01-16",
-      "distance_km": 2,
+      "distance_km": 5.8,
       "year": 2026,
       "month": 1,
       "goal_km": 100
@@ -9122,15 +8817,7 @@
     {
       "name": "이승우",
       "date": "2026-01-19",
-      "distance_km": 4.62,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2026-01-19",
-      "distance_km": 3.9,
+      "distance_km": 8.52,
       "year": 2026,
       "month": 1,
       "goal_km": 120
@@ -9698,15 +9385,7 @@
     {
       "name": "이지영",
       "date": "2026-01-31",
-      "distance_km": 8,
-      "year": 2026,
-      "month": 1,
-      "goal_km": 145
-    },
-    {
-      "name": "이지영",
-      "date": "2026-01-31",
-      "distance_km": 8,
+      "distance_km": 16,
       "year": 2026,
       "month": 1,
       "goal_km": 145
@@ -10000,15 +9679,7 @@
     {
       "name": "이승우",
       "date": "2026-02-06",
-      "distance_km": 5.23,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 120
-    },
-    {
-      "name": "이승우",
-      "date": "2026-02-06",
-      "distance_km": 4.68,
+      "distance_km": 9.91,
       "year": 2026,
       "month": 2,
       "goal_km": 120
@@ -10338,15 +10009,7 @@
     {
       "name": "오민혁",
       "date": "2026-02-13",
-      "distance_km": 19.23,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 120
-    },
-    {
-      "name": "오민혁",
-      "date": "2026-02-13",
-      "distance_km": 3.06,
+      "distance_km": 22.29,
       "year": 2026,
       "month": 2,
       "goal_km": 120
@@ -10842,15 +10505,7 @@
     {
       "name": "심성재",
       "date": "2026-02-21",
-      "distance_km": 6.33,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 60
-    },
-    {
-      "name": "심성재",
-      "date": "2026-02-21",
-      "distance_km": 6,
+      "distance_km": 12.33,
       "year": 2026,
       "month": 2,
       "goal_km": 60
@@ -10930,15 +10585,7 @@
     {
       "name": "윤화식",
       "date": "2026-02-22",
-      "distance_km": 3.05,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 50
-    },
-    {
-      "name": "윤화식",
-      "date": "2026-02-22",
-      "distance_km": 6.82,
+      "distance_km": 9.87,
       "year": 2026,
       "month": 2,
       "goal_km": 50
@@ -10978,18 +10625,10 @@
     {
       "name": "김창옥",
       "date": "2026-02-23",
-      "distance_km": 5,
+      "distance_km": 10,
       "year": 2026,
       "month": 2,
       "goal_km": 100
-    },
-    {
-      "name": "김창옥",
-      "date": "2026-02-23",
-      "distance_km": 5,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 110
     },
     {
       "name": "김태현",
@@ -11178,15 +10817,7 @@
     {
       "name": "최명훈",
       "date": "2026-02-25",
-      "distance_km": 15.18,
-      "year": 2026,
-      "month": 2,
-      "goal_km": 70
-    },
-    {
-      "name": "최명훈",
-      "date": "2026-02-25",
-      "distance_km": 6.47,
+      "distance_km": 21.65,
       "year": 2026,
       "month": 2,
       "goal_km": 70
@@ -12066,15 +11697,7 @@
     {
       "name": "심성재",
       "date": "2026-03-15",
-      "distance_km": 6.47,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 60
-    },
-    {
-      "name": "심성재",
-      "date": "2026-03-15",
-      "distance_km": 10,
+      "distance_km": 16.47,
       "year": 2026,
       "month": 3,
       "goal_km": 60
@@ -12234,15 +11857,7 @@
     {
       "name": "윤화식",
       "date": "2026-03-19",
-      "distance_km": 2.49,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 50
-    },
-    {
-      "name": "윤화식",
-      "date": "2026-03-19",
-      "distance_km": 3,
+      "distance_km": 5.49,
       "year": 2026,
       "month": 3,
       "goal_km": 50
@@ -12338,15 +11953,7 @@
     {
       "name": "박영건",
       "date": "2026-03-22",
-      "distance_km": 7.76,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 50
-    },
-    {
-      "name": "박영건",
-      "date": "2026-03-22",
-      "distance_km": 8.43,
+      "distance_km": 16.19,
       "year": 2026,
       "month": 3,
       "goal_km": 50
@@ -12394,15 +12001,7 @@
     {
       "name": "최철용",
       "date": "2026-03-22",
-      "distance_km": 11.74,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 200
-    },
-    {
-      "name": "최철용",
-      "date": "2026-03-22",
-      "distance_km": 12.11,
+      "distance_km": 23.85,
       "year": 2026,
       "month": 3,
       "goal_km": 200
@@ -12458,15 +12057,7 @@
     {
       "name": "이승우",
       "date": "2026-03-23",
-      "distance_km": 1.62,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 100
-    },
-    {
-      "name": "이승우",
-      "date": "2026-03-23",
-      "distance_km": 4.81,
+      "distance_km": 6.43,
       "year": 2026,
       "month": 3,
       "goal_km": 100
@@ -12530,15 +12121,7 @@
     {
       "name": "이승우",
       "date": "2026-03-24",
-      "distance_km": 5.98,
-      "year": 2026,
-      "month": 3,
-      "goal_km": 100
-    },
-    {
-      "name": "이승우",
-      "date": "2026-03-24",
-      "distance_km": 5.12,
+      "distance_km": 11.1,
       "year": 2026,
       "month": 3,
       "goal_km": 100
@@ -13883,20 +13466,8 @@
     }
   ],
   "metadata": {
-    "parsedAt": "2026-04-01T23:35:11.046Z",
-    "totalRuns": 1589,
-    "estimatedRuns": 271,
-    "months": [
-      "2025-07",
-      "2025-08",
-      "2025-09",
-      "2025-10",
-      "2025-11",
-      "2025-12",
-      "2026-01",
-      "2026-02",
-      "2026-03",
-      "2026-04"
-    ]
+    "parsedAt": "2026-04-02T01:26:58.578Z",
+    "totalRuns": 1537,
+    "estimatedRuns": 270
   }
 }
