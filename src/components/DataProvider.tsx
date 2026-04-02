@@ -79,11 +79,11 @@ export function getAllTimeLeaderboard(members: Member[], records: MonthlyRecord[
 
 // ===== 월별 멤버별 러닝 일수 계산 =====
 export function getMemberMonthlyRunDays(runningLogs: DailyRun[], memberId: string, year: number, month: number): number {
+  const prefix = `${year}-${String(month).padStart(2, '0')}`;
   const days = new Set<string>();
   for (const l of runningLogs) {
     if (l.member_id !== memberId) continue;
-    const d = new Date(l.run_date);
-    if (d.getFullYear() === year && d.getMonth() + 1 === month && l.distance_km >= 3) {
+    if (l.run_date.startsWith(prefix)) {
       days.add(l.run_date);
     }
   }

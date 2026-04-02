@@ -41,7 +41,7 @@ export default function AwardsPage() {
         {[
           { title: '🏆 영광의 롱러너', sub: '월간 최장 거리 달성', data: getHof('longRun'), color: 'amber' },
           { title: '🏅 영광의 피니셔', sub: '월 목표 달성 횟수', data: getHof('finisher'), color: 'emerald' },
-          { title: '🔥 영광의 개근왕', sub: '월간 러닝 횟수 1위', data: getHof('attendance'), color: 'red' },
+          { title: '🔥 영광의 개근상', sub: '월간 러닝 횟수 1위', data: getHof('attendance'), color: 'red' },
         ].map(hof => (
           <div key={hof.title} className="card">
             <h3 className={`text-base font-bold mb-1 ${
@@ -89,7 +89,7 @@ export default function AwardsPage() {
                 )}
                 {a.attendance && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full">🔥 개근왕</span>
+                    <span className="text-xs font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full">🔥 개근상</span>
                     <Link href={`/member/${encodeURIComponent(a.attendance.member.name)}`} className="text-sm font-medium hover:text-[var(--accent)]">{a.attendance.member.name}</Link>
                     <span className="text-xs text-[var(--muted)] font-mono">{a.attendance.days}일</span>
                   </div>
