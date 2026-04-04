@@ -1,22 +1,21 @@
 'use client';
 
-import { use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList, ComposedChart, Area } from 'recharts';
-import { useData, getTotalDistance, getMemberRecords, getMemberBadges, getMonthlyRunCounts } from '@/components/DataProvider';
+import { useState, useMemo, Suspense } from 'react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, LabelList, ComposedChart } from 'recharts';
+import { useData, getTotalDistance, getMemberRecords, getMemberBadges } from '@/components/DataProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { getTooltipStyle, getAxisColor, getTextColor } from '@/lib/chart-theme';
 import Badges from '@/components/Badges';
 
-
-export default function MemberPage({ params }: { params: Promise<{ name: string }> }) {
-  const { name } = use(params);
+function MemberPageContent() {
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name') || '';
   const { theme } = useTheme();
   const { members, records, runningLogs, loading } = useData();
   const isDark = theme === 'dark';
-  const decodedName = decodeURIComponent(name);
-  const member = members.find(m => m.name === decodedName);
+  const member = members.find(m => m.name === name);
 
   if (loading) return <div className="max-w-5xl mx-auto px-6 py-6"><div className="card animate-pulse h-96" /></div>;
   if (!member) return <div className="max-w-4xl mx-auto px-4 py-16 text-center"><h2 className="text-xl">멤버를 찾을 수 없습니다</h2><Link href="/" className="text-[var(--accent)] hover:underline mt-4 inline-block">대시보드로 돌아가기</Link></div>;
@@ -44,7 +43,7 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
             <div>
               <h1 className="text-xl font-bold text-[var(--foreground)]">
                 {member.name}
-                {member.status === 'dormant' && <span className="ml-2 text-sm font-normal text-[var(--muted)] bg-amber-500/10 px-2 py-0.5 rounded-full">💤 휴면</span>}
+                {member.status === 'dormant' && <span className="ml-2 text-sm font-normal text-[var(--muted)] bg-amber-500/10 px-2 py-0.5 rounded-full">휴면</span>}
               </h1>
               <p className="text-xs text-[var(--muted)]">#{member.member_number} · {member.join_location || '-'}{member.join_date && ` · ${member.join_date}`}</p>
               <div className="mt-1.5"><Badges {...getMemberBadges(members, records, runningLogs, member.id)} /></div>
@@ -107,14 +106,21 @@ export default function MemberPage({ params }: { params: Promise<{ name: string 
               <td className="py-2.5 px-4 text-right text-[var(--muted)] font-mono text-xs">{r.goal_km > 0 ? `${r.goal_km}km` : '-'}</td>
               <td className="py-2.5 px-4 text-right font-mono text-xs font-semibold">{r.achieved_km > 0 ? `${r.achieved_km.toFixed(1)}km` : '-'}</td>
               <td className={`py-2.5 px-4 text-right font-mono text-xs font-semibold ${isF ? 'text-emerald-600 dark:text-emerald-400' : rate >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-[var(--muted)]'}`}>{r.goal_km > 0 && r.achieved_km > 0 ? `${rate.toFixed(0)}%` : '-'}</td>
-              <td className="py-2.5 px-4 text-center">{isF ? <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">✓ 달성</span> : r.achieved_km === 0 ? <span className="text-[10px] text-[var(--muted)]">-</span> : <span className="text-[10px] text-[var(--muted)] bg-slate-500/10 px-2 py-0.5 rounded-full">미달</span>}</td>
+              <td className="py-2.5 px-4 text-center">{isF ? <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">달성</span> : r.achieved_km === 0 ? <span className="text-[10px] text-[var(--muted)]">-</span> : <span className="text-[10px] text-[var(--muted)] bg-slate-500/10 px-2 py-0.5 rounded-full">미달</span>}</td>
             </tr>;
           })}
         </tbody></table></div>
       </div>
-      {/* 일별 러닝 차트 + 기록 */}
       <DailyRunSection memberId={member.id} runningLogs={runningLogs} isDark={isDark} />
     </div>
+  );
+}
+
+export default function MemberPage() {
+  return (
+    <Suspense fallback={<div className="max-w-5xl mx-auto px-6 py-6"><div className="card animate-pulse h-96" /></div>}>
+      <MemberPageContent />
+    </Suspense>
   );
 }
 
@@ -124,7 +130,6 @@ function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; 
     [runningLogs, memberId]
   );
 
-  // 월 목록
   const monthOptions = useMemo(() => {
     const set = new Set<string>();
     memberLogs.forEach(l => { const [y, m] = l.run_date.split('-'); set.add(`${Number(y)}-${Number(m)}`); });
@@ -136,7 +141,6 @@ function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; 
 
   const [filterMonth, setFilterMonth] = useState<string>('all');
 
-  // 차트 데이터
   const chartData = useMemo(() => {
     let logs = memberLogs;
     if (filterMonth !== 'all') {
@@ -158,10 +162,7 @@ function DailyRunSection({ memberId, runningLogs, isDark }: { memberId: string; 
     });
   }, [memberLogs, filterMonth]);
 
-  // 평균
   const avg = chartData.length > 0 ? chartData.reduce((s, d) => s + d.거리, 0) / chartData.length : 0;
-
-  // 테이블용 역순
   const tableLogs = useMemo(() => [...chartData].reverse(), [chartData]);
 
   if (memberLogs.length === 0) return null;

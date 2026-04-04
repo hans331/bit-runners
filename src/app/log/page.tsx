@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useData } from '@/components/DataProvider';
 import { addRunningLog } from '@/lib/supabase-data';
+import HealthSyncButton from '@/components/HealthSyncButton';
 
 export default function LogPage() {
   const { members, refresh } = useData();
@@ -49,6 +50,20 @@ export default function LogPage() {
         <h1 className="text-xl font-bold text-[var(--foreground)]">러닝 기록 입력</h1>
         <p className="text-sm text-[var(--muted)] mt-1">달린 후 바로 기록하세요</p>
       </div>
+      {/* 건강 데이터 자동 동기화 */}
+      {selectedMember && (
+        <HealthSyncButton memberId={selectedMember} onSyncComplete={refresh} />
+      )}
+      {!selectedMember && (
+        <HealthSyncButton memberId="" onSyncComplete={refresh} />
+      )}
+
+      <div className="relative flex items-center gap-3 my-2">
+        <div className="flex-1 border-t border-[var(--card-border)]" />
+        <span className="text-xs text-[var(--muted)] font-medium">또는 직접 입력</span>
+        <div className="flex-1 border-t border-[var(--card-border)]" />
+      </div>
+
       {submitted && <div className="bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-3 text-center"><p className="text-emerald-600 dark:text-emerald-400 font-medium text-sm">저장 완료! 대시보드에 반영됩니다.</p></div>}
       {error && <div className="bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl p-3 text-center"><p className="text-red-600 dark:text-red-400 font-medium text-sm">{error}</p></div>}
       <form onSubmit={handleSubmit} className="card space-y-4">

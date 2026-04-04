@@ -188,10 +188,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           return (
             <Link
               key={m.id}
-              href={`/member/${encodeURIComponent(m.name)}`}
+              href={`/member?name=${encodeURIComponent(m.name)}`}
               onClick={onNavigate}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-[15px] transition-all
-                ${isActive(`/member/${encodeURIComponent(m.name)}`)
+                ${pathname === '/member' && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('name') === m.name
                   ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold'
                   : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
                 }`}
@@ -217,10 +217,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             {dormantMembers.map((m: { id: string; name: string; total: number }) => (
               <Link
                 key={m.id}
-                href={`/member/${encodeURIComponent(m.name)}`}
+                href={`/member?name=${encodeURIComponent(m.name)}`}
                 onClick={onNavigate}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-[15px] transition-all
-                  ${isActive(`/member/${encodeURIComponent(m.name)}`)
+                  ${pathname === '/member' && new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('name') === m.name
                     ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold'
                     : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
                   }`}

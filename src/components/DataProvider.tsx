@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { fetchDashboardData, DailyRun } from '@/lib/supabase-data';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import type { Member, MonthlyRecord } from '@/types';
 
 // run_date "YYYY-MM-DD" 문자열에서 년/월/일 추출 (UTC 버그 방지)
@@ -195,12 +195,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refresh();
-    const channel = supabase.channel('dashboard')
+    const sb = getSupabase();
+    const channel = sb.channel('dashboard')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => refresh())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'monthly_records' }, () => refresh())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'running_logs' }, () => refresh())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { sb.removeChannel(channel); };
   }, [refresh]);
 
   return <DataContext.Provider value={{ members, records, runningLogs, loading, refresh }}>{children}</DataContext.Provider>;
