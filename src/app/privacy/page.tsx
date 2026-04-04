@@ -1,0 +1,46 @@
+export default function PrivacyPage() {
+  return (
+    <div className="max-w-2xl mx-auto px-6 py-10 text-[var(--foreground)]">
+      <h1 className="text-2xl font-bold mb-2">BIT Runners 개인정보처리방침</h1>
+      <p className="text-sm text-[var(--muted)] mb-8">시행일: 2026년 4월 4일</p>
+
+      <section className="space-y-6 text-sm leading-relaxed">
+        <div>
+          <h2 className="text-lg font-semibold mb-2">1. 수집하는 정보</h2>
+          <p>• 이름, 러닝 기록 (거리, 시간, 날짜)</p>
+          <p>• Health Connect를 통한 운동 데이터 (사용자 동의 시에만)</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">2. 정보의 사용 목적</h2>
+          <p>• 러닝 기록 관리 및 통계 제공</p>
+          <p>• 모임 내 리더보드 및 목표 달성 현황 표시</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">3. 정보의 공유</h2>
+          <p>• 같은 러닝 모임 멤버에게 러닝 거리 및 순위가 공유됩니다</p>
+          <p>• 제3자에게 개인정보를 판매하거나 제공하지 않습니다</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">4. 건강 데이터</h2>
+          <p>• Health Connect를 통해 읽는 데이터: 운동 세션, 이동 거리</p>
+          <p>• 건강 데이터는 러닝 기록 동기화 목적으로만 사용됩니다</p>
+          <p>• 사용자가 언제든지 접근 권한을 철회할 수 있습니다</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">5. 데이터 보관</h2>
+          <p>• 데이터는 Supabase 클라우드에 안전하게 저장됩니다</p>
+          <p>• 사용자 요청 시 데이터를 삭제합니다</p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">6. 연락처</h2>
+          <p>• 개인정보 관련 문의: openhan.corp@gmail.com</p>
+        </div>
+      </section>
+    </div>
+  );
+}
