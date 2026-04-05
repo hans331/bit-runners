@@ -35,12 +35,7 @@ EOF
 
 # 3. Info.plist에 HealthKit 권한 설명 추가
 echo "→ Info.plist 업데이트..."
-if ! grep -q "NSHealthShareUsageDescription" "$IOS_APP/Info.plist"; then
-  sed -i '' 's|<key>UIViewControllerBasedStatusBarAppearance</key>|<key>UIViewControllerBasedStatusBarAppearance</key>\
-	<true/>\
-	<key>NSHealthShareUsageDescription</key>\
-	<string>러닝 거리를 자동으로 기록하기 위해 건강 데이터에 접근합니다.</string>|' "$IOS_APP/Info.plist"
-fi
+python3 "$SCRIPT_DIR/patch_infoplist.py" "$IOS_APP/Info.plist"
 
 # 4. project.pbxproj 패치 — 플러그인 파일, entitlements, signing team 추가
 echo "→ Xcode 프로젝트 설정 패치..."
