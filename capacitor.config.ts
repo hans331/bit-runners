@@ -7,6 +7,7 @@ const config: CapacitorConfig = {
   server: {
     // Capacitor에서 외부 URL 로드 허용 (Supabase 등)
     androidScheme: 'https',
+    iosScheme: 'https',
   },
   plugins: {
     SplashScreen: {

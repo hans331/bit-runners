@@ -197,13 +197,191 @@ async function syncViaDistanceAggregate(
   }
 }
 
-// HealthKit (iOS) 동기화 - Mac에서 빌드 후 구현 예정
-async function syncFromHealthKit(_memberId: string): Promise<SyncResult> {
-  return {
-    success: false,
-    message: 'iOS HealthKit 동기화는 준비 중입니다. Mac에서 빌드 후 사용 가능합니다.',
-    synced: 0,
-  };
+// HealthKit (iOS) 동기화
+async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
+  if (getPlatform() !== 'ios') {
+    return { success: false, message: 'iOS가 아닙니다', synced: 0 };
+  }
+
+  try {
+    const { CapacitorHealthkit, SampleNames } = await import('@perfood/capacitor-healthkit');
+
+    // HealthKit 사용 가능 여부 확인
+    try {
+      await CapacitorHealthkit.isAvailable();
+    } catch {
+      return { success: false, message: '이 기기에서 HealthKit을 사용할 수 없습니다.', synced: 0 };
+    }
+
+    // 권한 요청
+    await CapacitorHealthkit.requestAuthorization({
+      all: [''],
+      read: ['activity', 'distance', 'duration', 'calories'],
+      write: [''],
+    });
+
+    // 최근 7일 데이터
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // 워크아웃(운동 세션) 조회
+    const { resultData } = await CapacitorHealthkit.queryHKitSampleType<{
+      startDate: string;
+      endDate: string;
+      totalDistance: number;
+      duration: number;
+      workoutActivityName: string;
+      uuid: string;
+    }>({
+      sampleName: SampleNames.WORKOUT_TYPE,
+      startDate: weekAgo.toISOString(),
+      endDate: now.toISOString(),
+      limit: 0,
+    });
+
+    // 러닝/조깅 세션만 필터
+    const runningSessions = (resultData || []).filter((r) => {
+      const name = (r.workoutActivityName || '').toLowerCase();
+      return name.includes('running') || name.includes('jogging') || name.includes('run');
+    });
+
+    if (runningSessions.length === 0) {
+      // 워크아웃에 러닝이 없으면 걷기+달리기 거리로 대체 시도
+      return await syncViaHealthKitDistance(memberId, weekAgo, now);
+    }
+
+    let syncedCount = 0;
+    const supabase = getSupabase();
+
+    for (const session of runningSessions) {
+      const startTime = session.startDate;
+      if (!startTime) continue;
+
+      const runDate = startTime.split('T')[0];
+      const distanceKm = session.totalDistance
+        ? Number(session.totalDistance) / 1000
+        : 0;
+      const durationMinutes = session.duration
+        ? Math.round(Number(session.duration) / 60)
+        : null;
+
+      if (distanceKm < 0.1) continue;
+
+      // 중복 체크
+      const { data: existing } = await supabase
+        .from('running_logs')
+        .select('id, distance_km')
+        .eq('member_id', memberId)
+        .eq('run_date', runDate);
+
+      const isDuplicate = (existing || []).some(
+        (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.1
+      );
+      if (isDuplicate) continue;
+
+      const { error } = await supabase.from('running_logs').insert({
+        member_id: memberId,
+        run_date: runDate,
+        distance_km: Math.round(distanceKm * 100) / 100,
+        duration_minutes: durationMinutes && durationMinutes > 0 ? durationMinutes : null,
+        memo: 'HealthKit 자동 동기화',
+      });
+
+      if (!error) {
+        syncedCount++;
+        await updateMonthlyRecord(memberId, runDate, supabase);
+      }
+    }
+
+    return {
+      success: true,
+      message: syncedCount > 0
+        ? `${syncedCount}건의 러닝 기록을 동기화했습니다!`
+        : '새로운 기록이 없습니다 (이미 동기화됨).',
+      synced: syncedCount,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { success: false, message: `동기화 실패: ${message}`, synced: 0 };
+  }
+}
+
+// HealthKit 걷기+달리기 거리로 대체 동기화
+async function syncViaHealthKitDistance(
+  memberId: string,
+  start: Date,
+  end: Date
+): Promise<SyncResult> {
+  try {
+    const { CapacitorHealthkit, SampleNames } = await import('@perfood/capacitor-healthkit');
+
+    const { resultData } = await CapacitorHealthkit.queryHKitSampleType<{
+      startDate: string;
+      endDate: string;
+      value: number;
+      uuid: string;
+    }>({
+      sampleName: SampleNames.DISTANCE_WALKING_RUNNING,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      limit: 0,
+    });
+
+    if (!resultData || resultData.length === 0) {
+      return { success: true, message: '최근 7일간 운동 기록이 없습니다.', synced: 0 };
+    }
+
+    // 일별로 거리 합산
+    const dailyDistance: Record<string, number> = {};
+    for (const record of resultData) {
+      const date = record.startDate.split('T')[0];
+      const distanceKm = Number(record.value) / 1000;
+      dailyDistance[date] = (dailyDistance[date] || 0) + distanceKm;
+    }
+
+    let syncedCount = 0;
+    const supabase = getSupabase();
+
+    for (const [runDate, distanceKm] of Object.entries(dailyDistance)) {
+      if (distanceKm < 0.5) continue; // 500m 미만 무시
+
+      // 중복 체크
+      const { data: existing } = await supabase
+        .from('running_logs')
+        .select('id, distance_km')
+        .eq('member_id', memberId)
+        .eq('run_date', runDate);
+
+      const isDuplicate = (existing || []).some(
+        (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.5
+      );
+      if (isDuplicate) continue;
+
+      const { error } = await supabase.from('running_logs').insert({
+        member_id: memberId,
+        run_date: runDate,
+        distance_km: Math.round(distanceKm * 100) / 100,
+        duration_minutes: null,
+        memo: 'HealthKit 자동 동기화 (일별 합산)',
+      });
+
+      if (!error) {
+        syncedCount++;
+        await updateMonthlyRecord(memberId, runDate, supabase);
+      }
+    }
+
+    return {
+      success: true,
+      message: syncedCount > 0
+        ? `${syncedCount}건의 러닝 기록을 동기화했습니다!`
+        : '새로운 기록이 없습니다 (이미 동기화됨).',
+      synced: syncedCount,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { success: false, message: `거리 데이터 동기화 실패: ${message}`, synced: 0 };
+  }
 }
 
 // monthly_records 업데이트 헬퍼
