@@ -125,6 +125,15 @@ jobs:
               <string>app-store-connect</string>
               <key>teamID</key>
               <string>${{ secrets.TEAM_ID }}</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.bitrunners.app</key>
+                  <string>BIT Runners App Store</string>
+              </dict>
+              <key>signingCertificate</key>
+              <string>Apple Distribution</string>
           </dict>
           </plist>
           EOF
