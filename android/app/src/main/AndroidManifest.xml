@@ -56,11 +56,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Health Connect 권한 -->
+    <!-- Health Connect 권한 (러닝 기록 동기화에 필요) -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
-    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
-    <uses-permission android:name="android.permission.health.READ_STEPS" />
 
     <!-- Health Connect를 지원하는지 검사 -->
     <queries>
