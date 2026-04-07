@@ -43,4 +43,8 @@ PBXPROJ="$PROJECT_ROOT/ios/App/App.xcodeproj/project.pbxproj"
 
 python3 "$SCRIPT_DIR/patch_pbxproj.py" "$PBXPROJ"
 
+# 5. 앱 아이콘 교체
+echo "→ 앱 아이콘 교체..."
+cp "$SCRIPT_DIR/AppIcon-1024.png" "$IOS_APP/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+
 echo "=== iOS 설정 완료 ==="
