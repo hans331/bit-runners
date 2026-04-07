@@ -15,7 +15,7 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
     <header className="sticky top-0 z-50 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl">
       <div className="px-4 h-16 flex items-center justify-between">
         {/* 좌: 햄버거 메뉴 */}
-        <div className="flex items-center w-20">
+        <div className="flex items-center w-20 pl-2">
           <button
             onClick={onMobileMenu}
             className="lg:hidden w-11 h-11 flex items-center justify-center rounded-2xl hover:bg-[var(--card-border)] active:scale-95 transition-all text-[var(--foreground)]"
