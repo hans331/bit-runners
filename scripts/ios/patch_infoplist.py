@@ -7,11 +7,12 @@ def patch(path):
     with open(path, 'rb') as f:
         plist = plistlib.load(f)
 
-    if 'NSHealthShareUsageDescription' in plist:
+    if 'NSHealthShareUsageDescription' in plist and 'NSHealthUpdateUsageDescription' in plist:
         print("  Already patched, skipping.")
         return
 
     plist['NSHealthShareUsageDescription'] = '러닝 거리를 자동으로 기록하기 위해 건강 데이터에 접근합니다.'
+    plist['NSHealthUpdateUsageDescription'] = '러닝 기록을 건강 앱에 저장하기 위해 접근합니다.'
 
     # Add healthkit to required device capabilities
     capabilities = plist.get('UIRequiredDeviceCapabilities', [])
