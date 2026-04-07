@@ -38,6 +38,12 @@ jobs:
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: bash scripts/ios/setup.sh
 
+      - name: Set build number
+        run: |
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i '' "s/CURRENT_PROJECT_VERSION = 1/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/g" ios/App/App.xcodeproj/project.pbxproj
+          echo "Build number: $BUILD_NUMBER"
+
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
