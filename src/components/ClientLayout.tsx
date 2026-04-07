@@ -12,7 +12,7 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
   const { theme, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
       <div className="px-4 h-16 flex items-center justify-between">
         {/* 좌: 햄버거 메뉴 */}
         <div className="flex items-center w-20 pl-2">
