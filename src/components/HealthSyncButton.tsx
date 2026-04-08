@@ -90,7 +90,7 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
           <p className={`font-medium text-sm ${
             result.success
               ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-amber-600 dark:text-amber-400'
+              : 'text-gray-700 dark:text-gray-300'
           }`}>
             {result.message}
           </p>

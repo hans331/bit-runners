@@ -45,47 +45,59 @@ async function syncFromHealthConnect(memberId: string): Promise<SyncResult> {
       return { success: false, message: '운동 기록 읽기 권한이 필요합니다. 설정에서 권한을 허용해주세요.', synced: 0 };
     }
 
-    // 최근 7일 데이터
+    // 2025년 1월 1일부터 현재까지
     const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startDate = new Date('2025-01-01T00:00:00');
 
     // ActivitySession에서 러닝 기록 읽기
     const { records } = await HealthConnect.readRecords({
       type: 'ActivitySession',
-      start: weekAgo.toISOString(),
+      start: startDate.toISOString(),
       end: now.toISOString(),
     });
 
-    // 러닝 세션만 필터 (records에서 exerciseType이나 activityType 확인)
+    // 러닝 세션만 필터
+    // 플러그인은 exerciseType: "EXERCISE_TYPE_RUNNING", exerciseTypeId: 56 을 반환
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const runningSessions = (records as any[]).filter((r) => {
-      const type = (r.activityType || r.exerciseType || '').toString().toLowerCase();
-      return type.includes('running') || type.includes('jogging') || type === '56';
+      const type = (r.exerciseType || '').toString().toLowerCase();
+      const typeId = String(r.exerciseTypeId || '');
+      return type.includes('running') || type.includes('jogging') || typeId === '56' || typeId === '57';
     });
 
     if (runningSessions.length === 0) {
-      // 러닝 필터가 안 먹힐 수 있으니, 전체 세션도 시도
-      // Distance 집계로 대체
-      return await syncViaDistanceAggregate(memberId, weekAgo, now);
+      return await syncViaDistanceAggregate(memberId, startDate, now);
     }
 
+    // 러닝 세션별로 Distance aggregate를 조회해서 거리를 가져옴
     let syncedCount = 0;
     const supabase = getSupabase();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const session of runningSessions as any[]) {
-      const startTime = session.startTime || session.start;
-      const endTime = session.endTime || session.end;
-      if (!startTime) continue;
+      const startTime = session.startTime;
+      const endTime = session.endTime;
+      if (!startTime || !endTime) continue;
 
       const runDate = startTime.split('T')[0];
-      const distanceKm = session.distance
-        ? Number(session.distance) / 1000
-        : session.distanceKm
-          ? Number(session.distanceKm)
-          : 0;
       const durationMs = new Date(endTime).getTime() - new Date(startTime).getTime();
       const durationMinutes = Math.round(durationMs / 60000);
+
+      // 세션 시간 범위로 Distance aggregate 조회
+      let distanceKm = 0;
+      try {
+        const { aggregates } = await HealthConnect.aggregateRecords({
+          type: 'Distance',
+          start: startTime,
+          end: endTime,
+        });
+        if (aggregates && aggregates.length > 0) {
+          const raw = aggregates[0].value;
+          distanceKm = (aggregates[0].unit === 'km') ? raw : raw / 1000;
+        }
+      } catch {
+        // Distance aggregate 실패 시 스킵
+      }
 
       if (distanceKm < 0.1) continue;
 
@@ -220,9 +232,9 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
       write: [''],
     });
 
-    // 최근 7일 데이터
+    // 2025년 1월 1일부터 현재까지
     const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startDate = new Date('2025-01-01T00:00:00');
 
     // 워크아웃(운동 세션) 조회
     const { resultData } = await CapacitorHealthkit.queryHKitSampleType<{
@@ -234,7 +246,7 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
       uuid: string;
     }>({
       sampleName: SampleNames.WORKOUT_TYPE,
-      startDate: weekAgo.toISOString(),
+      startDate: startDate.toISOString(),
       endDate: now.toISOString(),
       limit: 0,
     });
@@ -247,7 +259,7 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
 
     if (runningSessions.length === 0) {
       // 워크아웃에 러닝이 없으면 걷기+달리기 거리로 대체 시도
-      return await syncViaHealthKitDistance(memberId, weekAgo, now);
+      return await syncViaHealthKitDistance(memberId, startDate, now);
     }
 
     let syncedCount = 0;
