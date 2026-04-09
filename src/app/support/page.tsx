@@ -35,10 +35,10 @@ export default function SupportPage() {
             <div>
               <p className="text-sm text-[var(--muted)]">이메일</p>
               <a
-                href="mailto:support@bitrunners.kr"
+                href="mailto:hans@openhan.kr"
                 className="text-[var(--accent)] font-semibold hover:underline"
               >
-                support@bitrunners.kr
+                hans@openhan.kr
               </a>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function SupportPage() {
             <div>
               <h3 className="font-semibold">회원 탈퇴는 어떻게 하나요?</h3>
               <p className="text-[var(--muted)] text-sm mt-1 leading-relaxed">
-                회원 탈퇴 및 개인정보 삭제를 원하시면 support@bitrunners.kr로
+                회원 탈퇴 및 개인정보 삭제를 원하시면 hans@openhan.kr로
                 이메일을 보내주세요. 확인 후 처리해 드리겠습니다.
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function SupportPage() {
           <div className="text-[var(--muted)] text-sm space-y-1">
             <p>서비스명: BIT Runners</p>
             <p>운영: BIT Runners 러닝 클럽</p>
-            <p>이메일: support@bitrunners.kr</p>
+            <p>이메일: hans@openhan.kr</p>
           </div>
         </div>
 
