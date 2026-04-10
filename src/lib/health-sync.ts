@@ -18,8 +18,8 @@ export function getPlatform(): 'android' | 'ios' | 'web' {
   return ((window as any).Capacitor?.getPlatform?.() ?? 'web') as 'android' | 'ios' | 'web';
 }
 
-// HealthKit (iOS) 동기화 — @capgo/capacitor-health 사용
-async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
+// Apple Health 권한 요청만 수행 (빠르게 완료)
+export async function connectHealthKit(): Promise<SyncResult> {
   if (getPlatform() !== 'ios') {
     return { success: false, message: 'iOS가 아닙니다', synced: 0 };
   }
@@ -37,10 +37,21 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
       write: [],
     });
 
+    return { success: true, message: 'Apple Health 연결 완료! 러닝 기록을 가져오는 중...', synced: 0 };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '알 수 없는 오류';
+    return { success: false, message: `연결 실패: ${message}`, synced: 0 };
+  }
+}
+
+// 데이터 동기화 (백그라운드)
+async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
+  try {
+    const { Health } = await import('@capgo/capacitor-health');
+
     const startDate = new Date('2025-01-01T00:00:00').toISOString();
     const endDate = new Date().toISOString();
 
-    // 러닝 워크아웃 조회 (최근 100건)
     const { workouts } = await Health.queryWorkouts({
       workoutType: 'running',
       startDate,

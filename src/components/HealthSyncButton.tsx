@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { syncHealthData, isNativeApp, getPlatform, type SyncResult } from '@/lib/health-sync';
+import { syncHealthData, connectHealthKit, isNativeApp, getPlatform, type SyncResult } from '@/lib/health-sync';
 
 interface HealthSyncButtonProps {
   memberId: string;
@@ -27,10 +27,18 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
     setSyncing(true);
     setResult(null);
     try {
-      const timeout = new Promise<SyncResult>((_, reject) =>
-        setTimeout(() => reject(new Error('시간 초과 — 다시 시도해주세요.')), 30000)
-      );
-      const syncResult = await Promise.race([syncHealthData(memberId), timeout]);
+      // 1단계: 권한 요청 → 즉시 연결 성공 표시
+      const connectResult = await connectHealthKit();
+      if (!connectResult.success) {
+        setResult(connectResult);
+        setSyncing(false);
+        return;
+      }
+      setResult(connectResult);
+      setSyncing(false);
+
+      // 2단계: 백그라운드로 데이터 동기화
+      const syncResult = await syncHealthData(memberId);
       setResult(syncResult);
       if (syncResult.synced > 0) {
         onSyncComplete();
@@ -38,7 +46,6 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
     } catch (e) {
       const msg = e instanceof Error ? e.message : '동기화 중 오류가 발생했습니다.';
       setResult({ success: false, message: msg, synced: 0 });
-    } finally {
       setSyncing(false);
     }
   };
@@ -100,7 +107,7 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-25" />
               <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
-            Apple Health에서 가져오는 중...
+            Apple Health 연결 중...
           </>
         ) : (
           <>
