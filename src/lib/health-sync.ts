@@ -1,4 +1,3 @@
-// Capacitor를 정적 import하지 않음 — Vercel 빌드 호환을 위해 window.Capacitor 사용
 import { getSupabase } from './supabase';
 
 export interface SyncResult {
@@ -7,7 +6,6 @@ export interface SyncResult {
   synced: number;
 }
 
-// 런타임에 window.Capacitor로 플랫폼 감지 (정적 import 없음)
 export function isNativeApp(): boolean {
   if (typeof window === 'undefined') return false;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,64 +18,48 @@ export function getPlatform(): 'android' | 'ios' | 'web' {
   return ((window as any).Capacitor?.getPlatform?.() ?? 'web') as 'android' | 'ios' | 'web';
 }
 
-// HealthKit (iOS) 동기화
+// HealthKit (iOS) 동기화 — @capgo/capacitor-health 사용
 async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
   if (getPlatform() !== 'ios') {
     return { success: false, message: 'iOS가 아닙니다', synced: 0 };
   }
 
   try {
-    const { CapacitorHealthkit, SampleNames } = await import('@perfood/capacitor-healthkit');
+    const { Health } = await import('@capgo/capacitor-health');
 
-    try {
-      await CapacitorHealthkit.isAvailable();
-    } catch {
+    const { available } = await Health.isAvailable();
+    if (!available) {
       return { success: false, message: '이 기기에서 Apple Health를 사용할 수 없습니다.', synced: 0 };
     }
 
-    await CapacitorHealthkit.requestAuthorization({
-      all: [''],
-      read: ['activity', 'distance', 'duration', 'calories'],
-      write: [''],
+    await Health.requestAuthorization({
+      read: ['workouts', 'distance'],
+      write: [],
     });
 
-    const now = new Date();
-    const startDate = new Date('2025-01-01T00:00:00');
+    const startDate = new Date('2025-01-01T00:00:00').toISOString();
+    const endDate = new Date().toISOString();
 
-    const { resultData } = await CapacitorHealthkit.queryHKitSampleType<{
-      startDate: string;
-      endDate: string;
-      totalDistance: number;
-      duration: number;
-      workoutActivityName: string;
-      uuid: string;
-    }>({
-      sampleName: SampleNames.WORKOUT_TYPE,
-      startDate: startDate.toISOString(),
-      endDate: now.toISOString(),
-      limit: 0,
+    // 러닝 워크아웃 조회
+    const { workouts } = await Health.queryWorkouts({
+      workoutType: 'running',
+      startDate,
+      endDate,
+      limit: 1000,
+      ascending: true,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const runningSessions = (resultData || []).filter((r: any) => {
-      const name = (r.workoutActivityName || '').toLowerCase();
-      return name.includes('running') || name.includes('jogging') || name.includes('run');
-    });
-
-    if (runningSessions.length === 0) {
-      return await syncViaHealthKitDistance(memberId, startDate, now);
+    if (!workouts || workouts.length === 0) {
+      return await syncViaDistance(memberId, startDate, endDate);
     }
 
     let syncedCount = 0;
     const supabase = getSupabase();
 
-    for (const session of runningSessions) {
-      const startTime = session.startDate;
-      if (!startTime) continue;
-
-      const runDate = startTime.split('T')[0];
-      const distanceKm = session.totalDistance ? Number(session.totalDistance) / 1000 : 0;
-      const durationMinutes = session.duration ? Math.round(Number(session.duration) / 60) : null;
+    for (const workout of workouts) {
+      const runDate = workout.startDate.split('T')[0];
+      const distanceKm = workout.totalDistance ? workout.totalDistance / 1000 : 0;
+      const durationMinutes = workout.duration ? Math.round(workout.duration / 60) : null;
 
       if (distanceKm < 0.1) continue;
 
@@ -119,35 +101,31 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
   }
 }
 
-// HealthKit 걷기+달리기 거리로 대체 동기화
-async function syncViaHealthKitDistance(
+// 거리 데이터로 대체 동기화
+async function syncViaDistance(
   memberId: string,
-  start: Date,
-  end: Date
+  startDate: string,
+  endDate: string,
 ): Promise<SyncResult> {
   try {
-    const { CapacitorHealthkit, SampleNames } = await import('@perfood/capacitor-healthkit');
+    const { Health } = await import('@capgo/capacitor-health');
 
-    const { resultData } = await CapacitorHealthkit.queryHKitSampleType<{
-      startDate: string;
-      endDate: string;
-      value: number;
-      uuid: string;
-    }>({
-      sampleName: SampleNames.DISTANCE_WALKING_RUNNING,
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
-      limit: 0,
+    const { samples } = await Health.readSamples({
+      dataType: 'distance',
+      startDate,
+      endDate,
+      limit: 10000,
     });
 
-    if (!resultData || resultData.length === 0) {
+    if (!samples || samples.length === 0) {
       return { success: true, message: 'Apple Health에 러닝 기록이 없습니다.', synced: 0 };
     }
 
+    // 일별 합산 (value는 meter 단위)
     const dailyDistance: Record<string, number> = {};
-    for (const record of resultData) {
-      const date = record.startDate.split('T')[0];
-      const distanceKm = Number(record.value) / 1000;
+    for (const sample of samples) {
+      const date = sample.startDate.split('T')[0];
+      const distanceKm = sample.value / 1000;
       dailyDistance[date] = (dailyDistance[date] || 0) + distanceKm;
     }
 
