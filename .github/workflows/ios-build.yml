@@ -56,7 +56,7 @@ jobs:
         run: |
           xcodebuild \
             -scheme App \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
             build \
             CODE_SIGNING_ALLOWED=NO
