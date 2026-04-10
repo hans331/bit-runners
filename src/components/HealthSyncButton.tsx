@@ -27,13 +27,17 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
     setSyncing(true);
     setResult(null);
     try {
-      const syncResult = await syncHealthData(memberId);
+      const timeout = new Promise<SyncResult>((_, reject) =>
+        setTimeout(() => reject(new Error('시간 초과 — 다시 시도해주세요.')), 30000)
+      );
+      const syncResult = await Promise.race([syncHealthData(memberId), timeout]);
       setResult(syncResult);
       if (syncResult.synced > 0) {
         onSyncComplete();
       }
-    } catch {
-      setResult({ success: false, message: '동기화 중 오류가 발생했습니다. 다시 시도해주세요.', synced: 0 });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '동기화 중 오류가 발생했습니다.';
+      setResult({ success: false, message: msg, synced: 0 });
     } finally {
       setSyncing(false);
     }
@@ -112,13 +116,13 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
       {result && (
         <div className={`rounded-2xl p-3 text-center ${
           result.success
-            ? 'bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30'
-            : 'bg-amber-500/10 border border-amber-200 dark:border-amber-500/30'
+            ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30'
+            : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
         }`}>
           <p className={`font-medium text-sm whitespace-pre-line ${
             result.success
               ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-gray-700 dark:text-gray-300'
+              : 'text-slate-700 dark:text-slate-300'
           }`}>
             {result.message}
           </p>

@@ -40,13 +40,13 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
     const startDate = new Date('2025-01-01T00:00:00').toISOString();
     const endDate = new Date().toISOString();
 
-    // 러닝 워크아웃 조회
+    // 러닝 워크아웃 조회 (최근 100건)
     const { workouts } = await Health.queryWorkouts({
       workoutType: 'running',
       startDate,
       endDate,
-      limit: 1000,
-      ascending: true,
+      limit: 100,
+      ascending: false,
     });
 
     if (!workouts || workouts.length === 0) {
