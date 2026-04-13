@@ -5,58 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { addActivity } from '@/lib/routinist-data';
 import { useUserData } from '@/components/UserDataProvider';
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 import { Play, Square, Pause, ArrowLeft } from 'lucide-react';
 import type { GeoJSONLineString } from '@/types';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-const hasKey = !!API_KEY && API_KEY !== 'YOUR_KEY_HERE';
 
 interface TrackPoint {
   lat: number;
   lng: number;
   timestamp: number;
-}
-
-function TrackingPolyline({ points }: { points: TrackPoint[] }) {
-  const map = useMap();
-  const polylineRef = useRef<google.maps.Polyline | null>(null);
-
-  useEffect(() => {
-    if (!map) return;
-
-    const path = points.map((p) => ({ lat: p.lat, lng: p.lng }));
-
-    if (!polylineRef.current) {
-      polylineRef.current = new google.maps.Polyline({
-        path,
-        geodesic: true,
-        strokeColor: '#3B82F6',
-        strokeOpacity: 1.0,
-        strokeWeight: 5,
-      });
-      polylineRef.current.setMap(map);
-    } else {
-      polylineRef.current.setPath(path);
-    }
-
-    // 마지막 포인트로 이동
-    if (points.length > 0) {
-      const last = points[points.length - 1];
-      map.panTo({ lat: last.lat, lng: last.lng });
-    }
-
-    return () => {
-      // cleanup은 컴포넌트 언마운트 시에만
-    };
-  }, [map, points]);
-
-  // 언마운트 시 폴리라인 제거
-  useEffect(() => {
-    return () => { polylineRef.current?.setMap(null); };
-  }, []);
-
-  return null;
 }
 
 function calcDistance(p1: TrackPoint, p2: TrackPoint): number {
@@ -94,21 +51,47 @@ export default function TrackPage() {
   const [points, setPoints] = useState<TrackPoint[]>([]);
   const [distance, setDistance] = useState(0);
   const [elapsed, setElapsed] = useState(0);
-  const [currentPos, setCurrentPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState('');
 
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
+  const polylineRef = useRef<google.maps.Polyline | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
   const pausedTimeRef = useRef(0);
 
-  // 현재 위치 가져오기 (초기 지도 센터)
+  // Google Maps 로드
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => setCurrentPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setCurrentPos({ lat: 37.5665, lng: 126.978 }), // 서울 기본값
-      { enableHighAccuracy: true }
-    );
+    if (!API_KEY || !mapRef.current) return;
+    if (googleMapRef.current) return; // 이미 로드됨
+
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}`;
+    script.async = true;
+    script.onload = () => {
+      if (!mapRef.current) return;
+      googleMapRef.current = new google.maps.Map(mapRef.current, {
+        center: { lat: 37.5665, lng: 126.978 },
+        zoom: 16,
+        disableDefaultUI: true,
+        gestureHandling: 'greedy',
+      });
+
+      // 현재 위치로 이동
+      navigator.geolocation?.getCurrentPosition(
+        (pos) => {
+          googleMapRef.current?.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // cleanup 안 함 (스크립트 재로드 방지)
+    };
   }, []);
 
   const startTracking = useCallback(() => {
@@ -121,12 +104,10 @@ export default function TrackPage() {
     startTimeRef.current = Date.now() - pausedTimeRef.current * 1000;
     setError('');
 
-    // 타이머
     timerRef.current = setInterval(() => {
       setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
     }, 1000);
 
-    // GPS 워치
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const newPoint: TrackPoint = {
@@ -136,20 +117,38 @@ export default function TrackPage() {
         };
 
         setPoints((prev) => {
-          const updated = [...prev, newPoint];
-          // 거리 계산
           if (prev.length > 0) {
             const d = calcDistance(prev[prev.length - 1], newPoint);
-            if (d > 0.003) { // 3m 이상 이동 시에만
+            if (d > 0.003) {
               setDistance((prevDist) => prevDist + d);
+              const updated = [...prev, newPoint];
+
+              // 폴리라인 업데이트
+              if (googleMapRef.current) {
+                const path = updated.map((p) => ({ lat: p.lat, lng: p.lng }));
+                if (!polylineRef.current) {
+                  polylineRef.current = new google.maps.Polyline({
+                    path,
+                    geodesic: true,
+                    strokeColor: '#3B82F6',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 5,
+                  });
+                  polylineRef.current.setMap(googleMapRef.current);
+                } else {
+                  polylineRef.current.setPath(path);
+                }
+                googleMapRef.current.panTo({ lat: newPoint.lat, lng: newPoint.lng });
+              }
+
               return updated;
             }
-            return prev; // 미세 이동은 무시
+            return prev;
           }
-          return updated;
+          // 첫 포인트
+          googleMapRef.current?.panTo({ lat: newPoint.lat, lng: newPoint.lng });
+          return [newPoint];
         });
-
-        setCurrentPos({ lat: newPoint.lat, lng: newPoint.lng });
       },
       (err) => setError(`GPS 오류: ${err.message}`),
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
@@ -177,6 +176,8 @@ export default function TrackPage() {
       setDistance(0);
       setElapsed(0);
       pausedTimeRef.current = 0;
+      polylineRef.current?.setMap(null);
+      polylineRef.current = null;
       return;
     }
 
@@ -196,7 +197,7 @@ export default function TrackPage() {
         new Date().toISOString().split('T')[0],
         Math.round(distance * 1000) / 1000,
         elapsed,
-        undefined, // memo
+        undefined,
         'gps',
         routeData,
         startedAt ?? undefined,
@@ -210,7 +211,6 @@ export default function TrackPage() {
     }
   }, [distance, elapsed, points, user, refresh, router]);
 
-  // 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
       if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
@@ -220,37 +220,8 @@ export default function TrackPage() {
 
   const isActive = state === 'tracking' || state === 'paused';
 
-  const mapContent = hasKey && currentPos ? (
-    <APIProvider apiKey={API_KEY}>
-      <Map
-        defaultCenter={currentPos}
-        defaultZoom={16}
-        gestureHandling="greedy"
-        disableDefaultUI
-        mapId="routinist-track"
-        style={{ width: '100%', height: '100%' }}
-      >
-        {points.length > 0 && <TrackingPolyline points={points} />}
-      </Map>
-    </APIProvider>
-  ) : (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        {!currentPos ? (
-          <>
-            <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full mx-auto mb-3" />
-            <p className="text-sm text-[var(--muted)]">위치를 찾는 중...</p>
-          </>
-        ) : (
-          <p className="text-xs text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)] pt-[env(safe-area-inset-top)]">
-      {/* 뒤로가기 (비활성 시) */}
       {state === 'idle' && (
         <div className="absolute top-[env(safe-area-inset-top)] left-0 z-10 p-4">
           <button onClick={() => router.push('/dashboard')} className="w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur flex items-center justify-center shadow">
@@ -260,31 +231,38 @@ export default function TrackPage() {
       )}
 
       {/* 지도 */}
-      <div className="flex-1 bg-gray-200 dark:bg-gray-800 relative">
-        {mapContent}
-
-        {/* 실시간 통계 오버레이 */}
-        {isActive && (
-          <div className="absolute top-4 left-4 right-4 bg-black/70 backdrop-blur-sm text-white rounded-2xl p-4 z-10">
-            <div className="grid grid-cols-3 text-center">
-              <div>
-                <p className="text-3xl font-bold">{distance.toFixed(2)}</p>
-                <p className="text-xs opacity-70">km</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold">{formatTime(elapsed)}</p>
-                <p className="text-xs opacity-70">시간</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold">{formatPace(distance, elapsed)}</p>
-                <p className="text-xs opacity-70">페이스</p>
-              </div>
-            </div>
+      <div
+        ref={mapRef}
+        className="bg-gray-200 dark:bg-gray-800 relative"
+        style={{ flex: 1, minHeight: 'calc(100vh - 180px)' }}
+      >
+        {!API_KEY && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-xs text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
           </div>
         )}
       </div>
 
-      {/* 에러 */}
+      {/* 실시간 통계 오버레이 */}
+      {isActive && (
+        <div className="absolute top-16 left-4 right-4 bg-black/70 backdrop-blur-sm text-white rounded-2xl p-4 z-10">
+          <div className="grid grid-cols-3 text-center">
+            <div>
+              <p className="text-3xl font-bold">{distance.toFixed(2)}</p>
+              <p className="text-xs opacity-70">km</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">{formatTime(elapsed)}</p>
+              <p className="text-xs opacity-70">시간</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">{formatPace(distance, elapsed)}</p>
+              <p className="text-xs opacity-70">페이스</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="px-4 py-2 bg-red-500/10 text-center">
           <p className="text-xs text-red-500">{error}</p>
@@ -301,41 +279,26 @@ export default function TrackPage() {
             <Play size={28} fill="white" /> 달리기 시작
           </button>
         )}
-
         {state === 'tracking' && (
           <div className="flex gap-3">
-            <button
-              onClick={pauseTracking}
-              className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform"
-            >
+            <button onClick={pauseTracking} className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform">
               <Pause size={22} /> 일시정지
             </button>
-            <button
-              onClick={stopTracking}
-              className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform"
-            >
+            <button onClick={stopTracking} className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform">
               <Square size={22} fill="white" /> 종료
             </button>
           </div>
         )}
-
         {state === 'paused' && (
           <div className="flex gap-3">
-            <button
-              onClick={resumeTracking}
-              className="flex-1 flex items-center justify-center gap-2 bg-[var(--accent)] text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform"
-            >
+            <button onClick={resumeTracking} className="flex-1 flex items-center justify-center gap-2 bg-[var(--accent)] text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform">
               <Play size={22} fill="white" /> 재개
             </button>
-            <button
-              onClick={stopTracking}
-              className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform"
-            >
+            <button onClick={stopTracking} className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white font-bold text-lg py-4 rounded-2xl active:scale-95 transition-transform">
               <Square size={22} fill="white" /> 종료 & 저장
             </button>
           </div>
         )}
-
         {state === 'saving' && (
           <div className="flex items-center justify-center gap-3 py-5">
             <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />

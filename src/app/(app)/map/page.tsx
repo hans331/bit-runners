@@ -152,8 +152,7 @@ export default function HeatmapPage() {
               defaultZoom={11}
               gestureHandling="greedy"
               disableDefaultUI
-              mapId="routinist-heatmap"
-              style={{ width: '100%', height: '100%' }}
+                            style={{ width: '100%', height: '100%' }}
             >
               {!loading && <AllRoutesPolylines activities={activities} onRouteClick={handleRouteClick} />}
             </Map>

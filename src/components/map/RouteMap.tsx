@@ -81,8 +81,7 @@ export default function RouteMap({ routeData, height = '240px' }: RouteMapProps)
           defaultZoom={14}
           gestureHandling="greedy"
           disableDefaultUI
-          mapId="routinist-route"
-          style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
         >
           <RoutePolyline routeData={routeData} />
         </Map>
