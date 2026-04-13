@@ -110,6 +110,20 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* 이달의 레이스 */}
+      <Link href="/stats" className="card p-5 flex items-center gap-4 block">
+        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-[var(--foreground)]">이달의 레이스 🏁</p>
+          <p className="text-xs text-[var(--muted)]">클럽 멤버들의 목표 달성 현황을 확인하세요</p>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </Link>
+
       {/* 내 러닝 지도 */}
       <Link href="/map" className="card p-5 flex items-center gap-4 block">
         <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">

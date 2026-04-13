@@ -6,7 +6,7 @@ import { signOut } from '@/lib/auth';
 import { getStreak } from '@/lib/routinist-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, ShoppingBag, Coins, HelpCircle, Shield } from 'lucide-react';
+import { ChevronRight, Target, ShoppingBag, Coins, HelpCircle, Shield, BarChart3, Heart } from 'lucide-react';
 
 export default function ProfilePage() {
   const { profile } = useAuth();
@@ -24,7 +24,9 @@ export default function ProfilePage() {
   };
 
   const menuItems = [
+    { href: '/stats', label: '러닝 통계', Icon: BarChart3 },
     { href: '/goals', label: '목표 설정', Icon: Target },
+    { href: '/connect', label: '건강 앱 연동', Icon: Heart },
     { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
     { href: '/mileage', label: `마일리지 (${mileage.toLocaleString()}P)`, Icon: Coins },
     { href: '/support', label: '고객 지원', Icon: HelpCircle },
