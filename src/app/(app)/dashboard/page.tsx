@@ -1,12 +1,27 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
 import { getMonthlyDistance, getWeeklyActivities, getStreak, formatPace, formatDuration } from '@/lib/routinist-data';
+import Onboarding from '@/components/Onboarding';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    // 첫 사용자: display_name이 기본값이고 활동이 없으면 온보딩
+    const dismissed = typeof window !== 'undefined' && localStorage.getItem('onboarding_done');
+    if (!dismissed && profile && profile.display_name === '러너' && profile.total_runs === 0) {
+      setShowOnboarding(true);
+    }
+  }, [profile]);
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => { setShowOnboarding(false); localStorage.setItem('onboarding_done', '1'); }} />;
+  }
   const { activities, goals, loading } = useUserData();
 
   const now = new Date();
