@@ -1,7 +1,7 @@
 export default function PrivacyPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-10 text-[var(--foreground)]">
-      <h1 className="text-2xl font-bold mb-2">BIT Runners 개인정보처리방침</h1>
+      <h1 className="text-2xl font-bold mb-2">Routinist 개인정보처리방침</h1>
       <p className="text-sm text-[var(--muted)] mb-8">시행일: 2026년 4월 4일</p>
 
       <section className="space-y-6 text-sm leading-relaxed">

@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { syncHealthData, connectHealthKit, isNativeApp, getPlatform, type SyncResult } from '@/lib/health-sync';
 
 interface HealthSyncButtonProps {
-  memberId: string;
+  userId: string;
   onSyncComplete: () => void;
 }
 
-export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyncButtonProps) {
+export default function HealthSyncButton({ userId, onSyncComplete }: HealthSyncButtonProps) {
   const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
   const [isNative, setIsNative] = useState(false);
@@ -20,8 +20,8 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
   }, []);
 
   const handleSync = async () => {
-    if (!memberId) {
-      setResult({ success: false, message: '먼저 이름을 선택해주세요.', synced: 0 });
+    if (!userId) {
+      setResult({ success: false, message: '로그인이 필요합니다.', synced: 0 });
       return;
     }
     setSyncing(true);
@@ -38,7 +38,7 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
       setSyncing(false);
 
       // 2단계: 백그라운드로 데이터 동기화
-      const syncResult = await syncHealthData(memberId);
+      const syncResult = await syncHealthData(userId);
       setResult(syncResult);
       if (syncResult.synced > 0) {
         onSyncComplete();
@@ -63,7 +63,7 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
           <div>
             <p className="text-sm font-semibold text-[var(--foreground)]">Apple Health 연동</p>
             <p className="text-xs text-[var(--muted)] mt-1">
-              BIT Runners 앱을 설치하면 Apple Health에서 러닝 기록을 자동으로 가져올 수 있습니다.
+              Routinist 앱을 설치하면 Apple Health에서 러닝 기록을 자동으로 가져올 수 있습니다.
             </p>
           </div>
         </div>
@@ -88,8 +88,8 @@ export default function HealthSyncButton({ memberId, onSyncComplete }: HealthSyn
             </p>
             <p className="text-xs text-[var(--muted)] mt-1">
               {platform === 'ios'
-                ? 'Apple Health에 저장된 러닝 기록을 BIT Runners로 가져옵니다. 러닝 거리, 시간 데이터를 읽어옵니다.'
-                : 'Health Connect에 저장된 러닝 기록을 BIT Runners로 가져옵니다.'}
+                ? 'Apple Health에 저장된 러닝 기록을 Routinist로 가져옵니다. 러닝 거리, 시간 데이터를 읽어옵니다.'
+                : 'Health Connect에 저장된 러닝 기록을 Routinist로 가져옵니다.'}
             </p>
           </div>
         </div>

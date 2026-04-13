@@ -1,5 +1,10 @@
 @AGENTS.md
 
+# 응답 규칙
+- URL을 출력할 때 바로 뒤에 한글을 붙이지 말 것. 반드시 한 칸 띄워야 링크가 정상 작동함.
+  - ❌ `http://example.com으로 접속`
+  - ✅ `http://example.com 으로 접속`
+
 # iOS App Store 재심사 (2026-04-09)
 
 ## 상황

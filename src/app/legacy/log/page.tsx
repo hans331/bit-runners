@@ -52,10 +52,10 @@ export default function LogPage() {
       </div>
       {/* 건강 데이터 자동 동기화 */}
       {selectedMember && (
-        <HealthSyncButton memberId={selectedMember} onSyncComplete={refresh} />
+        <HealthSyncButton userId={selectedMember} onSyncComplete={refresh} />
       )}
       {!selectedMember && (
-        <HealthSyncButton memberId="" onSyncComplete={refresh} />
+        <HealthSyncButton userId="" onSyncComplete={refresh} />
       )}
 
       <div className="relative flex items-center gap-3 my-2">

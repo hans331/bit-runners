@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bitrunners.app',
-  appName: 'BIT Runners',
+  appId: 'com.routinist.app',
+  appName: 'Routinist',
   webDir: 'out',
   server: {
     androidScheme: 'https',

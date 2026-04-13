@@ -1,0 +1,82 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/components/AuthProvider';
+import { fetchConversations } from '@/lib/message-data';
+import { ArrowLeft, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
+import type { Conversation } from '@/types';
+
+export default function MessagesPage() {
+  const { user } = useAuth();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchConversations(user.id).then(setConversations).finally(() => setLoading(false));
+  }, [user]);
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffDays === 0) return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    if (diffDays === 1) return '어제';
+    if (diffDays < 7) return `${diffDays}일 전`;
+    return d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/social" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
+        <h1 className="text-lg font-bold text-[var(--foreground)]">쪽지</h1>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+        </div>
+      ) : conversations.length === 0 ? (
+        <div className="text-center py-16">
+          <MessageCircle size={48} className="mx-auto mb-4 text-[var(--muted)]" />
+          <p className="text-sm text-[var(--muted)]">아직 쪽지가 없습니다</p>
+          <p className="text-xs text-[var(--muted)] mt-1">다른 러너의 프로필에서 쪽지를 보내보세요</p>
+        </div>
+      ) : (
+        <div className="card divide-y divide-[var(--card-border)]">
+          {conversations.map((conv) => (
+            <Link
+              key={conv.id}
+              href={`/social/messages/chat?id=${conv.id}`}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card-border)]/30"
+            >
+              <div className="w-10 h-10 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
+                {conv.other_user?.avatar_url ? (
+                  <img src={conv.other_user.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-lg">🏃🏻</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-[var(--foreground)] truncate">
+                    {conv.other_user?.display_name ?? '러너'}
+                  </p>
+                  <p className="text-[10px] text-[var(--muted)] flex-shrink-0 ml-2">
+                    {formatTime(conv.last_message_at)}
+                  </p>
+                </div>
+                <p className="text-xs text-[var(--muted)] truncate mt-0.5">
+                  {conv.last_message?.body ?? '대화를 시작하세요'}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

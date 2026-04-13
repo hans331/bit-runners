@@ -46,8 +46,8 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
         <Link href="/" className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
           <span className="text-2xl">🏃🏻</span>
           <div className="leading-none">
-            <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">BIT Runners</h1>
-            <p className="text-[8px] text-[var(--muted)] tracking-[0.2em] font-medium">BOOST · IMPACT · TOGETHER</p>
+            <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
+            <p className="text-[8px] text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
           </div>
         </Link>
 
@@ -116,7 +116,7 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
         <div className="flex items-center justify-between p-5 border-b border-[var(--card-border)]">
           <div className="flex items-center gap-2">
             <span className="text-xl">🏃🏻</span>
-            <h2 className="text-base font-bold text-[var(--foreground)]">메뉴</h2>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Routinist</h2>
           </div>
           <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-[var(--card-border)] text-[var(--muted)] active:scale-95 transition-all">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

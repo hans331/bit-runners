@@ -1,40 +1,28 @@
 'use client';
 
-import StatsCards from '@/components/dashboard/StatsCards';
-import Leaderboard from '@/components/dashboard/Leaderboard';
-import GoalProgress from '@/components/dashboard/GoalProgress';
-import RunCalendar from '@/components/dashboard/RunCalendar';
-import RunCountChart from '@/components/dashboard/RunCountChart';
-import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 
-export default function Dashboard() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+export default function LandingPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/login');
+    }
+  }, [user, loading, router]);
 
   return (
-    <div className="max-w-3xl lg:max-w-6xl mx-auto px-4 md:px-6 py-5 md:py-8 space-y-6 md:space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl md:text-2xl font-extrabold text-[var(--foreground)]">{month}월 대시보드</h2>
-          <p className="text-sm text-[var(--muted)] mt-0.5">실시간 업데이트</p>
-        </div>
-        <Link href="/history" className="text-sm text-[var(--accent)] hover:underline font-semibold px-3 py-2 rounded-xl hover:bg-[var(--accent)]/5 transition-colors">
-          히스토리 →
-        </Link>
-      </div>
-
-      <StatsCards year={year} month={month} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
-        <Leaderboard year={year} month={month} />
-        <GoalProgress year={year} month={month} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
-        <RunCalendar />
-        <RunCountChart year={year} month={month} />
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)]">
+      <span className="text-6xl mb-4">🏃🏻</span>
+      <h1 className="text-3xl font-extrabold text-[var(--foreground)]">Routinist</h1>
+      <p className="text-sm text-[var(--muted)] mt-2">나만의 러닝 루틴</p>
+      <div className="mt-8 animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
     </div>
   );
 }

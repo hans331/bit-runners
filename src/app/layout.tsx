@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "@/components/ClientLayout";
+import { RootProviders } from "@/components/RootProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "BIT Runners",
-  description: "BIT Runners 러닝 클럽 대시보드 - Run to Boost, Run for Impact, Run Together",
+  title: "Routinist",
+  description: "Routinist - 나만의 러닝 대시보드",
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
@@ -45,7 +45,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full">
-        <ClientLayout>{children}</ClientLayout>
+        <RootProviders>{children}</RootProviders>
       </body>
     </html>
   );

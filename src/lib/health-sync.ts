@@ -44,8 +44,8 @@ export async function connectHealthKit(): Promise<SyncResult> {
   }
 }
 
-// 데이터 동기화 (백그라운드)
-async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
+// 데이터 동기화 (백그라운드) — activities 테이블에 저장
+async function syncFromHealthKit(userId: string): Promise<SyncResult> {
   try {
     const { Health } = await import('@capgo/capacitor-health');
 
@@ -61,41 +61,49 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
     });
 
     if (!workouts || workouts.length === 0) {
-      return await syncViaDistance(memberId, startDate, endDate);
+      return await syncViaDistance(userId, startDate, endDate);
     }
 
     let syncedCount = 0;
     const supabase = getSupabase();
 
     for (const workout of workouts) {
-      const runDate = workout.startDate.split('T')[0];
+      const activityDate = workout.startDate.split('T')[0];
       const distanceKm = workout.totalDistance ? workout.totalDistance / 1000 : 0;
-      const durationMinutes = workout.duration ? Math.round(workout.duration / 60) : null;
+      const durationSeconds = workout.duration ? Math.round(workout.duration) : null;
+      const paceAvg = durationSeconds && distanceKm > 0
+        ? Math.round(durationSeconds / distanceKm)
+        : null;
 
       if (distanceKm < 0.1) continue;
 
+      // 중복 확인: 같은 날짜 + 유사한 거리
       const { data: existing } = await supabase
-        .from('running_logs')
+        .from('activities')
         .select('id, distance_km')
-        .eq('member_id', memberId)
-        .eq('run_date', runDate);
+        .eq('user_id', userId)
+        .eq('activity_date', activityDate)
+        .eq('source', 'health_kit');
 
       const isDuplicate = (existing || []).some(
         (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.1
       );
       if (isDuplicate) continue;
 
-      const { error } = await supabase.from('running_logs').insert({
-        member_id: memberId,
-        run_date: runDate,
+      const { error } = await supabase.from('activities').insert({
+        user_id: userId,
+        activity_date: activityDate,
         distance_km: Math.round(distanceKm * 100) / 100,
-        duration_minutes: durationMinutes && durationMinutes > 0 ? durationMinutes : null,
+        duration_seconds: durationSeconds && durationSeconds > 0 ? durationSeconds : null,
+        pace_avg_sec_per_km: paceAvg,
+        source: 'health_kit',
         memo: 'Apple Health 자동 동기화',
+        started_at: workout.startDate,
+        ended_at: workout.endDate || null,
       });
 
       if (!error) {
         syncedCount++;
-        await updateMonthlyRecord(memberId, runDate, supabase);
       }
     }
 
@@ -114,7 +122,7 @@ async function syncFromHealthKit(memberId: string): Promise<SyncResult> {
 
 // 거리 데이터로 대체 동기화
 async function syncViaDistance(
-  memberId: string,
+  userId: string,
   startDate: string,
   endDate: string,
 ): Promise<SyncResult> {
@@ -143,31 +151,31 @@ async function syncViaDistance(
     let syncedCount = 0;
     const supabase = getSupabase();
 
-    for (const [runDate, distanceKm] of Object.entries(dailyDistance)) {
+    for (const [activityDate, distanceKm] of Object.entries(dailyDistance)) {
       if (distanceKm < 0.5) continue;
 
       const { data: existing } = await supabase
-        .from('running_logs')
+        .from('activities')
         .select('id, distance_km')
-        .eq('member_id', memberId)
-        .eq('run_date', runDate);
+        .eq('user_id', userId)
+        .eq('activity_date', activityDate)
+        .eq('source', 'health_kit');
 
       const isDuplicate = (existing || []).some(
         (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.5
       );
       if (isDuplicate) continue;
 
-      const { error } = await supabase.from('running_logs').insert({
-        member_id: memberId,
-        run_date: runDate,
+      const { error } = await supabase.from('activities').insert({
+        user_id: userId,
+        activity_date: activityDate,
         distance_km: Math.round(distanceKm * 100) / 100,
-        duration_minutes: null,
+        source: 'health_kit',
         memo: 'Apple Health 자동 동기화 (일별 합산)',
       });
 
       if (!error) {
         syncedCount++;
-        await updateMonthlyRecord(memberId, runDate, supabase);
       }
     }
 
@@ -184,58 +192,19 @@ async function syncViaDistance(
   }
 }
 
-// monthly_records 업데이트
-async function updateMonthlyRecord(
-  memberId: string,
-  runDate: string,
-  supabase: ReturnType<typeof getSupabase>
-) {
-  const date = new Date(runDate);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-
-  const { data: existing } = await supabase
-    .from('monthly_records')
-    .select('*')
-    .eq('member_id', memberId)
-    .eq('year', year)
-    .eq('month', month)
-    .single();
-
-  const { data: logs } = await supabase
-    .from('running_logs')
-    .select('distance_km')
-    .eq('member_id', memberId)
-    .gte('run_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('run_date', month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`);
-
-  const totalFromLogs = (logs || []).reduce((sum, l) => sum + Number(l.distance_km), 0);
-
-  if (existing) {
-    await supabase
-      .from('monthly_records')
-      .update({ achieved_km: totalFromLogs })
-      .eq('id', existing.id);
-  } else {
-    await supabase.from('monthly_records').insert({
-      member_id: memberId, year, month, goal_km: 0, achieved_km: totalFromLogs,
-    });
-  }
-}
-
-// 메인 동기화 함수
-export async function syncHealthData(memberId: string): Promise<SyncResult> {
+// 메인 동기화 함수 — userId(auth.users id)를 받음
+export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
     return {
       success: false,
-      message: '건강 데이터 동기화는 BIT Runners 앱에서만 사용할 수 있습니다.',
+      message: '건강 데이터 동기화는 Routinist 앱에서만 사용할 수 있습니다.',
       synced: 0,
     };
   }
 
   const platform = getPlatform();
   if (platform === 'ios') {
-    return syncFromHealthKit(memberId);
+    return syncFromHealthKit(userId);
   }
 
   return { success: false, message: '지원하지 않는 플랫폼입니다.', synced: 0 };
