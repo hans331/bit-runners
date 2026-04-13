@@ -1,61 +1,54 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
+import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
 import type { GeoJSONLineString } from '@/types';
-
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 interface RouteMapProps {
   routeData: GeoJSONLineString;
   height?: string;
 }
 
-function RoutePolyline({ routeData }: { routeData: GeoJSONLineString }) {
-  const map = useMap();
-  const polylineRef = useRef<google.maps.Polyline | null>(null);
+export default function RouteMap({ routeData, height = '240px' }: RouteMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!map || !routeData?.coordinates?.length) return;
+    if (!API_KEY || !routeData?.coordinates?.length) return;
+    loadGoogleMaps().then(() => setLoaded(true)).catch(() => {});
+  }, [routeData]);
+
+  useEffect(() => {
+    if (!loaded || !mapRef.current || !routeData?.coordinates?.length) return;
 
     const path = routeData.coordinates.map(([lng, lat]) => ({ lat, lng }));
+    const center = path[Math.floor(path.length / 2)];
 
-    if (polylineRef.current) {
-      polylineRef.current.setMap(null);
-    }
+    const map = new google.maps.Map(mapRef.current, {
+      center,
+      zoom: 14,
+      disableDefaultUI: true,
+      gestureHandling: 'greedy',
+    });
 
-    polylineRef.current = new google.maps.Polyline({
+    new google.maps.Polyline({
       path,
       geodesic: true,
       strokeColor: '#3B82F6',
       strokeOpacity: 1.0,
       strokeWeight: 4,
+      map,
     });
-    polylineRef.current.setMap(map);
 
-    // 경로에 맞게 지도 범위 조정
     const bounds = new google.maps.LatLngBounds();
     path.forEach((p) => bounds.extend(p));
     map.fitBounds(bounds, 40);
+  }, [loaded, routeData]);
 
-    return () => {
-      polylineRef.current?.setMap(null);
-    };
-  }, [map, routeData]);
-
-  return null;
-}
-
-export default function RouteMap({ routeData, height = '240px' }: RouteMapProps) {
-  const [hasKey] = useState(!!API_KEY && API_KEY !== 'YOUR_KEY_HERE');
-
-  if (!hasKey) {
+  if (!API_KEY) {
     return (
       <div style={{ height }} className="bg-[var(--card)] rounded-2xl flex items-center justify-center border border-[var(--card-border)]">
-        <div className="text-center">
-          <p className="text-xs text-[var(--muted)]">Google Maps API 키가 필요합니다</p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">.env.local에 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY를 설정하세요</p>
-        </div>
+        <p className="text-xs text-[var(--muted)]">Google Maps API 키가 필요합니다</p>
       </div>
     );
   }
@@ -68,24 +61,5 @@ export default function RouteMap({ routeData, height = '240px' }: RouteMapProps)
     );
   }
 
-  const center = {
-    lat: routeData.coordinates[Math.floor(routeData.coordinates.length / 2)][1],
-    lng: routeData.coordinates[Math.floor(routeData.coordinates.length / 2)][0],
-  };
-
-  return (
-    <div style={{ height }} className="rounded-2xl overflow-hidden">
-      <APIProvider apiKey={API_KEY}>
-        <Map
-          defaultCenter={center}
-          defaultZoom={14}
-          gestureHandling="greedy"
-          disableDefaultUI
-                    style={{ width: '100%', height: '100%' }}
-        >
-          <RoutePolyline routeData={routeData} />
-        </Map>
-      </APIProvider>
-    </div>
-  );
+  return <div ref={mapRef} style={{ height }} className="rounded-2xl overflow-hidden" />;
 }

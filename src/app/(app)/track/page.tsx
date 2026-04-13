@@ -8,7 +8,7 @@ import { useUserData } from '@/components/UserDataProvider';
 import { Play, Square, Pause, ArrowLeft } from 'lucide-react';
 import type { GeoJSONLineString } from '@/types';
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
 
 interface TrackPoint {
   lat: number;
@@ -64,12 +64,9 @@ export default function TrackPage() {
   // Google Maps 로드
   useEffect(() => {
     if (!API_KEY || !mapRef.current) return;
-    if (googleMapRef.current) return; // 이미 로드됨
+    if (googleMapRef.current) return;
 
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}`;
-    script.async = true;
-    script.onload = () => {
+    loadGoogleMaps().then(() => {
       if (!mapRef.current) return;
       googleMapRef.current = new google.maps.Map(mapRef.current, {
         center: { lat: 37.5665, lng: 126.978 },
@@ -78,7 +75,6 @@ export default function TrackPage() {
         gestureHandling: 'greedy',
       });
 
-      // 현재 위치로 이동
       navigator.geolocation?.getCurrentPosition(
         (pos) => {
           googleMapRef.current?.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
@@ -86,12 +82,7 @@ export default function TrackPage() {
         () => {},
         { enableHighAccuracy: true, timeout: 10000 }
       );
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      // cleanup 안 함 (스크립트 재로드 방지)
-    };
+    }).catch(() => {});
   }, []);
 
   const startTracking = useCallback(() => {

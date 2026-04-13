@@ -3,20 +3,58 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { fetchRoutesForUser } from '@/lib/map-data';
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
+import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import type { Activity } from '@/types';
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-const hasKey = !!API_KEY && API_KEY !== 'YOUR_KEY_HERE';
+type FilterMode = 'all' | 'month';
 
-function AllRoutesPolylines({ activities, onRouteClick }: { activities: Activity[]; onRouteClick: (a: Activity) => void }) {
-  const map = useMap();
+export default function HeatmapPage() {
+  const { user } = useAuth();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
 
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+
+  // 지도 초기화
   useEffect(() => {
-    if (!map) return;
+    if (!API_KEY) return;
+    loadGoogleMaps().then(() => {
+      if (!mapRef.current || googleMapRef.current) return;
+      googleMapRef.current = new google.maps.Map(mapRef.current, {
+        center: { lat: 37.5665, lng: 126.978 },
+        zoom: 11,
+        disableDefaultUI: true,
+        gestureHandling: 'greedy',
+      });
+      setMapLoaded(true);
+    }).catch(() => {});
+  }, []);
+
+  const loadRoutes = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = filterMode === 'month'
+        ? await fetchRoutesForUser(user.id, selectedYear, selectedMonth)
+        : await fetchRoutesForUser(user.id);
+      setActivities(data);
+    } catch {} finally { setLoading(false); }
+  }, [user, filterMode, selectedYear, selectedMonth]);
+
+  useEffect(() => { loadRoutes(); }, [loadRoutes]);
+
+  // 폴리라인 렌더링
+  useEffect(() => {
+    if (!mapLoaded || !googleMapRef.current) return;
 
     // 기존 폴리라인 제거
     polylinesRef.current.forEach((p) => p.setMap(null));
@@ -41,57 +79,20 @@ function AllRoutesPolylines({ activities, onRouteClick }: { activities: Activity
         strokeColor: '#3B82F6',
         strokeOpacity: 0.7,
         strokeWeight: 3,
+        map: googleMapRef.current,
       });
 
-      polyline.addListener('click', () => onRouteClick(activity));
-      polyline.setMap(map);
+      polyline.addListener('click', () => setSelectedActivity(activity));
       polylinesRef.current.push(polyline);
     });
 
     if (hasPoints) {
-      map.fitBounds(bounds, 40);
+      googleMapRef.current.fitBounds(bounds, 40);
     }
-
-    return () => {
-      polylinesRef.current.forEach((p) => p.setMap(null));
-    };
-  }, [map, activities, onRouteClick]);
-
-  return null;
-}
-
-type FilterMode = 'all' | 'month';
-
-export default function HeatmapPage() {
-  const { user } = useAuth();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filterMode, setFilterMode] = useState<FilterMode>('all');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
-
-  const loadRoutes = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const data = filterMode === 'month'
-        ? await fetchRoutesForUser(user.id, selectedYear, selectedMonth)
-        : await fetchRoutesForUser(user.id);
-      setActivities(data);
-    } catch {} finally {
-      setLoading(false);
-    }
-  }, [user, filterMode, selectedYear, selectedMonth]);
-
-  useEffect(() => { loadRoutes(); }, [loadRoutes]);
+  }, [mapLoaded, activities]);
 
   const totalKm = activities.reduce((sum, a) => sum + Number(a.distance_km), 0);
   const routeCount = activities.filter((a) => a.route_data).length;
-
-  const handleRouteClick = useCallback((a: Activity) => {
-    setSelectedActivity(a);
-  }, []);
 
   const prevMonth = () => {
     if (selectedMonth === 1) { setSelectedMonth(12); setSelectedYear((y) => y - 1); }
@@ -145,25 +146,11 @@ export default function HeatmapPage() {
 
       {/* 지도 */}
       <div className="rounded-2xl overflow-hidden mb-4" style={{ height: '400px' }}>
-        {hasKey ? (
-          <APIProvider apiKey={API_KEY}>
-            <Map
-              defaultCenter={{ lat: 37.5665, lng: 126.978 }}
-              defaultZoom={11}
-              gestureHandling="greedy"
-              disableDefaultUI
-                            style={{ width: '100%', height: '100%' }}
-            >
-              {!loading && <AllRoutesPolylines activities={activities} onRouteClick={handleRouteClick} />}
-            </Map>
-          </APIProvider>
+        {API_KEY ? (
+          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
         ) : (
           <div className="h-full bg-[var(--card)] flex items-center justify-center border border-[var(--card-border)] rounded-2xl">
-            <div className="text-center">
-              <p className="text-sm text-[var(--muted)]">Google Maps API 키를 설정하면</p>
-              <p className="text-sm text-[var(--muted)]">달린 경로가 지도에 표시됩니다</p>
-              <p className="text-[10px] text-[var(--muted)] mt-2">.env.local → NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</p>
-            </div>
+            <p className="text-sm text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
           </div>
         )}
       </div>
@@ -174,35 +161,24 @@ export default function HeatmapPage() {
         </div>
       )}
 
-      {/* 선택된 경로 정보 */}
       {selectedActivity && (
         <div className="card p-4 mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-bold text-[var(--foreground)]">
-                {selectedActivity.distance_km.toFixed(2)} km
-              </p>
+              <p className="text-sm font-bold text-[var(--foreground)]">{selectedActivity.distance_km.toFixed(2)} km</p>
               <p className="text-xs text-[var(--muted)]">
                 {new Date(selectedActivity.activity_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
-            <Link
-              href={`/activity?id=${selectedActivity.id}`}
-              className="text-xs text-[var(--accent)] font-semibold"
-            >
-              상세 보기
-            </Link>
+            <Link href={`/activity?id=${selectedActivity.id}`} className="text-xs text-[var(--accent)] font-semibold">상세 보기</Link>
           </div>
         </div>
       )}
 
-      {/* GPS 기록이 없을 때 */}
       {!loading && routeCount === 0 && (
         <div className="text-center py-8">
           <p className="text-sm text-[var(--muted)]">아직 GPS 러닝 기록이 없습니다</p>
-          <Link href="/track" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
-            달리기 시작하기
-          </Link>
+          <Link href="/track" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">달리기 시작하기</Link>
         </div>
       )}
     </div>
