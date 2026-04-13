@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
 
+const isCapacitor = process.env.BUILD_TARGET === 'capacitor';
+
 const nextConfig: NextConfig = {
-  output: "export",
+  // Capacitor 빌드 시에만 정적 export
+  ...(isCapacitor ? { output: "export" } : {}),
   images: {
     unoptimized: true,
   },
-  // Capacitor: 동적 라우트를 SPA처럼 처리
   trailingSlash: true,
 };
 
