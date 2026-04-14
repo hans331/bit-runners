@@ -8,7 +8,7 @@ import { getStreak, formatPace } from '@/lib/routinist-data';
 import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, PenLine } from 'lucide-react';
+import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, PenLine, ShoppingBag, Coins, Gift } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
@@ -60,6 +60,14 @@ export default function ProfilePage() {
         { href: '/goals', label: '목표 설정', Icon: Target },
         { href: '/connect', label: '건강 앱 연동', Icon: Heart },
         { href: '/log', label: '수동 기록 입력', Icon: PenLine },
+      ],
+    },
+    {
+      title: '마일리지 & 쇼핑',
+      items: [
+        { href: '/mileage', label: '마일리지', Icon: Coins },
+        { href: '/mileage/gift', label: '마일리지 선물', Icon: Gift },
+        { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
       ],
     },
     {
@@ -211,7 +219,7 @@ export default function ProfilePage() {
         로그아웃
       </button>
 
-      <p className="text-center text-xs text-[var(--muted)]">BIT Runners v0.5.0</p>
+      <p className="text-center text-xs text-[var(--muted)]">Routinist v1.0.0</p>
     </div>
   );
 }

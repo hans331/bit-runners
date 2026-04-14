@@ -200,7 +200,7 @@ export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
     return {
       success: false,
-      message: '건강 데이터 동기화는 BIT Runners 앱에서만 사용할 수 있습니다.',
+      message: '건강 데이터 동기화는 Routinist 앱에서만 사용할 수 있습니다.',
       synced: 0,
     };
   }

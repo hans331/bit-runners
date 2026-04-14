@@ -2,26 +2,68 @@ import { getSupabase } from './supabase';
 import type { Profile } from '@/types';
 import type { Provider, Session, User } from '@supabase/supabase-js';
 
+// Capacitor 네이티브 앱 여부 확인
+function isNativeApp(): boolean {
+  return typeof window !== 'undefined' &&
+    (window as any).Capacitor !== undefined;
+}
+
 // 소셜 로그인
 export async function signInWithProvider(provider: Provider) {
   const supabase = getSupabase();
 
-  // Capacitor 네이티브 앱인 경우 redirectTo를 커스텀 스킴으로
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isNative = typeof window !== 'undefined' &&
-    (window as any).Capacitor !== undefined;
-
-  const redirectTo = isNative
+  const redirectTo = isNativeApp()
     ? 'com.routinist.app://auth/callback'
     : `${window.location.origin}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
-    options: { redirectTo },
+    options: {
+      redirectTo,
+      skipBrowserRedirect: isNativeApp(), // 네이티브에서는 직접 브라우저 열기
+    },
   });
 
   if (error) throw error;
+
+  // 네이티브 앱에서는 인앱 브라우저로 OAuth URL 열기
+  if (isNativeApp() && data.url) {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url: data.url, windowName: '_self' });
+  }
+
   return data;
+}
+
+// Capacitor 딥링크에서 세션 토큰 추출 및 설정
+export async function handleOAuthCallback(url: string): Promise<Session | null> {
+  const supabase = getSupabase();
+
+  // URL에서 hash fragment 추출: ...#access_token=xxx&refresh_token=yyy
+  const hashPart = url.includes('#') ? url.split('#')[1] : '';
+  const params = new URLSearchParams(hashPart);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+
+  if (accessToken && refreshToken) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) throw error;
+
+    // 인앱 브라우저 닫기
+    if (isNativeApp()) {
+      try {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.close();
+      } catch {}
+    }
+
+    return data.session;
+  }
+
+  return null;
 }
 
 // 로그아웃

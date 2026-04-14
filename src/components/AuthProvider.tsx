@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { getSupabase } from '@/lib/supabase';
-import { getProfile } from '@/lib/auth';
+import { getProfile, handleOAuthCallback } from '@/lib/auth';
 import type { Profile } from '@/types';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -72,6 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [loadProfile]);
+
+  // Capacitor 딥링크 처리 — OAuth 콜백 URL을 받아서 세션 설정
+  useEffect(() => {
+    const isNative = typeof window !== 'undefined' &&
+      (window as any).Capacitor !== undefined;
+    if (!isNative) return;
+
+    let removeListener: (() => void) | null = null;
+
+    import('@capacitor/app').then(({ App }) => {
+      App.addListener('appUrlOpen', async ({ url }) => {
+        // com.routinist.app://auth/callback#access_token=...
+        if (url.includes('auth/callback')) {
+          try {
+            await handleOAuthCallback(url);
+          } catch (e) {
+            console.error('OAuth callback error:', e);
+          }
+        }
+      }).then(handle => {
+        removeListener = () => handle.remove();
+      });
+    }).catch(() => {});
+
+    return () => { removeListener?.(); };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, profile, session, loading, refreshProfile }}>

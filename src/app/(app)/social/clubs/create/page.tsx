@@ -42,7 +42,7 @@ export default function CreateClubPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={30}
-            placeholder="예: BIT Runners"
+            placeholder="예: BIT Runners 서울"
             className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>

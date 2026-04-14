@@ -84,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="px-4 h-14 flex items-center justify-center">
             <Link href="/dashboard" className="flex items-center gap-2">
               <span className="text-xl">🏃🏻</span>
-              <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">BIT Runners</h1>
+              <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
             </Link>
           </div>
         </header>

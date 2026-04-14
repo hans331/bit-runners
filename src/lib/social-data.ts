@@ -213,6 +213,68 @@ export async function isClubMember(clubId: string): Promise<boolean> {
   return !!data;
 }
 
+export async function getMyClubRole(clubId: string): Promise<string | null> {
+  const supabase = getSupabase();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from('club_members')
+    .select('role')
+    .eq('club_id', clubId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  return data?.role || null;
+}
+
+export async function updateMemberRole(clubId: string, userId: string, role: 'admin' | 'member') {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('club_members')
+    .update({ role })
+    .eq('club_id', clubId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function removeMember(clubId: string, userId: string) {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('club_members')
+    .delete()
+    .eq('club_id', clubId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function updateClub(clubId: string, updates: { name?: string; description?: string; is_public?: boolean }) {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('clubs')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', clubId);
+  if (error) throw error;
+}
+
+export async function fetchClubActivities(clubId: string, limit = 20) {
+  const supabase = getSupabase();
+  const { data: members } = await supabase
+    .from('club_members')
+    .select('user_id')
+    .eq('club_id', clubId);
+  if (!members?.length) return [];
+
+  const userIds = members.map(m => m.user_id);
+  const { data, error } = await supabase
+    .from('activities')
+    .select('*, profiles(display_name, avatar_url)')
+    .in('user_id', userIds)
+    .order('activity_date', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
 // =============================================
 // 지역 랭킹
 // =============================================
