@@ -4,24 +4,56 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { fetchRoutesForUser } from '@/lib/map-data';
 import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
-import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import type { Activity } from '@/types';
 
-type FilterMode = 'all' | 'month';
+type FilterMode = '1d' | '3d' | '7d' | '30d' | 'all';
 
-export default function HeatmapPage() {
+const FILTERS: { id: FilterMode; label: string }[] = [
+  { id: '1d', label: '1일' },
+  { id: '3d', label: '3일' },
+  { id: '7d', label: '7일' },
+  { id: '30d', label: '30일' },
+  { id: 'all', label: '전체' },
+];
+
+// 좌표를 그리드 키로 변환 (경로 중복 감지용)
+function coordKey(lat: number, lng: number, precision: number = 4): string {
+  return `${lat.toFixed(precision)},${lng.toFixed(precision)}`;
+}
+
+// 경로 세그먼트별 방문 횟수 계산
+function buildHeatSegments(activities: Activity[]): Map<string, number> {
+  const segmentCount = new Map<string, number>();
+
+  activities.forEach(activity => {
+    if (!activity.route_data?.coordinates?.length) return;
+    const coords = activity.route_data.coordinates;
+
+    for (let i = 0; i < coords.length - 1; i++) {
+      const [lng1, lat1] = coords[i];
+      const [lng2, lat2] = coords[i + 1];
+      // 세그먼트 키: 두 점의 그리드 좌표 (방향 무관하게 정렬)
+      const k1 = coordKey(lat1, lng1);
+      const k2 = coordKey(lat2, lng2);
+      const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
+      segmentCount.set(key, (segmentCount.get(key) || 0) + 1);
+    }
+  });
+
+  return segmentCount;
+}
+
+export default function MapPage() {
   const { user } = useAuth();
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
 
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [filterMode, setFilterMode] = useState<FilterMode>('all');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [filterMode, setFilterMode] = useState<FilterMode>('7d');
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   // 지도 초기화
@@ -31,106 +63,152 @@ export default function HeatmapPage() {
       if (!mapRef.current || googleMapRef.current) return;
       googleMapRef.current = new google.maps.Map(mapRef.current, {
         center: { lat: 37.5665, lng: 126.978 },
-        zoom: 11,
+        zoom: 12,
         disableDefaultUI: true,
         gestureHandling: 'greedy',
+        styles: [
+          { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+          { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+        ],
       });
       setMapLoaded(true);
     }).catch(() => {});
   }, []);
 
-  const loadRoutes = useCallback(async () => {
+  // 전체 경로 데이터 로드 (한 번만)
+  useEffect(() => {
     if (!user) return;
     setLoading(true);
-    try {
-      const data = filterMode === 'month'
-        ? await fetchRoutesForUser(user.id, selectedYear, selectedMonth)
-        : await fetchRoutesForUser(user.id);
-      setActivities(data);
-    } catch {} finally { setLoading(false); }
-  }, [user, filterMode, selectedYear, selectedMonth]);
+    fetchRoutesForUser(user.id).then(data => {
+      setAllActivities(data);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [user]);
 
-  useEffect(() => { loadRoutes(); }, [loadRoutes]);
+  // 필터링된 활동
+  const filteredActivities = useCallback(() => {
+    if (filterMode === 'all') return allActivities;
+    const days = parseInt(filterMode);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().split('T')[0];
+    return allActivities.filter(a => a.activity_date >= cutoffStr);
+  }, [allActivities, filterMode]);
 
-  // 폴리라인 렌더링
+  // 크레파스 히트맵 렌더링
   useEffect(() => {
     if (!mapLoaded || !googleMapRef.current) return;
 
     // 기존 폴리라인 제거
-    polylinesRef.current.forEach((p) => p.setMap(null));
+    polylinesRef.current.forEach(p => p.setMap(null));
     polylinesRef.current = [];
 
+    const filtered = filteredActivities();
     const bounds = new google.maps.LatLngBounds();
     let hasPoints = false;
 
-    activities.forEach((activity) => {
-      if (!activity.route_data?.coordinates?.length) return;
+    if (filterMode === '1d') {
+      // 1일 모드: 단순 경로 표시 (클릭 가능)
+      filtered.forEach(activity => {
+        if (!activity.route_data?.coordinates?.length) return;
+        const path = activity.route_data.coordinates.map(([lng, lat]) => {
+          const point = { lat, lng };
+          bounds.extend(point);
+          hasPoints = true;
+          return point;
+        });
 
-      const path = activity.route_data.coordinates.map(([lng, lat]) => {
-        const point = { lat, lng };
-        bounds.extend(point);
-        hasPoints = true;
-        return point;
+        const polyline = new google.maps.Polyline({
+          path,
+          geodesic: true,
+          strokeColor: '#3B82F6',
+          strokeOpacity: 0.8,
+          strokeWeight: 4,
+          map: googleMapRef.current,
+        });
+
+        polyline.addListener('click', () => setSelectedActivity(activity));
+        polylinesRef.current.push(polyline);
       });
+    } else {
+      // 3일/7일/30일/전체 모드: 크레파스 덧칠 효과
+      // 세그먼트별 방문 횟수 계산
+      const segmentCounts = buildHeatSegments(filtered);
+      const maxVisits = Math.max(...segmentCounts.values(), 1);
 
-      const polyline = new google.maps.Polyline({
-        path,
-        geodesic: true,
-        strokeColor: '#3B82F6',
-        strokeOpacity: 0.7,
-        strokeWeight: 3,
-        map: googleMapRef.current,
+      // 각 활동의 경로를 세그먼트별로 다른 굵기/투명도로 그리기
+      filtered.forEach(activity => {
+        if (!activity.route_data?.coordinates?.length) return;
+        const coords = activity.route_data.coordinates;
+
+        for (let i = 0; i < coords.length - 1; i++) {
+          const [lng1, lat1] = coords[i];
+          const [lng2, lat2] = coords[i + 1];
+
+          const k1 = coordKey(lat1, lng1);
+          const k2 = coordKey(lat2, lng2);
+          const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
+          const visits = segmentCounts.get(key) || 1;
+
+          // 방문 횟수에 비례한 굵기와 진한 정도
+          const ratio = visits / maxVisits;
+          const weight = 2 + ratio * 8; // 2~10px
+          const opacity = 0.2 + ratio * 0.7; // 0.2~0.9
+
+          // 색상: 적을수록 연파랑, 많을수록 진파랑~보라
+          const r = Math.round(59 - ratio * 30);
+          const g = Math.round(130 - ratio * 60);
+          const b = Math.round(246 - ratio * 50);
+
+          const p1 = { lat: lat1, lng: lng1 };
+          const p2 = { lat: lat2, lng: lng2 };
+          bounds.extend(p1);
+          bounds.extend(p2);
+          hasPoints = true;
+
+          const polyline = new google.maps.Polyline({
+            path: [p1, p2],
+            geodesic: true,
+            strokeColor: `rgb(${r},${g},${b})`,
+            strokeOpacity: opacity,
+            strokeWeight: weight,
+            map: googleMapRef.current,
+          });
+
+          polylinesRef.current.push(polyline);
+        }
       });
-
-      polyline.addListener('click', () => setSelectedActivity(activity));
-      polylinesRef.current.push(polyline);
-    });
+    }
 
     if (hasPoints) {
       googleMapRef.current.fitBounds(bounds, 40);
     }
-  }, [mapLoaded, activities]);
+  }, [mapLoaded, allActivities, filterMode, filteredActivities]);
 
-  const totalKm = activities.reduce((sum, a) => sum + Number(a.distance_km), 0);
-  const routeCount = activities.filter((a) => a.route_data).length;
-
-  const prevMonth = () => {
-    if (selectedMonth === 1) { setSelectedMonth(12); setSelectedYear((y) => y - 1); }
-    else setSelectedMonth((m) => m - 1);
-  };
-  const nextMonth = () => {
-    if (selectedMonth === 12) { setSelectedMonth(1); setSelectedYear((y) => y + 1); }
-    else setSelectedMonth((m) => m + 1);
-  };
+  const filtered = filteredActivities();
+  const totalKm = filtered.reduce((sum, a) => sum + Number(a.distance_km), 0);
+  const routeCount = filtered.filter(a => a.route_data).length;
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-extrabold text-[var(--foreground)]">내 러닝 지도</h1>
-      </div>
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
+      <h1 className="text-xl font-extrabold text-[var(--foreground)]">내 러닝 지도</h1>
 
-      {/* 필터 */}
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={() => setFilterMode('all')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${filterMode === 'all' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'}`}
-        >전체</button>
-        <button
-          onClick={() => setFilterMode('month')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${filterMode === 'month' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'}`}
-        ><Calendar size={12} className="inline mr-1" />월별</button>
-
-        {filterMode === 'month' && (
-          <div className="flex items-center gap-2 ml-auto">
-            <button onClick={prevMonth} className="text-[var(--muted)] text-sm">&lt;</button>
-            <span className="text-sm font-semibold text-[var(--foreground)]">{selectedYear}.{String(selectedMonth).padStart(2, '0')}</span>
-            <button onClick={nextMonth} className="text-[var(--muted)] text-sm">&gt;</button>
-          </div>
-        )}
+      {/* 기간 필터 */}
+      <div className="flex gap-1.5">
+        {FILTERS.map(f => (
+          <button
+            key={f.id}
+            onClick={() => { setFilterMode(f.id); setSelectedActivity(null); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              filterMode === f.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {/* 통계 요약 */}
-      <div className="card p-4 mb-4">
+      <div className="card p-4">
         <div className="grid grid-cols-2 text-center">
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
@@ -144,7 +222,7 @@ export default function HeatmapPage() {
       </div>
 
       {/* 지도 */}
-      <div className="rounded-2xl overflow-hidden mb-4" style={{ height: '400px' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ height: '450px' }}>
         {API_KEY ? (
           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
         ) : (
@@ -154,6 +232,15 @@ export default function HeatmapPage() {
         )}
       </div>
 
+      {/* 크레파스 효과 설명 */}
+      {filterMode !== '1d' && routeCount > 0 && (
+        <div className="card p-3 text-center">
+          <p className="text-[11px] text-[var(--muted)]">
+            🖍️ 같은 경로를 많이 달릴수록 선이 <span className="font-semibold text-[var(--accent)]">굵고 진하게</span> 표시됩니다
+          </p>
+        </div>
+      )}
+
       {loading && (
         <div className="flex justify-center py-4">
           <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
@@ -161,7 +248,7 @@ export default function HeatmapPage() {
       )}
 
       {selectedActivity && (
-        <div className="card p-4 mb-4">
+        <div className="card p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-[var(--foreground)]">{selectedActivity.distance_km.toFixed(2)} km</p>
@@ -177,7 +264,7 @@ export default function HeatmapPage() {
       {!loading && routeCount === 0 && (
         <div className="text-center py-8">
           <p className="text-sm text-[var(--muted)]">아직 GPS 러닝 기록이 없습니다</p>
-          <Link href="/track" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">달리기 시작하기</Link>
+          <p className="text-xs text-[var(--muted)] mt-1">Apple Health에서 기록을 가져오면 경로가 표시됩니다</p>
         </div>
       )}
     </div>

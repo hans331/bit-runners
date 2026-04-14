@@ -1,25 +1,38 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
 import { signOut } from '@/lib/auth';
-import { getStreak, formatDuration, formatPace } from '@/lib/routinist-data';
+import { getStreak, formatPace } from '@/lib/routinist-data';
+import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, ShoppingBag, Coins, HelpCircle, Shield, BarChart3, Heart, Clock, Award, LogOut } from 'lucide-react';
+import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, PenLine } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { activities } = useUserData();
   const router = useRouter();
+
+  const [regionalRanks, setRegionalRanks] = useState<MyRegionalRank[]>([]);
 
   const totalKm = profile?.total_distance_km ?? 0;
   const totalRuns = profile?.total_runs ?? 0;
   const streak = getStreak(activities);
-  const mileage = profile?.mileage_balance ?? 0;
 
-  // 최근 3개 활동
-  const recentActivities = activities.slice(0, 3);
+  const now = new Date();
+
+  // 지역 랭킹 로드
+  const loadRanks = useCallback(async () => {
+    if (!user) return;
+    try {
+      const ranks = await fetchMyRegionalRanks(user.id, now.getFullYear(), now.getMonth() + 1);
+      setRegionalRanks(ranks);
+    } catch {}
+  }, [user]);
+
+  useEffect(() => { loadRanks(); }, [loadRanks]);
 
   // 배지 계산
   const badges = [];
@@ -42,17 +55,11 @@ export default function ProfilePage() {
     {
       title: '러닝',
       items: [
-        { href: '/history', label: '전체 기록', Icon: Clock },
-        { href: '/stats', label: '통계 & 차트', Icon: BarChart3 },
+        { href: '/stats', label: '내 통계 & 차트', Icon: BarChart3 },
+        { href: '/history', label: '클럽 히스토리', Icon: Users },
         { href: '/goals', label: '목표 설정', Icon: Target },
         { href: '/connect', label: '건강 앱 연동', Icon: Heart },
-      ],
-    },
-    {
-      title: '쇼핑 & 마일리지',
-      items: [
-        { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
-        { href: '/mileage', label: `마일리지 (${mileage.toLocaleString()}P)`, Icon: Coins },
+        { href: '/log', label: '수동 기록 입력', Icon: PenLine },
       ],
     },
     {
@@ -78,18 +85,17 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-[var(--foreground)] truncate">{profile?.display_name}</h2>
-            {profile?.bio ? (
+            {profile?.region_gu ? (
+              <p className="text-sm text-[var(--muted)] flex items-center gap-1">
+                <MapPin size={12} /> {profile.region_si} {profile.region_gu} {profile.region_dong || ''}
+              </p>
+            ) : profile?.bio ? (
               <p className="text-sm text-[var(--muted)] truncate">{profile.bio}</p>
             ) : (
               <p className="text-sm text-[var(--muted)]">러너</p>
             )}
           </div>
-          <Link
-            href="/profile/edit"
-            className="text-sm text-[var(--accent)] font-semibold"
-          >
-            편집
-          </Link>
+          <Link href="/profile/edit" className="text-sm text-[var(--accent)] font-semibold">편집</Link>
         </div>
 
         {/* 통산 기록 */}
@@ -109,6 +115,56 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* ========== 지역 랭킹 (시/구/동 3단) ========== */}
+      {regionalRanks.length > 0 && (
+        <div className="card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin size={16} className="text-blue-500" />
+            <h3 className="text-sm font-bold text-[var(--foreground)]">{now.getMonth() + 1}월 지역 랭킹</h3>
+          </div>
+          <div className="space-y-3">
+            {regionalRanks.map(r => (
+              <div key={r.level} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold w-6 text-center rounded py-0.5 ${
+                    r.level === '동' ? 'bg-green-100 text-green-700' :
+                    r.level === '구' ? 'bg-blue-100 text-blue-700' :
+                    'bg-purple-100 text-purple-700'
+                  }`}>
+                    {r.level}
+                  </span>
+                  <span className="text-sm text-[var(--foreground)]">{r.region}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-[var(--accent)]">
+                    {r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : `${r.rank}위`}
+                  </span>
+                  <span className="text-xs text-[var(--muted)]">/ {r.total}명</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {!profile?.region_gu && (
+            <Link href="/profile/edit" className="text-xs text-[var(--accent)] font-semibold mt-3 inline-block">
+              지역을 설정하면 랭킹에 참여할 수 있어요 →
+            </Link>
+          )}
+        </div>
+      )}
+
+      {regionalRanks.length === 0 && (
+        <div className="card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin size={16} className="text-blue-500" />
+            <h3 className="text-sm font-bold text-[var(--foreground)]">지역 랭킹</h3>
+          </div>
+          <p className="text-sm text-[var(--muted)]">프로필에서 지역을 설정하면 시/구/동 단위 랭킹을 볼 수 있어요</p>
+          <Link href="/profile/edit" className="text-xs text-[var(--accent)] font-semibold mt-2 inline-block">
+            지역 설정하기 →
+          </Link>
+        </div>
+      )}
+
       {/* 배지 */}
       {badges.length > 0 && (
         <div className="card p-5">
@@ -123,36 +179,6 @@ export default function ProfilePage() {
                 <span className="text-sm">{b.icon}</span>
                 <span className="text-[11px] font-medium text-[var(--foreground)]">{b.label}</span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 최근 활동 미니 */}
-      {recentActivities.length > 0 && (
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[var(--foreground)]">최근 활동</h3>
-            <Link href="/history" className="text-xs text-[var(--accent)] font-semibold flex items-center gap-0.5">
-              전체 보기 <ChevronRight size={14} />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {recentActivities.map(a => (
-              <Link
-                key={a.id}
-                href={`/activity?id=${a.id}`}
-                className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--card-border)]/50 transition-colors"
-              >
-                <div>
-                  <p className="text-sm font-medium text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-[11px] text-[var(--muted)]">
-                    {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                    {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-[var(--muted)]" />
-              </Link>
             ))}
           </div>
         </div>
@@ -185,7 +211,7 @@ export default function ProfilePage() {
         로그아웃
       </button>
 
-      <p className="text-center text-xs text-[var(--muted)]">Routinist v0.4.0</p>
+      <p className="text-center text-xs text-[var(--muted)]">BIT Runners v0.5.0</p>
     </div>
   );
 }

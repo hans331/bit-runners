@@ -235,3 +235,136 @@ export async function fetchRegionalRankings(
   if (error) throw error;
   return (data || []) as RegionalRanking[];
 }
+
+// 내 지역 랭킹 조회 (시/구/동 3단)
+export interface MyRegionalRank {
+  level: '시' | '구' | '동';
+  region: string;
+  rank: number;
+  total: number;
+  myDistance: number;
+}
+
+export async function fetchMyRegionalRanks(userId: string, year: number, month: number): Promise<MyRegionalRank[]> {
+  const supabase = getSupabase();
+
+  // 내 프로필에서 지역 정보 가져오기
+  const { data: myProfile } = await supabase
+    .from('profiles')
+    .select('region_si, region_gu, region_dong')
+    .eq('id', userId)
+    .single();
+
+  if (!myProfile?.region_si) return [];
+
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endMonth = month === 12 ? 1 : month + 1;
+  const endYear = month === 12 ? year + 1 : year;
+  const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`;
+
+  const results: MyRegionalRank[] = [];
+
+  // 시 단위 랭킹
+  if (myProfile.region_si) {
+    const { data: siProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('region_si', myProfile.region_si);
+
+    if (siProfiles?.length) {
+      const userIds = siProfiles.map(p => p.id);
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('user_id, distance_km')
+        .in('user_id', userIds)
+        .gte('activity_date', startDate)
+        .lt('activity_date', endDate);
+
+      const distMap = new Map<string, number>();
+      (activities || []).forEach(a => distMap.set(a.user_id, (distMap.get(a.user_id) || 0) + Number(a.distance_km)));
+
+      const sorted = [...distMap.entries()].sort((a, b) => b[1] - a[1]);
+      const myIdx = sorted.findIndex(([uid]) => uid === userId);
+      const myDist = distMap.get(userId) || 0;
+
+      results.push({
+        level: '시',
+        region: myProfile.region_si,
+        rank: myIdx >= 0 ? myIdx + 1 : sorted.length + 1,
+        total: sorted.length,
+        myDistance: Math.round(myDist * 10) / 10,
+      });
+    }
+  }
+
+  // 구 단위 랭킹
+  if (myProfile.region_gu) {
+    const { data: guProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('region_si', myProfile.region_si)
+      .eq('region_gu', myProfile.region_gu);
+
+    if (guProfiles?.length) {
+      const userIds = guProfiles.map(p => p.id);
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('user_id, distance_km')
+        .in('user_id', userIds)
+        .gte('activity_date', startDate)
+        .lt('activity_date', endDate);
+
+      const distMap = new Map<string, number>();
+      (activities || []).forEach(a => distMap.set(a.user_id, (distMap.get(a.user_id) || 0) + Number(a.distance_km)));
+
+      const sorted = [...distMap.entries()].sort((a, b) => b[1] - a[1]);
+      const myIdx = sorted.findIndex(([uid]) => uid === userId);
+      const myDist = distMap.get(userId) || 0;
+
+      results.push({
+        level: '구',
+        region: myProfile.region_gu,
+        rank: myIdx >= 0 ? myIdx + 1 : sorted.length + 1,
+        total: sorted.length,
+        myDistance: Math.round(myDist * 10) / 10,
+      });
+    }
+  }
+
+  // 동 단위 랭킹
+  if (myProfile.region_dong) {
+    const { data: dongProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('region_si', myProfile.region_si)
+      .eq('region_gu', myProfile.region_gu)
+      .eq('region_dong', myProfile.region_dong);
+
+    if (dongProfiles?.length) {
+      const userIds = dongProfiles.map(p => p.id);
+      const { data: activities } = await supabase
+        .from('activities')
+        .select('user_id, distance_km')
+        .in('user_id', userIds)
+        .gte('activity_date', startDate)
+        .lt('activity_date', endDate);
+
+      const distMap = new Map<string, number>();
+      (activities || []).forEach(a => distMap.set(a.user_id, (distMap.get(a.user_id) || 0) + Number(a.distance_km)));
+
+      const sorted = [...distMap.entries()].sort((a, b) => b[1] - a[1]);
+      const myIdx = sorted.findIndex(([uid]) => uid === userId);
+      const myDist = distMap.get(userId) || 0;
+
+      results.push({
+        level: '동',
+        region: myProfile.region_dong,
+        rank: myIdx >= 0 ? myIdx + 1 : sorted.length + 1,
+        total: sorted.length,
+        myDistance: Math.round(myDist * 10) / 10,
+      });
+    }
+  }
+
+  return results;
+}

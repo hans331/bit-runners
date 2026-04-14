@@ -3,15 +3,16 @@
 import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Map, Users, User, Plus, PenLine } from 'lucide-react';
+import { Home, CalendarDays, Map, Users, User } from 'lucide-react';
+import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 
 const TABS = [
-  { href: '/dashboard', label: '대시보드', Icon: LayoutDashboard },
+  { href: '/dashboard', label: '홈', Icon: Home },
+  { href: '/calendar', label: '캘린더', Icon: CalendarDays },
   { href: '/map', label: '지도', Icon: Map },
-  // 중앙 FAB 자리 (별도 렌더링)
-  { href: '/social', label: '소셜', Icon: Users },
+  { href: '/social', label: '클럽', Icon: Users },
   { href: '/profile', label: '내 정보', Icon: User },
 ];
 
@@ -19,12 +20,49 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const lastSyncRef = useRef<number>(0);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [user, loading, router]);
+
+  // 앱 열 때 + 포그라운드 복귀 시 자동 동기화
+  useEffect(() => {
+    if (!user) return;
+
+    const doSync = async () => {
+      const now = Date.now();
+      // 마지막 동기화 후 5분 이내면 스킵
+      if (now - lastSyncRef.current < 5 * 60 * 1000) return;
+      lastSyncRef.current = now;
+
+      if (isNativeApp()) {
+        try {
+          await syncHealthData(user.id);
+        } catch {}
+      }
+    };
+
+    // 앱 로드 시 한 번 실행
+    doSync();
+
+    // Capacitor 앱 포그라운드 복귀 감지
+    let removeListener: (() => void) | null = null;
+
+    if (isNativeApp()) {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) doSync();
+        }).then(handle => {
+          removeListener = () => handle.remove();
+        });
+      }).catch(() => {});
+    }
+
+    return () => { removeListener?.(); };
+  }, [user]);
 
   if (loading) {
     return (
@@ -40,13 +78,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
-      {/* 헤더 - 달리기 화면에서는 숨김 */}
+      {/* 헤더 */}
       {!isTrackPage && (
         <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
           <div className="px-4 h-14 flex items-center justify-center">
             <Link href="/dashboard" className="flex items-center gap-2">
               <span className="text-xl">🏃🏻</span>
-              <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
+              <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">BIT Runners</h1>
             </Link>
           </div>
         </header>
@@ -57,50 +95,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <UserDataProvider>{children}</UserDataProvider>
       </main>
 
-      {/* 하단 4탭 + 중앙 FAB 네비게이션 */}
+      {/* 하단 5탭 네비게이션 */}
       {!isTrackPage && (
         <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-          <div className="flex justify-around items-center h-16 relative">
-            {/* 왼쪽 2탭 */}
-            {TABS.slice(0, 2).map((tab) => {
+          <div className="flex justify-around items-center h-14">
+            {TABS.map((tab) => {
               const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
               return (
                 <Link
                   key={tab.href}
                   href={tab.href}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
+                  className={`flex flex-col items-center gap-0.5 px-2 py-1 transition-colors ${
                     isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'
                   }`}
                 >
-                  <tab.Icon size={22} />
-                  <span className="text-[10px] font-medium">{tab.label}</span>
-                </Link>
-              );
-            })}
-
-            {/* 중앙 FAB - 달리기 시작 */}
-            <div className="flex flex-col items-center -mt-7">
-              <Link
-                href="/track"
-                className="w-14 h-14 rounded-full bg-[var(--accent)] text-white flex items-center justify-center shadow-lg shadow-[var(--accent)]/30 active:scale-95 transition-transform"
-              >
-                <Plus size={28} strokeWidth={2.5} />
-              </Link>
-              <span className="text-[10px] font-medium text-[var(--muted)] mt-0.5">달리기</span>
-            </div>
-
-            {/* 오른쪽 2탭 */}
-            {TABS.slice(2).map((tab) => {
-              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
-                    isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'
-                  }`}
-                >
-                  <tab.Icon size={22} />
+                  <tab.Icon size={20} />
                   <span className="text-[10px] font-medium">{tab.label}</span>
                 </Link>
               );

@@ -49,14 +49,17 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
   try {
     const { Health } = await import('@capgo/capacitor-health');
 
-    const startDate = new Date('2025-01-01T00:00:00').toISOString();
+    // 3년치 데이터 가져오기
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    const startDate = threeYearsAgo.toISOString();
     const endDate = new Date().toISOString();
 
     const { workouts } = await Health.queryWorkouts({
       workoutType: 'running',
       startDate,
       endDate,
-      limit: 100,
+      limit: 5000,
       ascending: false,
     });
 
@@ -197,7 +200,7 @@ export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
     return {
       success: false,
-      message: '건강 데이터 동기화는 Routinist 앱에서만 사용할 수 있습니다.',
+      message: '건강 데이터 동기화는 BIT Runners 앱에서만 사용할 수 있습니다.',
       synced: 0,
     };
   }
