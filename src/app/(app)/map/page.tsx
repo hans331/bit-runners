@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { fetchRoutesForUser } from '@/lib/map-data';
 import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import Link from 'next/link';
 import type { Activity } from '@/types';
 
@@ -105,9 +105,8 @@ export default function HeatmapPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-4">
-        <Link href="/dashboard" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex-1">내 러닝 지도</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-extrabold text-[var(--foreground)]">내 러닝 지도</h1>
       </div>
 
       {/* 필터 */}
