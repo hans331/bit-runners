@@ -43,7 +43,7 @@ export default function Leaderboard({ year, month }: Props) {
                       isFinisher ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 dark:from-emerald-600 dark:to-emerald-400' :
                       'bg-gradient-to-r from-blue-400 to-blue-500 dark:from-blue-600 dark:to-blue-400'
                     }`} style={{ width: `${Math.max(barWidth, 8)}%` }}>
-                      {barWidth > 25 && <span className="text-sm font-bold text-white">{entry.distance.toFixed(1)}km</span>}
+                      {barWidth > 25 && <span className="text-base font-bold text-white">{entry.distance.toFixed(1)}km</span>}
                     </div>
                   )}
                   {entry.goal > 0 && (
@@ -54,16 +54,16 @@ export default function Leaderboard({ year, month }: Props) {
                 <span className="w-20 text-right text-sm font-mono text-[var(--muted)]">
                   {entry.distance > 0 ? `${entry.distance.toFixed(1)}km` : '-'}
                 </span>
-                {isFinisher && <span className="text-emerald-500 text-sm font-bold">✓</span>}
+                {isFinisher && <span className="text-emerald-500 text-base font-bold">✓</span>}
               </div>
               {entry.isFallback && (
-                <span className="ml-10 text-sm text-[var(--muted)]">목표 {entry.goal}km (전월)</span>
+                <span className="ml-10 text-xs text-[var(--muted)]">목표 {entry.goal}km (전월)</span>
               )}
             </div>
           );
         })}
       </div>
-      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-[var(--card-border)] text-sm text-[var(--muted)]">
+      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-[var(--card-border)] text-xs text-[var(--muted)]">
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-2.5 rounded-sm bg-emerald-500" /> 달성</span>
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-2.5 rounded-sm bg-blue-500" /> 진행중</span>
         <span className="flex items-center gap-1.5"><span className="w-0.5 h-3.5 bg-amber-500" /> 목표</span>

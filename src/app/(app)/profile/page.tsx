@@ -94,13 +94,13 @@ export default function ProfilePage() {
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-[var(--foreground)] truncate">{profile?.display_name}</h2>
             {profile?.region_gu ? (
-              <p className="text-sm text-[var(--muted)] flex items-center gap-1">
+              <p className="text-xs text-[var(--muted)] flex items-center gap-1">
                 <MapPin size={12} /> {profile.region_si} {profile.region_gu} {profile.region_dong || ''}
               </p>
             ) : profile?.bio ? (
-              <p className="text-sm text-[var(--muted)] truncate">{profile.bio}</p>
+              <p className="text-xs text-[var(--muted)] truncate">{profile.bio}</p>
             ) : (
-              <p className="text-sm text-[var(--muted)]">러너</p>
+              <p className="text-xs text-[var(--muted)]">러너</p>
             )}
           </div>
           <Link href="/profile/edit" className="text-sm text-[var(--accent)] font-semibold">편집</Link>
@@ -110,15 +110,15 @@ export default function ProfilePage() {
         <div className="grid grid-cols-3 gap-4 text-center mt-5 pt-5 border-t border-[var(--card-border)]">
           <div>
             <p className="text-2xl font-bold text-[var(--accent)]">{Number(totalKm).toFixed(1)}</p>
-            <p className="text-sm text-[var(--muted)]">총 km</p>
+            <p className="text-xs text-[var(--muted)]">총 km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{totalRuns}</p>
-            <p className="text-sm text-[var(--muted)]">총 러닝</p>
+            <p className="text-xs text-[var(--muted)]">총 러닝</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{streak}</p>
-            <p className="text-sm text-[var(--muted)]">연속일 🔥</p>
+            <p className="text-xs text-[var(--muted)]">연속일 🔥</p>
           </div>
         </div>
       </div>
@@ -128,13 +128,13 @@ export default function ProfilePage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-4">
             <MapPin size={16} className="text-blue-500" />
-            <h3 className="text-sm font-bold text-[var(--foreground)]">{now.getMonth() + 1}월 지역 랭킹</h3>
+            <h3 className="text-base font-bold text-[var(--foreground)]">{now.getMonth() + 1}월 지역 랭킹</h3>
           </div>
           <div className="space-y-3">
             {regionalRanks.map(r => (
               <div key={r.level} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold w-6 text-center rounded py-0.5 ${
+                  <span className={`text-base font-bold w-6 text-center rounded py-0.5 ${
                     r.level === '동' ? 'bg-green-100 text-green-700' :
                     r.level === '구' ? 'bg-blue-100 text-blue-700' :
                     'bg-purple-100 text-purple-700'
@@ -144,10 +144,10 @@ export default function ProfilePage() {
                   <span className="text-sm text-[var(--foreground)]">{r.region}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-[var(--accent)]">
+                  <span className="text-base font-bold text-[var(--accent)]">
                     {r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : `${r.rank}위`}
                   </span>
-                  <span className="text-sm text-[var(--muted)]">/ {r.total}명</span>
+                  <span className="text-xs text-[var(--muted)]">/ {r.total}명</span>
                 </div>
               </div>
             ))}
@@ -164,9 +164,9 @@ export default function ProfilePage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-3">
             <MapPin size={16} className="text-blue-500" />
-            <h3 className="text-sm font-bold text-[var(--foreground)]">지역 랭킹</h3>
+            <h3 className="text-base font-bold text-[var(--foreground)]">지역 랭킹</h3>
           </div>
-          <p className="text-sm text-[var(--muted)]">프로필에서 지역을 설정하면 시/구/동 단위 랭킹을 볼 수 있어요</p>
+          <p className="text-xs text-[var(--muted)]">프로필에서 지역을 설정하면 시/구/동 단위 랭킹을 볼 수 있어요</p>
           <Link href="/profile/edit" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
             지역 설정하기 →
           </Link>
@@ -178,8 +178,8 @@ export default function ProfilePage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-3">
             <Award size={16} className="text-yellow-500" />
-            <h3 className="text-sm font-bold text-[var(--foreground)]">배지</h3>
-            <span className="text-sm text-[var(--muted)]">{badges.length}개 획득</span>
+            <h3 className="text-base font-bold text-[var(--foreground)]">배지</h3>
+            <span className="text-xs text-[var(--muted)]">{badges.length}개 획득</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {badges.map(b => (
@@ -195,7 +195,7 @@ export default function ProfilePage() {
       {/* 메뉴 섹션 */}
       {menuSections.map(section => (
         <div key={section.title}>
-          <p className="text-sm text-[var(--muted)] font-semibold px-1 mb-1.5">{section.title}</p>
+          <p className="text-xs text-[var(--muted)] font-semibold px-1 mb-1.5">{section.title}</p>
           <div className="card divide-y divide-[var(--card-border)]">
             {section.items.map((item) => (
               <Link key={item.href} href={item.href} className="flex items-center justify-between px-4 py-3.5">
@@ -219,7 +219,7 @@ export default function ProfilePage() {
         로그아웃
       </button>
 
-      <p className="text-center text-sm text-[var(--muted)]">Routinist v1.0.0</p>
+      <p className="text-center text-xs text-[var(--muted)]">Routinist v1.0.0</p>
     </div>
   );
 }

@@ -55,7 +55,7 @@ export default function CartPage() {
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-sm text-[var(--muted)]">장바구니가 비어있습니다</p>
+          <p className="text-xs text-[var(--muted)]">장바구니가 비어있습니다</p>
           <Link href="/shop" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">쇼핑하러 가기</Link>
         </div>
       ) : (
@@ -72,7 +72,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--foreground)] truncate">{item.product.name}</p>
-                  <p className="text-sm font-bold text-[var(--foreground)] mt-1">{(item.product.price_krw * item.quantity).toLocaleString()}원</p>
+                  <p className="text-base font-bold text-[var(--foreground)] mt-1">{(item.product.price_krw * item.quantity).toLocaleString()}원</p>
                   <div className="flex items-center gap-3 mt-2">
                     <button onClick={() => handleQuantity(item, -1)} className="w-7 h-7 rounded-lg bg-[var(--card-border)] flex items-center justify-center"><Minus size={14} /></button>
                     <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
@@ -103,7 +103,7 @@ export default function CartPage() {
           <button className="w-full mt-4 py-3.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-base">
             결제하기
           </button>
-          <p className="text-center text-sm text-[var(--muted)] mt-2">결제 기능은 PG 연동 후 활성화됩니다</p>
+          <p className="text-center text-xs text-[var(--muted)] mt-2">결제 기능은 PG 연동 후 활성화됩니다</p>
         </>
       )}
     </div>

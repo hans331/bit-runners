@@ -50,7 +50,7 @@ export default function StatsCards({ year, month }: Props) {
           <p className={`text-3xl md:text-4xl font-extrabold ${c.valueColor} tracking-tight`}>
             {c.value}<span className="text-sm md:text-base font-semibold ml-0.5">{c.unit}</span>
           </p>
-          <p className="text-sm md:text-sm text-[var(--muted)] mt-1.5">{c.sub}</p>
+          <p className="text-sm md:text-xs text-[var(--muted)] mt-1.5">{c.sub}</p>
         </div>
       ))}
     </div>

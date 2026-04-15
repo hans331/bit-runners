@@ -85,7 +85,7 @@ export default function ConnectPage() {
         <h1 className="text-lg font-bold text-[var(--foreground)]">건강 앱 연동</h1>
       </div>
 
-      <p className="text-sm text-[var(--muted)] mb-6">
+      <p className="text-xs text-[var(--muted)] mb-6">
         건강 앱에서 러닝 데이터를 자동으로 가져옵니다. 다른 앱(Nike Run Club, Strava 등)으로 기록한 데이터도 건강 앱을 통해 동기화됩니다.
       </p>
 
@@ -96,8 +96,8 @@ export default function ConnectPage() {
             <Heart size={24} className="text-red-500" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-[var(--foreground)]">Apple Health</h3>
-            <p className="text-sm text-[var(--muted)] mt-0.5">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Apple Health</h3>
+            <p className="text-xs text-[var(--muted)] mt-0.5">
               iPhone의 건강 앱에서 러닝 거리, 시간, 칼로리를 가져옵니다
             </p>
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -133,11 +133,11 @@ export default function ConnectPage() {
                   </div>
                 )}
                 {lastSync && (
-                  <p className="text-sm text-[var(--muted)]">마지막 동기화: {formatLastSync(lastSync)}</p>
+                  <p className="text-xs text-[var(--muted)]">마지막 동기화: {formatLastSync(lastSync)}</p>
                 )}
               </div>
             ) : (
-              <div className="mt-3 flex items-start gap-2 text-sm text-[var(--muted)]">
+              <div className="mt-3 flex items-start gap-2 text-xs text-[var(--muted)]">
                 <Smartphone size={14} className="flex-shrink-0 mt-0.5" />
                 <span>Routinist iOS 앱에서 연결할 수 있습니다</span>
               </div>
@@ -155,8 +155,8 @@ export default function ConnectPage() {
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-[var(--foreground)]">Samsung Health / Health Connect</h3>
-            <p className="text-sm text-[var(--muted)] mt-0.5">
+            <h3 className="text-base font-bold text-[var(--foreground)]">Samsung Health / Health Connect</h3>
+            <p className="text-xs text-[var(--muted)] mt-0.5">
               Android의 Health Connect를 통해 삼성 헬스, Google Fit 등의 데이터를 가져옵니다
             </p>
             <div className="flex flex-wrap gap-1.5 mt-2">
@@ -174,7 +174,7 @@ export default function ConnectPage() {
                 {syncing ? '연결 중...' : '연결하기'}
               </button>
             ) : (
-              <div className="mt-3 flex items-start gap-2 text-sm text-[var(--muted)]">
+              <div className="mt-3 flex items-start gap-2 text-xs text-[var(--muted)]">
                 <Smartphone size={14} className="flex-shrink-0 mt-0.5" />
                 <span>Routinist Android 앱에서 연결할 수 있습니다</span>
               </div>
@@ -196,14 +196,14 @@ export default function ConnectPage() {
 
       {/* 안내 */}
       <div className="mt-6 space-y-3">
-        <div className="flex items-start gap-3 text-sm text-[var(--muted)]">
+        <div className="flex items-start gap-3 text-xs text-[var(--muted)]">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-[var(--foreground)] mb-1">데이터는 어떻게 동기화되나요?</p>
             <p>건강 앱에 저장된 러닝 기록(워크아웃)을 가져옵니다. Nike Run Club, Strava, Garmin 등으로 기록하더라도 건강 앱과 연동되어 있다면 Routinist에서 자동으로 가져올 수 있습니다.</p>
           </div>
         </div>
-        <div className="flex items-start gap-3 text-sm text-[var(--muted)]">
+        <div className="flex items-start gap-3 text-xs text-[var(--muted)]">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-[var(--foreground)] mb-1">개인정보는 안전한가요?</p>

@@ -42,13 +42,13 @@ export default function LogPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-5">
-      <Link href="/" className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+      <Link href="/" className="inline-flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
         대시보드
       </Link>
       <div className="text-center">
         <h1 className="text-xl font-bold text-[var(--foreground)]">러닝 기록 입력</h1>
-        <p className="text-sm text-[var(--muted)] mt-1">달린 후 바로 기록하세요</p>
+        <p className="text-xs text-[var(--muted)] mt-1">달린 후 바로 기록하세요</p>
       </div>
       {/* 건강 데이터 자동 동기화 */}
       {selectedMember && (
@@ -60,7 +60,7 @@ export default function LogPage() {
 
       <div className="relative flex items-center gap-3 my-2">
         <div className="flex-1 border-t border-[var(--card-border)]" />
-        <span className="text-sm text-[var(--muted)] font-medium">또는 직접 입력</span>
+        <span className="text-xs text-[var(--muted)] font-medium">또는 직접 입력</span>
         <div className="flex-1 border-t border-[var(--card-border)]" />
       </div>
 

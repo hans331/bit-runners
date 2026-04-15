@@ -23,7 +23,7 @@ export default function Badges({ finisherCount, longRunCount, attendanceCount, t
         {badges.map(b => (
           <span key={b.label} className="inline-flex items-center text-sm gap-0" title={`${b.label} ${b.count}회`}>
             <span>{b.icon}</span>
-            {b.count > 1 && <span className="text-sm font-bold text-[var(--muted)]">x{b.count}</span>}
+            {b.count > 1 && <span className="text-base font-bold text-[var(--muted)]">x{b.count}</span>}
           </span>
         ))}
       </span>
@@ -39,7 +39,7 @@ export default function Badges({ finisherCount, longRunCount, attendanceCount, t
           <span className="font-bold">x{b.count}</span>
         </span>
       ))}
-      <span className="text-sm text-[var(--muted)]" title="총 러닝 횟수">
+      <span className="text-xs text-[var(--muted)]" title="총 러닝 횟수">
         👟 {totalRuns}회
       </span>
     </div>

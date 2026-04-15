@@ -110,7 +110,7 @@ export default function ProfileEditPage() {
             maxLength={20}
             className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           />
-          <p className="text-sm text-[var(--muted)] mt-1">{displayName.length}/20</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{displayName.length}/20</p>
         </div>
 
         <div>
@@ -123,7 +123,7 @@ export default function ProfileEditPage() {
             placeholder="한 줄 소개를 입력해주세요"
             className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none"
           />
-          <p className="text-sm text-[var(--muted)] mt-1">{bio.length}/100</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{bio.length}/100</p>
         </div>
 
         <div>
@@ -138,7 +138,7 @@ export default function ProfileEditPage() {
               <option key={gu} value={gu}>{gu}</option>
             ))}
           </select>
-          <p className="text-sm text-[var(--muted)] mt-1">지역을 설정하면 지역 랭킹에 참여할 수 있습니다</p>
+          <p className="text-xs text-[var(--muted)] mt-1">지역을 설정하면 지역 랭킹에 참여할 수 있습니다</p>
         </div>
       </div>
 

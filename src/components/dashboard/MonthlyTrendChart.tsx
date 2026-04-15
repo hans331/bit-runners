@@ -13,7 +13,7 @@ export default function MonthlyTrendChart() {
 
   return (
     <div className="card">
-      <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">클럽 월별 총 거리</h3>
+      <h3 className="text-base font-bold text-[var(--foreground)] mb-4">클럽 월별 총 거리</h3>
       <div className="h-56 md:h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>

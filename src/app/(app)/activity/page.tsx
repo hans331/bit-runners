@@ -81,19 +81,19 @@ function ActivityDetail() {
             <p className="text-lg font-bold text-[var(--foreground)]">
               {activity.duration_seconds ? formatDuration(activity.duration_seconds) : '-'}
             </p>
-            <p className="text-sm text-[var(--muted)]">시간</p>
+            <p className="text-xs text-[var(--muted)]">시간</p>
           </div>
           <div>
             <p className="text-lg font-bold text-[var(--foreground)]">
               {activity.pace_avg_sec_per_km ? formatPace(activity.pace_avg_sec_per_km) : '-'}
             </p>
-            <p className="text-sm text-[var(--muted)]">페이스/km</p>
+            <p className="text-xs text-[var(--muted)]">페이스/km</p>
           </div>
           <div>
             <p className="text-lg font-bold text-[var(--foreground)]">
               {activity.calories ?? '-'}
             </p>
-            <p className="text-sm text-[var(--muted)]">kcal</p>
+            <p className="text-xs text-[var(--muted)]">kcal</p>
           </div>
         </div>
       </div>
@@ -101,18 +101,18 @@ function ActivityDetail() {
       {/* 상세 정보 */}
       <div className="card p-5 space-y-3">
         <div className="flex justify-between">
-          <span className="text-sm text-[var(--muted)]">날짜</span>
+          <span className="text-xs text-[var(--muted)]">날짜</span>
           <span className="text-sm text-[var(--foreground)]">
             {new Date(activity.activity_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-sm text-[var(--muted)]">기록 방식</span>
+          <span className="text-xs text-[var(--muted)]">기록 방식</span>
           <span className="text-sm text-[var(--foreground)]">{sourceLabel}</span>
         </div>
         {activity.memo && (
           <div className="pt-2 border-t border-[var(--card-border)]">
-            <p className="text-sm text-[var(--muted)] mb-1">메모</p>
+            <p className="text-xs text-[var(--muted)] mb-1">메모</p>
             <p className="text-sm text-[var(--foreground)]">{activity.memo}</p>
           </div>
         )}

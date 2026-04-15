@@ -129,7 +129,7 @@ function ChatView() {
             <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-center text-sm text-[var(--muted)] py-8">첫 메시지를 보내보세요!</p>
+          <p className="text-center text-xs text-[var(--muted)] py-8">첫 메시지를 보내보세요!</p>
         ) : (
           messages.map((msg) => {
             const isMine = msg.sender_id === user?.id;

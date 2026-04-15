@@ -38,27 +38,18 @@
 }
 
 html {
-  font-size: 20px;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), 'Pretendard', -apple-system, sans-serif;
-  transition: background-color 0.3s, color 0.3s;
+  font-size: 1rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  min-font-size: 14px;
-  -webkit-text-size-adjust: 100%;
-}
-
-/* 전역 최소 폰트 크기 강제 */
-* {
-  font-size: inherit;
-}
-p, span, a, li, td, th, label, input, select, textarea, button, div {
-  min-font-size: 14px;
 }
 
 /* 스크롤바 */
@@ -77,12 +68,11 @@ p, span, a, li, td, th, label, input, select, textarea, button, div {
 }
 
 /* Recharts 반응형 텍스트 */
-.recharts-text { font-size: 14px; }
+.recharts-text { font-size: 13px; }
 
 /* 모바일 최적화 */
 @media (max-width: 640px) {
-  html { font-size: 18px; }
-  .recharts-text { font-size: 13px; }
+  .recharts-text { font-size: 12px; }
   .card { padding: 16px; border-radius: 16px; }
 }
 

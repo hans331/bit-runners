@@ -292,7 +292,7 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
       <div className="bg-[var(--background)] rounded-2xl max-w-sm w-full overflow-hidden max-h-[90vh] flex flex-col">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] flex-shrink-0">
-          <h3 className="text-sm font-bold text-[var(--foreground)]">공유 카드</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)]">공유 카드</h3>
           <button onClick={onClose} className="text-[var(--muted)]"><X size={20} /></button>
         </div>
 
@@ -339,7 +339,7 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
               <ImagePlus size={14} /> {bgImage ? '사진 변경' : '배경 사진 추가'}
             </button>
             {bgImage && (
-              <button onClick={clearPhoto} className="px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-sm text-[var(--muted)]">
+              <button onClick={clearPhoto} className="px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-xs text-[var(--muted)]">
                 제거
               </button>
             )}

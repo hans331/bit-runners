@@ -229,7 +229,7 @@ export default function TrackPage() {
       >
         {!API_KEY && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-sm text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
+            <p className="text-xs text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
           </div>
         )}
       </div>

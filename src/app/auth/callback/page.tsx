@@ -46,7 +46,7 @@ function CallbackHandler() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
       <div className="text-center">
         <div className="animate-spin w-8 h-8 border-3 border-[var(--accent)] border-t-transparent rounded-full mx-auto mb-4" />
-        <p className="text-sm text-[var(--muted)]">로그인 처리 중...</p>
+        <p className="text-xs text-[var(--muted)]">로그인 처리 중...</p>
       </div>
     </div>
   );

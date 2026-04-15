@@ -55,7 +55,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     <div key="welcome" className="text-center">
       <span className="text-6xl block mb-6">🏃🏻</span>
       <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">Routinist에 오신 걸 환영합니다!</h2>
-      <p className="text-sm text-[var(--muted)] mb-8">나만의 러닝 루틴을 만들어볼까요?</p>
+      <p className="text-xs text-[var(--muted)] mb-8">나만의 러닝 루틴을 만들어볼까요?</p>
       <button
         onClick={() => setStep(1)}
         className="w-full py-3.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-base flex items-center justify-center gap-2"
@@ -67,7 +67,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     // Step 1: 닉네임
     <div key="name">
       <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">닉네임을 정해주세요</h2>
-      <p className="text-sm text-[var(--muted)] mb-6">다른 러너들에게 보여지는 이름이에요</p>
+      <p className="text-xs text-[var(--muted)] mb-6">다른 러너들에게 보여지는 이름이에요</p>
       <input
         type="text"
         value={displayName}
@@ -91,7 +91,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         <Target size={20} className="text-[var(--accent)]" />
         <h2 className="text-xl font-bold text-[var(--foreground)]">이번 달 목표를 정해볼까요?</h2>
       </div>
-      <p className="text-sm text-[var(--muted)] mb-6">언제든 변경할 수 있어요</p>
+      <p className="text-xs text-[var(--muted)] mb-6">언제든 변경할 수 있어요</p>
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[30, 50, 100].map((km) => (
           <button
@@ -114,7 +114,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           max={1000}
           className="flex-1 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-center font-bold focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
-        <span className="text-sm text-[var(--muted)]">km / 월</span>
+        <span className="text-xs text-[var(--muted)]">km / 월</span>
       </div>
       <button
         onClick={() => setStep(3)}
@@ -130,7 +130,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         <MapPin size={20} className="text-[var(--accent)]" />
         <h2 className="text-xl font-bold text-[var(--foreground)]">어디서 달리시나요?</h2>
       </div>
-      <p className="text-sm text-[var(--muted)] mb-6">지역 랭킹에 참여할 수 있어요 (선택사항)</p>
+      <p className="text-xs text-[var(--muted)] mb-6">지역 랭킹에 참여할 수 있어요 (선택사항)</p>
       <div className="grid grid-cols-3 gap-2 mb-6 max-h-48 overflow-y-auto">
         {REGIONS.map((gu) => (
           <button
@@ -153,7 +153,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       </button>
       <button
         onClick={handleFinish}
-        className="w-full text-center text-sm text-[var(--muted)] mt-3 py-2"
+        className="w-full text-center text-xs text-[var(--muted)] mt-3 py-2"
       >
         건너뛰기
       </button>

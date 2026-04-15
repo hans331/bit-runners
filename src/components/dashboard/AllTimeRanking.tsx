@@ -10,7 +10,7 @@ export default function AllTimeRanking() {
 
   return (
     <div className="card">
-      <h3 className="text-sm font-bold text-[var(--foreground)] mb-4">통산 누적 랭킹</h3>
+      <h3 className="text-base font-bold text-[var(--foreground)] mb-4">통산 누적 랭킹</h3>
       <div className="space-y-1.5">
         {ranking.map((entry, i) => (
           <Link key={entry.member.id} href={`/member/${encodeURIComponent(entry.member.name)}`}

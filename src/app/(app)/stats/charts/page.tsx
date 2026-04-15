@@ -57,7 +57,7 @@ export default function ChartsPage() {
 
       {/* 총 거리 요약 */}
       <div className="card p-5 mb-4 text-center">
-        <p className="text-sm text-[var(--muted)]">총 거리</p>
+        <p className="text-xs text-[var(--muted)]">총 거리</p>
         <p className="text-3xl font-extrabold text-[var(--accent)]">{totalDistance.toFixed(1)} km</p>
         {hasPrevData && prevTotal > 0 && (
           <p className={`text-sm mt-1 ${totalDistance >= prevTotal ? 'text-green-500' : 'text-red-500'}`}>
@@ -113,8 +113,8 @@ export default function ChartsPage() {
             {chartType === 'bar' ? (
               <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} unit="km" />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} unit="km" />
                 <Tooltip
                   contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
                   formatter={(value) => [`${value}km`]}
@@ -128,8 +128,8 @@ export default function ChartsPage() {
             ) : (
               <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} unit="km" />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} unit="km" />
                 <Tooltip
                   contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
                   formatter={(value) => [`${value}km`]}
@@ -153,7 +153,7 @@ export default function ChartsPage() {
             <div key={d.label} className="flex items-center justify-between px-5 py-3">
               <span className="text-sm text-[var(--foreground)]">{d.label}</span>
               <div className="text-right">
-                <p className="text-sm font-bold text-[var(--foreground)]">{d.distance.toFixed(1)} km</p>
+                <p className="text-base font-bold text-[var(--foreground)]">{d.distance.toFixed(1)} km</p>
                 {d.prevDistance !== undefined && d.prevDistance > 0 && (
                   <p className={`text-sm ${d.distance >= d.prevDistance ? 'text-green-500' : 'text-red-500'}`}>
                     전년 {d.prevDistance.toFixed(1)}km

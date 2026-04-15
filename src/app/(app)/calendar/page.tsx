@@ -16,8 +16,8 @@ function distanceColor(km: number, dateStr: string): string {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-gray-800';
-    return 'bg-gray-100 dark:bg-gray-700/30';
+    if (cellDate > today) return 'bg-white dark:bg-white/10';
+    return 'bg-gray-100 dark:bg-gray-100/20';
   }
   if (km < 3) return 'bg-pink-100 dark:bg-pink-900/30';
   if (km < 5) return 'bg-yellow-100 dark:bg-yellow-900/30';
@@ -140,15 +140,15 @@ export default function CalendarPage() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
-            <p className="text-sm text-[var(--muted)]">km</p>
+            <p className="text-xs text-[var(--muted)]">km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{runDays}</p>
-            <p className="text-sm text-[var(--muted)]">러닝 일수</p>
+            <p className="text-xs text-[var(--muted)]">러닝 일수</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{totalDuration > 0 ? formatDuration(totalDuration) : '-'}</p>
-            <p className="text-sm text-[var(--muted)]">시간</p>
+            <p className="text-xs text-[var(--muted)]">시간</p>
           </div>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function CalendarPage() {
         </div>
 
         {/* 범례 */}
-        <div className="flex items-center gap-2 mt-4 justify-center text-sm text-[var(--muted)]">
+        <div className="flex items-center gap-2 mt-4 justify-center text-xs text-[var(--muted)]">
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-200" /> 0km</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100" /> ~3</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100" /> ~5</span>
@@ -237,7 +237,7 @@ export default function CalendarPage() {
       {/* 이달 활동 리스트 */}
       {!loading && monthlyActivities.length > 0 && (
         <div className="card p-5">
-          <h3 className="text-sm font-bold text-[var(--foreground)] mb-3">이달의 러닝</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)] mb-3">이달의 러닝</h3>
           <div className="space-y-2">
             {monthlyActivities.map(a => (
               <Link
@@ -247,7 +247,7 @@ export default function CalendarPage() {
               >
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className="text-xs text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.duration_seconds && ` · ${formatDuration(a.duration_seconds)}`}
                   </p>

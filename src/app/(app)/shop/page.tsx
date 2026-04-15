@@ -49,7 +49,7 @@ export default function ShopPage() {
           <Coins size={18} className="text-[var(--accent)]" />
           <span className="text-sm text-[var(--foreground)]">보유 마일리지</span>
         </div>
-        <Link href="/mileage" className="text-sm font-bold text-[var(--accent)]">{balance.toLocaleString()}P</Link>
+        <Link href="/mileage" className="text-base font-bold text-[var(--accent)]">{balance.toLocaleString()}P</Link>
       </div>
 
       {/* 카테고리 탭 */}
@@ -76,7 +76,7 @@ export default function ShopPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <ShoppingCart size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <p className="text-sm text-[var(--muted)]">이 카테고리에 상품이 없습니다</p>
+          <p className="text-xs text-[var(--muted)]">이 카테고리에 상품이 없습니다</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
@@ -94,10 +94,10 @@ export default function ShopPage() {
               <div className="p-3">
                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">{product.name}</p>
                 {product.description && (
-                  <p className="text-sm text-[var(--muted)] truncate mt-0.5">{product.description}</p>
+                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{product.description}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1.5">
-                  <p className="text-sm font-bold text-[var(--foreground)]">{product.price_krw.toLocaleString()}원</p>
+                  <p className="text-base font-bold text-[var(--foreground)]">{product.price_krw.toLocaleString()}원</p>
                 </div>
                 {product.mileage_price && (
                   <p className="text-sm text-[var(--accent)] flex items-center gap-0.5 mt-0.5">

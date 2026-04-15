@@ -80,7 +80,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] px-6">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-extrabold text-[var(--foreground)]">프로필 설정</h1>
-        <p className="text-sm text-[var(--muted)] mt-2">닉네임과 프로필 사진을 설정해주세요</p>
+        <p className="text-xs text-[var(--muted)] mt-2">닉네임과 프로필 사진을 설정해주세요</p>
       </div>
 
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-6">
@@ -130,7 +130,7 @@ export default function SignupPage() {
             maxLength={20}
             className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-base focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           />
-          <p className="text-sm text-[var(--muted)] mt-1">{displayName.length}/20</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{displayName.length}/20</p>
         </div>
 
         {error && (

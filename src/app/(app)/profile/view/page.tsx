@@ -76,7 +76,7 @@ function UserProfile() {
           )}
         </div>
         <h2 className="text-xl font-bold text-[var(--foreground)]">{profile.display_name}</h2>
-        {profile.bio && <p className="text-sm text-[var(--muted)] mt-1">{profile.bio}</p>}
+        {profile.bio && <p className="text-xs text-[var(--muted)] mt-1">{profile.bio}</p>}
 
         <div className="flex justify-center gap-6 mt-3 text-sm">
           <div><span className="font-bold text-[var(--foreground)]">{followCounts.followers}</span> <span className="text-[var(--muted)]">팔로워</span></div>
@@ -106,15 +106,15 @@ function UserProfile() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{Number(profile.total_distance_km).toFixed(1)}</p>
-            <p className="text-sm text-[var(--muted)]">총 km</p>
+            <p className="text-xs text-[var(--muted)]">총 km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{profile.total_runs}</p>
-            <p className="text-sm text-[var(--muted)]">총 러닝</p>
+            <p className="text-xs text-[var(--muted)]">총 러닝</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{profile.region_gu ?? '-'}</p>
-            <p className="text-sm text-[var(--muted)]">지역</p>
+            <p className="text-xs text-[var(--muted)]">지역</p>
           </div>
         </div>
       </div>
@@ -122,16 +122,16 @@ function UserProfile() {
       <div className="card p-5">
         <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">최근 활동</h3>
         {activities.length === 0 ? (
-          <p className="text-sm text-[var(--muted)] text-center py-4">공개된 활동이 없습니다</p>
+          <p className="text-xs text-[var(--muted)] text-center py-4">공개된 활동이 없습니다</p>
         ) : (
           <div className="space-y-3">
             {activities.map((a) => (
               <div key={a.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-sm text-[var(--muted)]">{new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
+                  <p className="text-xs text-[var(--muted)]">{new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
                 </div>
-                <p className="text-sm text-[var(--muted)]">{a.duration_seconds ? `${Math.floor(a.duration_seconds / 60)}분` : ''}</p>
+                <p className="text-xs text-[var(--muted)]">{a.duration_seconds ? `${Math.floor(a.duration_seconds / 60)}분` : ''}</p>
               </div>
             ))}
           </div>

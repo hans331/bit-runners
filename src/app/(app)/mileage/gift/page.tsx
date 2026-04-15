@@ -60,7 +60,7 @@ export default function GiftMileagePage() {
 
       {/* 잔액 */}
       <div className="card p-4 mb-4 text-center">
-        <p className="text-sm text-[var(--muted)]">보유 마일리지</p>
+        <p className="text-xs text-[var(--muted)]">보유 마일리지</p>
         <p className="text-2xl font-bold text-[var(--foreground)]">{balance.toLocaleString()}P</p>
       </div>
 
@@ -102,7 +102,7 @@ export default function GiftMileagePage() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-[var(--foreground)]">{selectedUser.display_name}</p>
-            <p className="text-sm text-[var(--muted)]">받는 사람</p>
+            <p className="text-xs text-[var(--muted)]">받는 사람</p>
           </div>
           <button onClick={() => setSelectedUser(null)} className="text-sm text-[var(--accent)]">변경</button>
         </div>

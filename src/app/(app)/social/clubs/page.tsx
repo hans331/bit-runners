@@ -38,7 +38,7 @@ export default function ClubsPage() {
       ) : error && clubs.length === 0 ? (
         <div className="text-center py-12">
           <Users size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <p className="text-sm text-[var(--muted)]">클럽 목록을 불러올 수 없습니다</p>
+          <p className="text-xs text-[var(--muted)]">클럽 목록을 불러올 수 없습니다</p>
           <button
             onClick={() => { setError(false); setLoading(true); fetchClubs().then(setClubs).catch(() => setError(true)).finally(() => setLoading(false)); }}
             className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block"
@@ -49,7 +49,7 @@ export default function ClubsPage() {
       ) : clubs.length === 0 ? (
         <div className="text-center py-12">
           <Users size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <p className="text-sm text-[var(--muted)]">아직 클럽이 없습니다</p>
+          <p className="text-xs text-[var(--muted)]">아직 클럽이 없습니다</p>
           <Link href="/social/clubs/create" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
             첫 번째 클럽을 만들어보세요!
           </Link>
@@ -66,11 +66,11 @@ export default function ClubsPage() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[var(--foreground)] truncate">{club.name}</p>
+                <p className="text-base font-bold text-[var(--foreground)] truncate">{club.name}</p>
                 {club.description && (
-                  <p className="text-sm text-[var(--muted)] truncate mt-0.5">{club.description}</p>
+                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{club.description}</p>
                 )}
-                <p className="text-sm text-[var(--muted)] mt-1">멤버 {club.member_count}명</p>
+                <p className="text-xs text-[var(--muted)] mt-1">멤버 {club.member_count}명</p>
               </div>
             </Link>
           ))}

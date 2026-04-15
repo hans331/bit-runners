@@ -29,8 +29,8 @@ export default function MemberGrowthChart() {
 
   return (
     <div className="card">
-      <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">멤버별 월간 거리</h3>
-      <p className="text-sm text-[var(--muted)] mb-4">TOP 10</p>
+      <h3 className="text-base font-bold text-[var(--foreground)] mb-1">멤버별 월간 거리</h3>
+      <p className="text-xs text-[var(--muted)] mb-4">TOP 10</p>
       <div className="h-64 md:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>

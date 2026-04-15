@@ -104,7 +104,7 @@ export default function CommentSection({ activityId, activityOwnerId }: CommentS
                   <Link href={`/profile/view?id=${comment.user_id}`} className="text-sm font-semibold text-[var(--foreground)]">
                     {comment.profile?.display_name ?? '러너'}
                   </Link>
-                  <span className="text-sm text-[var(--muted)]">{formatTime(comment.created_at)}</span>
+                  <span className="text-xs text-[var(--muted)]">{formatTime(comment.created_at)}</span>
                   {comment.user_id === user?.id && (
                     <button onClick={() => handleDelete(comment.id)} className="text-[var(--muted)] hover:text-red-500 ml-auto">
                       <Trash2 size={12} />

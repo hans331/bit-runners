@@ -159,7 +159,7 @@ function ClubDetail() {
           )}
         </div>
         <h2 className="text-xl font-bold text-[var(--foreground)]">{club.name}</h2>
-        {club.description && <p className="text-sm text-[var(--muted)] mt-1">{club.description}</p>}
+        {club.description && <p className="text-xs text-[var(--muted)] mt-1">{club.description}</p>}
         <p className="text-sm text-[var(--accent)] font-semibold mt-2">멤버 {club.member_count}명</p>
 
         {!isMember ? (
@@ -188,7 +188,7 @@ function ClubDetail() {
             <p className="text-sm font-semibold text-[var(--foreground)]">
               {copied ? '복사됨!' : '초대 링크 복사'}
             </p>
-            <p className="text-sm text-[var(--muted)] truncate">링크를 친구에게 보내면 바로 가입할 수 있어요</p>
+            <p className="text-xs text-[var(--muted)] truncate">링크를 친구에게 보내면 바로 가입할 수 있어요</p>
           </div>
         </button>
       )}
@@ -225,7 +225,7 @@ function ClubDetail() {
                 </Link>
                 <Link href={`/profile/view?id=${member.user_id}`} className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--foreground)] truncate">{member.profile?.display_name ?? '러너'}</p>
-                  <p className="text-sm text-[var(--muted)]">{Number(member.profile?.total_distance_km ?? 0).toFixed(1)}km · {member.profile?.total_runs ?? 0}회</p>
+                  <p className="text-xs text-[var(--muted)]">{Number(member.profile?.total_distance_km ?? 0).toFixed(1)}km · {member.profile?.total_runs ?? 0}회</p>
                 </Link>
                 {member.role !== 'member' && (
                   <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
@@ -263,7 +263,7 @@ function ClubDetail() {
           {activities.length === 0 ? (
             <div className="card p-8 text-center">
               <Activity size={32} className="mx-auto mb-2 text-[var(--muted)]" />
-              <p className="text-sm text-[var(--muted)]">아직 클럽 활동이 없습니다</p>
+              <p className="text-xs text-[var(--muted)]">아직 클럽 활동이 없습니다</p>
             </div>
           ) : (
             activities.map((a: any) => (
@@ -280,7 +280,7 @@ function ClubDetail() {
                     {a.profiles?.display_name ?? '러너'}
                     <span className="text-[var(--muted)] font-normal ml-2">{Number(a.distance_km).toFixed(2)}km</span>
                   </p>
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className="text-xs text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.duration_seconds ? ` · ${formatDuration(a.duration_seconds)}` : ''}
                     {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
@@ -318,7 +318,7 @@ function ClubDetail() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-[var(--foreground)]">공개 클럽</p>
-              <p className="text-sm text-[var(--muted)]">누구나 검색하고 가입할 수 있습니다</p>
+              <p className="text-xs text-[var(--muted)]">누구나 검색하고 가입할 수 있습니다</p>
             </div>
             <button
               onClick={() => setEditPublic(!editPublic)}

@@ -34,7 +34,7 @@ function DistanceRanking({ members, currentUserId }: { members: MemberProgress[]
         return (
           <div key={m.user_id} className="flex items-center gap-2">
             {/* 순위 */}
-            <span className={`w-5 text-sm font-bold text-center flex-shrink-0 ${
+            <span className={`w-5 text-base font-bold text-center flex-shrink-0 ${
               i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-600' : 'text-[var(--muted)]'
             }`}>
               {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
@@ -67,7 +67,7 @@ function DistanceRanking({ members, currentUserId }: { members: MemberProgress[]
                 }}
               >
                 {barWidth > 20 && (
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-bold text-white">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-base font-bold text-white">
                     {m.distance_km.toFixed(1)}km
                   </span>
                 )}
@@ -75,7 +75,7 @@ function DistanceRanking({ members, currentUserId }: { members: MemberProgress[]
             </div>
             {/* 거리 (바 밖) */}
             {barWidth <= 20 && (
-              <span className="text-sm text-[var(--muted)] w-14 text-right flex-shrink-0">{m.distance_km.toFixed(1)}km</span>
+              <span className="text-xs text-[var(--muted)] w-14 text-right flex-shrink-0">{m.distance_km.toFixed(1)}km</span>
             )}
             {/* 목표 달성 체크 */}
             {m.progress >= 100 && <span className="text-sm flex-shrink-0">✅</span>}
@@ -164,7 +164,7 @@ export default function DashboardPage() {
             {profile?.display_name ?? '러너'}님의 {month}월
             <ChevronRight size={16} className="text-[var(--accent)]" />
           </Link>
-          <p className="text-sm text-[var(--muted)]">이름을 터치하면 내 통계를 볼 수 있어요</p>
+          <p className="text-xs text-[var(--muted)]">이름을 터치하면 내 통계를 볼 수 있어요</p>
         </div>
         <Link href="/history" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
           히스토리 <ChevronRight size={16} />
@@ -178,12 +178,12 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-[var(--accent)] opacity-30">
             <TrendingUp size={28} />
           </div>
-          <p className="text-sm text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 거리' : '내 총 거리'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 거리' : '내 총 거리'}</p>
           <p className="text-3xl font-extrabold text-[var(--accent)] italic">
             {clubSummary ? clubSummary.totalDistance.toFixed(0) : (profile?.total_distance_km ? Number(profile.total_distance_km).toFixed(0) : '0')}
-            <span className="text-sm font-bold not-italic ml-1">km</span>
+            <span className="text-base font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-sm text-[var(--muted)] mt-1">
+          <p className="text-xs text-[var(--muted)] mt-1">
             {clubSummary ? `${clubSummary.activeMembers}명 활동` : '통산 기록'}
           </p>
         </div>
@@ -193,12 +193,12 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-green-500 opacity-30">
             <Activity size={28} />
           </div>
-          <p className="text-sm text-[var(--muted)] mb-1">{clubSummary ? '인당 평균' : '이달 거리'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '인당 평균' : '이달 거리'}</p>
           <p className="text-3xl font-extrabold text-green-600 italic">
             {clubSummary ? clubSummary.avgDistance.toFixed(1) : monthlyDistance.toFixed(1)}
-            <span className="text-sm font-bold not-italic ml-1">km</span>
+            <span className="text-base font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-sm text-[var(--muted)] mt-1">{clubSummary ? '활동 멤버 기준' : `${month}월 누적`}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? '활동 멤버 기준' : `${month}월 누적`}</p>
         </div>
 
         {/* 총 러닝 */}
@@ -206,12 +206,12 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-purple-500 opacity-30">
             <Zap size={28} />
           </div>
-          <p className="text-sm text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 러닝' : '내 총 러닝'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 러닝' : '내 총 러닝'}</p>
           <p className="text-3xl font-extrabold text-purple-600 italic">
             {clubSummary ? clubSummary.totalRuns : (profile?.total_runs ?? 0)}
-            <span className="text-sm font-bold not-italic ml-1">회</span>
+            <span className="text-base font-bold not-italic ml-1">회</span>
           </p>
-          <p className="text-sm text-[var(--muted)] mt-1">
+          <p className="text-xs text-[var(--muted)] mt-1">
             {clubSummary
               ? (clubSummary.daysRemaining > 0 ? `D-${clubSummary.daysRemaining}` : '이달 완료')
               : '통산 기록'}
@@ -223,15 +223,15 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-orange-500 opacity-30">
             <Users size={28} />
           </div>
-          <p className="text-sm text-[var(--muted)] mb-1">{clubSummary ? '활동 멤버' : '이달 활동'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '활동 멤버' : '이달 활동'}</p>
           <p className="text-3xl font-extrabold text-orange-600 italic">
             {clubSummary ? clubSummary.activeMembers : activities.filter(a => {
               const d = new Date(a.activity_date);
               return d.getFullYear() === year && d.getMonth() + 1 === month;
             }).length}
-            <span className="text-sm font-bold not-italic ml-1">{clubSummary ? '명' : '회'}</span>
+            <span className="text-base font-bold not-italic ml-1">{clubSummary ? '명' : '회'}</span>
           </p>
-          <p className="text-sm text-[var(--muted)] mt-1">
+          <p className="text-xs text-[var(--muted)] mt-1">
             {clubSummary ? `전체 ${clubSummary.totalMembers}명` : `${month}월 러닝 횟수`}
           </p>
         </div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
       {/* ========== 월간 거리 순위 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-[var(--foreground)]">{month}월 거리 순위</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)]">{month}월 거리 순위</h3>
           <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
             상세 보기 <ChevronRight size={14} />
           </Link>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
             <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
           </div>
         ) : raceMembers.length === 0 ? (
-          <p className="text-sm text-[var(--muted)] text-center py-4">아직 활동 데이터가 없습니다</p>
+          <p className="text-xs text-[var(--muted)] text-center py-4">아직 활동 데이터가 없습니다</p>
         ) : (
           <DistanceRanking members={raceMembers} currentUserId={user?.id} />
         )}
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       {/* ========== 내 목표 진행 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-[var(--foreground)]">내 {month}월 목표</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)]">내 {month}월 목표</h3>
           <Link href="/goals" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
             설정 <ChevronRight size={14} />
           </Link>
@@ -270,7 +270,7 @@ export default function DashboardPage() {
               <p className="text-4xl font-extrabold text-[var(--foreground)] leading-none">
                 {monthlyDistance.toFixed(1)}
               </p>
-              <p className="text-sm text-[var(--muted)] font-bold mb-1">/ {goalKm}km</p>
+              <p className="text-xs text-[var(--muted)] font-bold mb-1">/ {goalKm}km</p>
             </div>
             <div className="bg-[var(--card-border)] rounded-full h-4 overflow-hidden relative">
               <div
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                 style={{ width: `${goalProgress}%` }}
               >
                 {goalProgress > 10 && (
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-bold text-white">
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-base font-bold text-white">
                     {goalProgress.toFixed(0)}%
                   </span>
                 )}
@@ -291,7 +291,7 @@ export default function DashboardPage() {
                 <Flag size={10} className={goalProgress >= 100 ? 'text-green-500' : 'text-[var(--muted)]'} />
               </div>
             </div>
-            <div className="flex justify-between mt-2 text-sm text-[var(--muted)]">
+            <div className="flex justify-between mt-2 text-xs text-[var(--muted)]">
               {goalProgress >= 100 ? (
                 <span className="text-green-500 font-semibold">🎉 목표 달성!</span>
               ) : (
@@ -304,7 +304,7 @@ export default function DashboardPage() {
           </>
         ) : (
           <div className="text-center py-4">
-            <p className="text-sm text-[var(--muted)]">아직 이번 달 목표가 없습니다</p>
+            <p className="text-xs text-[var(--muted)]">아직 이번 달 목표가 없습니다</p>
             <Link href="/goals" className="text-sm text-[var(--accent)] font-semibold mt-1 inline-block">
               목표 설정하기 →
             </Link>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
       {/* ========== 최근 활동 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-[var(--foreground)]">최근 활동</h3>
+          <h3 className="text-base font-bold text-[var(--foreground)]">최근 활동</h3>
           {activities.length > 0 && (
             <Link href="/history" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
               전체 기록 <ChevronRight size={14} />
@@ -329,7 +329,7 @@ export default function DashboardPage() {
           </div>
         ) : recentActivities.length === 0 ? (
           <div className="text-center py-6">
-            <p className="text-sm text-[var(--muted)]">아직 기록이 없습니다</p>
+            <p className="text-xs text-[var(--muted)]">아직 기록이 없습니다</p>
             <Link href="/track" className="text-sm text-[var(--accent)] font-semibold mt-1 inline-block">
               첫 달리기 시작하기 →
             </Link>
@@ -354,7 +354,7 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-[var(--muted)]">
+                  <p className="text-xs text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
                   </p>

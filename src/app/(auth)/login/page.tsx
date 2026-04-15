@@ -40,7 +40,7 @@ export default function LoginPage() {
       <div className="text-center mb-12">
         <span className="text-6xl block mb-4">🏃🏻</span>
         <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">Routinist</h1>
-        <p className="text-sm text-[var(--muted)] mt-2">나만의 러닝 루틴을 만들어보세요</p>
+        <p className="text-xs text-[var(--muted)] mt-2">나만의 러닝 루틴을 만들어보세요</p>
       </div>
 
       {/* 소셜 로그인 버튼 */}
@@ -89,7 +89,7 @@ export default function LoginPage() {
         <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
       )}
 
-      <p className="mt-8 text-sm text-[var(--muted)] text-center max-w-xs">
+      <p className="mt-8 text-xs text-[var(--muted)] text-center max-w-xs">
         시작하면 <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하는 것으로 간주합니다.
       </p>
     </div>

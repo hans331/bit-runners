@@ -48,7 +48,7 @@ export default function RouteMap({ routeData, height = '240px' }: RouteMapProps)
   if (!API_KEY) {
     return (
       <div style={{ height }} className="bg-[var(--card)] rounded-2xl flex items-center justify-center border border-[var(--card-border)]">
-        <p className="text-sm text-[var(--muted)]">Google Maps API 키가 필요합니다</p>
+        <p className="text-xs text-[var(--muted)]">Google Maps API 키가 필요합니다</p>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default function RouteMap({ routeData, height = '240px' }: RouteMapProps)
   if (!routeData?.coordinates?.length) {
     return (
       <div style={{ height }} className="bg-[var(--card)] rounded-2xl flex items-center justify-center border border-[var(--card-border)]">
-        <p className="text-sm text-[var(--muted)]">경로 데이터가 없습니다</p>
+        <p className="text-xs text-[var(--muted)]">경로 데이터가 없습니다</p>
       </div>
     );
   }

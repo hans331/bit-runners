@@ -47,7 +47,7 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
           <span className="text-2xl">🏃🏻</span>
           <div className="leading-none">
             <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
-            <p className="text-sm text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
+            <p className="text-xs text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
           </div>
         </Link>
 
@@ -225,7 +225,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
                   }`}
               >
-                <span className="w-6 text-center text-sm text-[var(--muted)]">💤</span>
+                <span className="w-6 text-center text-xs text-[var(--muted)]">💤</span>
                 <span className="flex-1 truncate">{m.name}</span>
                 <span className="text-sm font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
               </Link>

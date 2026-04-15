@@ -71,7 +71,7 @@ export default function GoalsPage() {
               <span className="text-2xl font-extrabold text-[var(--foreground)]">{progress.toFixed(0)}%</span>
             </div>
           </div>
-          <p className="text-sm text-[var(--muted)]">
+          <p className="text-xs text-[var(--muted)]">
             {monthlyDistance.toFixed(1)}km / {currentGoal.goal_km}km
           </p>
         </div>

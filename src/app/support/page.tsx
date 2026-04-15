@@ -33,7 +33,7 @@ export default function SupportPage() {
           <div className="flex items-center gap-3 p-4 rounded-xl bg-[var(--accent)]/5 border border-[var(--accent)]/20">
             <span className="text-2xl">&#9993;</span>
             <div>
-              <p className="text-sm text-[var(--muted)]">이메일</p>
+              <p className="text-xs text-[var(--muted)]">이메일</p>
               <a
                 href="mailto:hans@openhan.kr"
                 className="text-[var(--accent)] font-semibold hover:underline"
@@ -86,7 +86,7 @@ export default function SupportPage() {
           </div>
         </div>
 
-        <p className="text-center text-sm text-[var(--muted)]">
+        <p className="text-center text-xs text-[var(--muted)]">
           &copy; {new Date().getFullYear()} Routinist. All rights reserved.
         </p>
       </div>

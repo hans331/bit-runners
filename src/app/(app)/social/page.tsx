@@ -91,7 +91,7 @@ export default function SocialPage() {
             {myClubs.length === 0 ? (
               <div className="card p-6 text-center">
                 <Users size={32} className="mx-auto mb-2 text-[var(--muted)]" />
-                <p className="text-sm text-[var(--muted)]">아직 가입한 클럽이 없습니다</p>
+                <p className="text-xs text-[var(--muted)]">아직 가입한 클럽이 없습니다</p>
                 <Link href="/social/clubs" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
                   클럽 둘러보기
                 </Link>
@@ -109,7 +109,7 @@ export default function SocialPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--foreground)] truncate">{club.name}</p>
-                      <p className="text-sm text-[var(--muted)]">멤버 {club.member_count}명</p>
+                      <p className="text-xs text-[var(--muted)]">멤버 {club.member_count}명</p>
                     </div>
                   </Link>
                 ))}
@@ -135,7 +135,7 @@ export default function SocialPage() {
                 <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
               </div>
             ) : users.length === 0 ? (
-              <p className="text-center text-sm text-[var(--muted)] py-8">검색 결과가 없습니다</p>
+              <p className="text-center text-xs text-[var(--muted)] py-8">검색 결과가 없습니다</p>
             ) : (
               <div className="card px-4 divide-y divide-[var(--card-border)]">
                 {users.map((u) => (
@@ -164,7 +164,7 @@ export default function SocialPage() {
         <div className="text-center py-12">
           <Trophy size={48} className="mx-auto mb-4 text-[var(--muted)]" />
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-2">지역 랭킹</h2>
-          <p className="text-sm text-[var(--muted)] mb-4">내 동네에서 몇 등인지 확인해보세요</p>
+          <p className="text-xs text-[var(--muted)] mb-4">내 동네에서 몇 등인지 확인해보세요</p>
           <Link href="/social/rankings" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
             <Trophy size={16} /> 랭킹 보기
           </Link>
@@ -176,7 +176,7 @@ export default function SocialPage() {
         <div className="text-center py-12">
           <MessageCircle size={48} className="mx-auto mb-4 text-[var(--muted)]" />
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-2">쪽지</h2>
-          <p className="text-sm text-[var(--muted)] mb-4">러닝 친구에게 응원 메시지를 보내보세요</p>
+          <p className="text-xs text-[var(--muted)] mb-4">러닝 친구에게 응원 메시지를 보내보세요</p>
           <Link href="/social/messages" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
             <MessageCircle size={16} /> 쪽지함 열기
           </Link>

@@ -62,7 +62,7 @@ export default function HealthSyncButton({ userId, onSyncComplete }: HealthSyncB
           </div>
           <div>
             <p className="text-sm font-semibold text-[var(--foreground)]">Apple Health 연동</p>
-            <p className="text-sm text-[var(--muted)] mt-1">
+            <p className="text-xs text-[var(--muted)] mt-1">
               Routinist 앱을 설치하면 Apple Health에서 러닝 기록을 자동으로 가져올 수 있습니다.
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function HealthSyncButton({ userId, onSyncComplete }: HealthSyncB
             <p className="text-sm font-semibold text-[var(--foreground)]">
               {platform === 'ios' ? 'Apple Health' : 'Health Connect'} 연동
             </p>
-            <p className="text-sm text-[var(--muted)] mt-1">
+            <p className="text-xs text-[var(--muted)] mt-1">
               {platform === 'ios'
                 ? 'Apple Health에 저장된 러닝 기록을 Routinist로 가져옵니다. 러닝 거리, 시간 데이터를 읽어옵니다.'
                 : 'Health Connect에 저장된 러닝 기록을 Routinist로 가져옵니다.'}

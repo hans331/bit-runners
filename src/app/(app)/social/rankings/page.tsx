@@ -46,7 +46,7 @@ export default function RankingsPage() {
 
       {/* 기간 */}
       <div className="text-center mb-4">
-        <p className="text-sm text-[var(--muted)]">{year}년 {month}월</p>
+        <p className="text-xs text-[var(--muted)]">{year}년 {month}월</p>
       </div>
 
       {/* 지역 선택 */}
@@ -71,7 +71,7 @@ export default function RankingsPage() {
           ))}
         </div>
         {!profile?.region_gu && (
-          <p className="text-sm text-[var(--muted)] mt-2">
+          <p className="text-xs text-[var(--muted)] mt-2">
             <Link href="/profile/edit" className="text-[var(--accent)] underline">프로필</Link> 에서 지역을 설정하면 랭킹에 참여할 수 있습니다
           </p>
         )}
@@ -85,8 +85,8 @@ export default function RankingsPage() {
       ) : rankings.length === 0 ? (
         <div className="text-center py-12">
           <Trophy size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <p className="text-sm text-[var(--muted)]">{selectedRegion}에 아직 기록이 없습니다</p>
-          <p className="text-sm text-[var(--muted)] mt-1">첫 번째 러너가 되어보세요!</p>
+          <p className="text-xs text-[var(--muted)]">{selectedRegion}에 아직 기록이 없습니다</p>
+          <p className="text-xs text-[var(--muted)] mt-1">첫 번째 러너가 되어보세요!</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -99,7 +99,7 @@ export default function RankingsPage() {
               }`}
             >
               <div className="w-8 text-center flex-shrink-0">
-                <span className={`text-sm font-bold ${r.rank_in_gu <= 3 ? 'text-lg' : 'text-[var(--muted)]'}`}>
+                <span className={`text-base font-bold ${r.rank_in_gu <= 3 ? 'text-lg' : 'text-[var(--muted)]'}`}>
                   {medalEmoji(r.rank_in_gu)}
                 </span>
               </div>
@@ -112,9 +112,9 @@ export default function RankingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">{r.display_name}</p>
-                <p className="text-sm text-[var(--muted)]">{r.run_count}회 러닝</p>
+                <p className="text-xs text-[var(--muted)]">{r.run_count}회 러닝</p>
               </div>
-              <p className="text-sm font-bold text-[var(--accent)]">{Number(r.monthly_km).toFixed(1)} km</p>
+              <p className="text-base font-bold text-[var(--accent)]">{Number(r.monthly_km).toFixed(1)} km</p>
             </Link>
           ))}
         </div>
