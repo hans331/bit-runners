@@ -36,7 +36,7 @@ export default function ShopPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-4">
         <Link href="/profile" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex-1">쇼핑</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1">쇼핑</h1>
         <Link href="/shop/cart" className="relative text-[var(--foreground)]">
           <ShoppingCart size={22} />
         </Link>

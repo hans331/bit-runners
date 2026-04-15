@@ -5,14 +5,14 @@ import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Home, CalendarDays, Map, Users, User } from 'lucide-react';
+import { Home, BarChart3, Map, Trophy, User } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 
 const TABS = [
   { href: '/dashboard', label: '홈', Icon: Home },
-  { href: '/calendar', label: '캘린더', Icon: CalendarDays },
+  { href: '/stats', label: '통계', Icon: BarChart3 },
   { href: '/map', label: '지도', Icon: Map },
-  { href: '/social', label: '클럽', Icon: Users },
+  { href: '/social', label: '랭킹', Icon: Trophy },
   { href: '/profile', label: '내 정보', Icon: User },
 ];
 

@@ -45,14 +45,14 @@ export default function ChartsPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-4">
         <Link href="/stats" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex-1">러닝 통계</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1">러닝 통계</h1>
       </div>
 
       {/* 연도 선택 */}
       <div className="flex items-center justify-center gap-4 mb-4">
-        <button onClick={() => setYear((y) => y - 1)} className="text-[var(--muted)] text-lg font-bold">&lt;</button>
+        <button onClick={() => setYear((y) => y - 1)} className="text-[var(--muted)] text-2xl font-extrabold">&lt;</button>
         <span className="text-xl font-extrabold text-[var(--foreground)]">{year}</span>
-        <button onClick={() => setYear((y) => y + 1)} className="text-[var(--muted)] text-lg font-bold">&gt;</button>
+        <button onClick={() => setYear((y) => y + 1)} className="text-[var(--muted)] text-2xl font-extrabold">&gt;</button>
       </div>
 
       {/* 총 거리 요약 */}

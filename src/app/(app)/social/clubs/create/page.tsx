@@ -31,7 +31,7 @@ export default function CreateClubPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/social/clubs" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)]">클럽 만들기</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">클럽 만들기</h1>
       </div>
 
       <div className="space-y-4">

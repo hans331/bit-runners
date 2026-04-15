@@ -92,7 +92,7 @@ export default function ProfilePage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-[var(--foreground)] truncate">{profile?.display_name}</h2>
+            <h2 className="text-2xl font-extrabold text-[var(--foreground)] truncate">{profile?.display_name}</h2>
             {profile?.region_gu ? (
               <p className="text-xs text-[var(--muted)] flex items-center gap-1">
                 <MapPin size={12} /> {profile.region_si} {profile.region_gu} {profile.region_dong || ''}

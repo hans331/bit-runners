@@ -64,7 +64,7 @@ function UserProfile() {
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
       <div className="flex items-center gap-3">
         <button onClick={() => router.back()} className="text-[var(--muted)]"><ArrowLeft size={24} /></button>
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex-1 truncate">{profile.display_name}</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1 truncate">{profile.display_name}</h1>
       </div>
 
       <div className="card p-6 text-center">
@@ -75,7 +75,7 @@ function UserProfile() {
             <div className="w-full h-full flex items-center justify-center text-3xl">🏃🏻</div>
           )}
         </div>
-        <h2 className="text-xl font-bold text-[var(--foreground)]">{profile.display_name}</h2>
+        <h2 className="text-3xl font-extrabold text-[var(--foreground)]">{profile.display_name}</h2>
         {profile.bio && <p className="text-xs text-[var(--muted)] mt-1">{profile.bio}</p>}
 
         <div className="flex justify-center gap-6 mt-3 text-sm">

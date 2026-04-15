@@ -120,22 +120,42 @@ export default function MapPage() {
         const polyline = new google.maps.Polyline({
           path,
           geodesic: true,
-          strokeColor: '#3B82F6',
-          strokeOpacity: 0.8,
-          strokeWeight: 4,
+          strokeColor: '#FF4500',
+          strokeOpacity: 0.9,
+          strokeWeight: 5,
           map: googleMapRef.current,
         });
 
         polyline.addListener('click', () => setSelectedActivity(activity));
         polylinesRef.current.push(polyline);
       });
+    } else if (filterMode === 'all' || filtered.length > 50) {
+      // 전체/대량 모드: 성능을 위해 활동 단위 폴리라인 (세그먼트 분리 안 함)
+      filtered.forEach(activity => {
+        if (!activity.route_data?.coordinates?.length) return;
+        const path = activity.route_data.coordinates.map(([lng, lat]) => {
+          const point = { lat, lng };
+          bounds.extend(point);
+          hasPoints = true;
+          return point;
+        });
+
+        const polyline = new google.maps.Polyline({
+          path,
+          geodesic: true,
+          strokeColor: '#FF4500',
+          strokeOpacity: 0.6,
+          strokeWeight: 3,
+          map: googleMapRef.current,
+        });
+
+        polylinesRef.current.push(polyline);
+      });
     } else {
-      // 3일/7일/30일/전체 모드: 크레파스 덧칠 효과
-      // 세그먼트별 방문 횟수 계산
+      // 3일/7일/30일 모드: 크레파스 덧칠 효과
       const segmentCounts = buildHeatSegments(filtered);
       const maxVisits = Math.max(...segmentCounts.values(), 1);
 
-      // 각 활동의 경로를 세그먼트별로 다른 굵기/투명도로 그리기
       filtered.forEach(activity => {
         if (!activity.route_data?.coordinates?.length) return;
         const coords = activity.route_data.coordinates;
@@ -149,15 +169,14 @@ export default function MapPage() {
           const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
           const visits = segmentCounts.get(key) || 1;
 
-          // 방문 횟수에 비례한 굵기와 진한 정도
           const ratio = visits / maxVisits;
-          const weight = 2 + ratio * 8; // 2~10px
-          const opacity = 0.2 + ratio * 0.7; // 0.2~0.9
+          const weight = 3 + ratio * 7;
+          const opacity = 0.3 + ratio * 0.7;
 
-          // 색상: 적을수록 연파랑, 많을수록 진파랑~보라
-          const r = Math.round(59 - ratio * 30);
-          const g = Math.round(130 - ratio * 60);
-          const b = Math.round(246 - ratio * 50);
+          // 색상: 연한 주황 → 진한 빨강
+          const r = 255;
+          const g = Math.round(140 - ratio * 120);
+          const b = Math.round(50 - ratio * 50);
 
           const p1 = { lat: lat1, lng: lng1 };
           const p2 = { lat: lat2, lng: lng2 };
@@ -211,11 +230,11 @@ export default function MapPage() {
       <div className="card p-4">
         <div className="grid grid-cols-2 text-center">
           <div>
-            <p className="text-xl font-bold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
             <p className="text-xs text-[var(--muted)]">총 거리</p>
           </div>
           <div>
-            <p className="text-xl font-bold text-[var(--foreground)]">{routeCount}</p>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{routeCount}</p>
             <p className="text-xs text-[var(--muted)]">GPS 기록 수</p>
           </div>
         </div>

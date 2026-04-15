@@ -55,7 +55,7 @@ export default function GiftMileagePage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/mileage" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)]">마일리지 선물</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">마일리지 선물</h1>
       </div>
 
       {/* 잔액 */}
@@ -118,7 +118,7 @@ export default function GiftMileagePage() {
           placeholder="0"
           min={1}
           max={balance}
-          className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-2xl font-extrabold text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
         <div className="flex gap-2 justify-center">
           {[100, 500, 1000].map((v) => (

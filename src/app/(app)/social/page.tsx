@@ -163,7 +163,7 @@ export default function SocialPage() {
       {activeSection === 'rankings' && (
         <div className="text-center py-12">
           <Trophy size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <h2 className="text-lg font-bold text-[var(--foreground)] mb-2">지역 랭킹</h2>
+          <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">지역 랭킹</h2>
           <p className="text-xs text-[var(--muted)] mb-4">내 동네에서 몇 등인지 확인해보세요</p>
           <Link href="/social/rankings" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
             <Trophy size={16} /> 랭킹 보기
@@ -175,7 +175,7 @@ export default function SocialPage() {
       {activeSection === 'messages' && (
         <div className="text-center py-12">
           <MessageCircle size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <h2 className="text-lg font-bold text-[var(--foreground)] mb-2">쪽지</h2>
+          <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">쪽지</h2>
           <p className="text-xs text-[var(--muted)] mb-4">러닝 친구에게 응원 메시지를 보내보세요</p>
           <Link href="/social/messages" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
             <MessageCircle size={16} /> 쪽지함 열기

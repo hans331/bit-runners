@@ -72,7 +72,7 @@ export default function ProfileEditPage() {
         <Link href="/profile" className="text-[var(--muted)]">
           <ArrowLeft size={24} />
         </Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)]">프로필 편집</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">프로필 편집</h1>
       </div>
 
       {/* 아바타 */}

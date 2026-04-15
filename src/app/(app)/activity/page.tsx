@@ -78,19 +78,19 @@ function ActivityDetail() {
         </p>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <p className="text-lg font-bold text-[var(--foreground)]">
+            <p className="text-2xl font-extrabold text-[var(--foreground)]">
               {activity.duration_seconds ? formatDuration(activity.duration_seconds) : '-'}
             </p>
             <p className="text-xs text-[var(--muted)]">시간</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-[var(--foreground)]">
+            <p className="text-2xl font-extrabold text-[var(--foreground)]">
               {activity.pace_avg_sec_per_km ? formatPace(activity.pace_avg_sec_per_km) : '-'}
             </p>
             <p className="text-xs text-[var(--muted)]">페이스/km</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-[var(--foreground)]">
+            <p className="text-2xl font-extrabold text-[var(--foreground)]">
               {activity.calories ?? '-'}
             </p>
             <p className="text-xs text-[var(--muted)]">kcal</p>

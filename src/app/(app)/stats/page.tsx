@@ -103,7 +103,7 @@ export default function StatsPage() {
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-3 mb-4">
           <Link href="/dashboard" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-          <h1 className="text-lg font-bold text-[var(--foreground)]">내 통계</h1>
+          <h1 className="text-2xl font-extrabold text-[var(--foreground)]">내 통계</h1>
         </div>
         <div className="flex justify-center py-20">
           <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
@@ -117,7 +117,7 @@ export default function StatsPage() {
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex-1">내 통계</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1">내 통계</h1>
         <Link href="/stats/charts" className="text-sm text-[var(--accent)] font-semibold">상세 차트</Link>
       </div>
 
@@ -132,25 +132,25 @@ export default function StatsPage() {
             )}
           </div>
           <div>
-            <p className="text-lg font-bold text-[var(--foreground)]">{profile?.display_name}</p>
+            <p className="text-2xl font-extrabold text-[var(--foreground)]">{profile?.display_name}</p>
             <p className="text-xs text-[var(--muted)]">통산 {Number(totalKm).toFixed(0)}km · {totalRuns}회 러닝</p>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3 text-center">
           <div>
-            <p className="text-xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
+            <p className="text-3xl font-extrabold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
             <p className="text-xs text-[var(--muted)]">이달 km</p>
           </div>
           <div>
-            <p className="text-xl font-bold text-[var(--foreground)]">{yearlyTotal.toFixed(0)}</p>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{yearlyTotal.toFixed(0)}</p>
             <p className="text-xs text-[var(--muted)]">올해 km</p>
           </div>
           <div>
-            <p className="text-xl font-bold text-[var(--foreground)]">{streak}</p>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{streak}</p>
             <p className="text-xs text-[var(--muted)]">연속일 🔥</p>
           </div>
           <div>
-            <p className="text-xl font-bold text-[var(--foreground)]">{totalRuns}</p>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{totalRuns}</p>
             <p className="text-xs text-[var(--muted)]">총 러닝</p>
           </div>
         </div>
@@ -238,28 +238,28 @@ export default function StatsPage() {
             {personalBests.longestRun && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
                 <p className="text-xs text-[var(--muted)] mb-1">최장 거리</p>
-                <p className="text-lg font-bold text-[var(--foreground)]">{personalBests.longestRun.distance_km.toFixed(2)}km</p>
+                <p className="text-2xl font-extrabold text-[var(--foreground)]">{personalBests.longestRun.distance_km.toFixed(2)}km</p>
                 <p className="text-xs text-[var(--muted)]">{personalBests.longestRun.date}</p>
               </div>
             )}
             {personalBests.fastestPace && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
                 <p className="text-xs text-[var(--muted)] mb-1">최빠 페이스</p>
-                <p className="text-lg font-bold text-[var(--foreground)]">{formatPace(personalBests.fastestPace.pace)}/km</p>
+                <p className="text-2xl font-extrabold text-[var(--foreground)]">{formatPace(personalBests.fastestPace.pace)}/km</p>
                 <p className="text-xs text-[var(--muted)]">{personalBests.fastestPace.date} ({personalBests.fastestPace.distance_km.toFixed(1)}km)</p>
               </div>
             )}
             {personalBests.longestDuration && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
                 <p className="text-xs text-[var(--muted)] mb-1">최장 시간</p>
-                <p className="text-lg font-bold text-[var(--foreground)]">{formatDuration(personalBests.longestDuration.duration)}</p>
+                <p className="text-2xl font-extrabold text-[var(--foreground)]">{formatDuration(personalBests.longestDuration.duration)}</p>
                 <p className="text-xs text-[var(--muted)]">{personalBests.longestDuration.date}</p>
               </div>
             )}
             {personalBests.mostCalories && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
                 <p className="text-xs text-[var(--muted)] mb-1">최다 칼로리</p>
-                <p className="text-lg font-bold text-[var(--foreground)]">{personalBests.mostCalories.calories}kcal</p>
+                <p className="text-2xl font-extrabold text-[var(--foreground)]">{personalBests.mostCalories.calories}kcal</p>
                 <p className="text-xs text-[var(--muted)]">{personalBests.mostCalories.date}</p>
               </div>
             )}
