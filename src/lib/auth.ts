@@ -13,7 +13,7 @@ export async function signInWithProvider(provider: Provider) {
   const supabase = getSupabase();
 
   const redirectTo = isNativeApp()
-    ? 'com.routinist.app://auth/callback'
+    ? 'routinist://auth/callback'
     : `${window.location.origin}/auth/callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({

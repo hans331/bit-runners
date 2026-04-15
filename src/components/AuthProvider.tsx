@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     import('@capacitor/app').then(({ App }) => {
       App.addListener('appUrlOpen', async ({ url }) => {
-        // com.routinist.app://auth/callback#access_token=...
+        // routinist://auth/callback#access_token=...
         if (url.includes('auth/callback')) {
           try {
             await handleOAuthCallback(url);
