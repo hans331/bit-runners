@@ -221,6 +221,64 @@ async function updateProfileTotals(userId: string): Promise<void> {
   }
 }
 
+// GPS 경로 동기화 (커스텀 플러그인 사용)
+async function syncRouteData(userId: string): Promise<number> {
+  try {
+    const { WorkoutRoute } = await import('./workout-route');
+    const supabase = getSupabase();
+
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+
+    const { routes } = await WorkoutRoute.getRoutes({
+      startDate: threeYearsAgo.toISOString(),
+      endDate: new Date().toISOString(),
+      limit: 500,
+    });
+
+    if (!routes || routes.length === 0) return 0;
+
+    let updatedCount = 0;
+
+    for (const route of routes) {
+      const activityDate = route.startDate.split('T')[0];
+      const distanceKm = route.distance / 1000;
+
+      // route_data가 없는 기존 activity 찾기 (같은 날짜 + 유사 거리)
+      const { data: existing } = await supabase
+        .from('activities')
+        .select('id, distance_km, route_data')
+        .eq('user_id', userId)
+        .eq('activity_date', activityDate)
+        .is('route_data', null);
+
+      const match = (existing || []).find(
+        (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.5
+      );
+
+      if (match) {
+        // 기존 activity에 route_data 추가
+        const { error } = await supabase
+          .from('activities')
+          .update({
+            route_data: {
+              type: 'LineString',
+              coordinates: route.coordinates,
+            },
+          })
+          .eq('id', match.id);
+
+        if (!error) updatedCount++;
+      }
+    }
+
+    return updatedCount;
+  } catch (e) {
+    console.warn('GPS 경로 동기화 실패 (플러그인 미지원 가능):', e);
+    return 0;
+  }
+}
+
 // 메인 동기화 함수 — userId(auth.users id)를 받음
 export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
@@ -235,6 +293,13 @@ export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (platform === 'ios') {
     const result = await syncFromHealthKit(userId);
     await updateProfileTotals(userId);
+
+    // GPS 경로도 동기화
+    const routeCount = await syncRouteData(userId);
+    if (routeCount > 0) {
+      result.message += ` (GPS 경로 ${routeCount}건 추가)`;
+    }
+
     return result;
   }
 

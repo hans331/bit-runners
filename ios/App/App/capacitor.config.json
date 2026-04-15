@@ -1,0 +1,22 @@
+{
+	"appId": "com.routinist.app",
+	"appName": "Routinist",
+	"webDir": "out",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchAutoHide": true,
+			"showSpinner": false,
+			"backgroundColor": "#ffffff"
+		}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"CAPBrowserPlugin",
+		"HealthPlugin",
+		"WorkoutRoutePlugin"
+	]
+}
