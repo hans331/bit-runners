@@ -198,7 +198,7 @@ export default function MapPage() {
           <button
             key={f.id}
             onClick={() => { setFilterMode(f.id); setSelectedActivity(null); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
               filterMode === f.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
             }`}
           >
@@ -212,11 +212,11 @@ export default function MapPage() {
         <div className="grid grid-cols-2 text-center">
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
-            <p className="text-xs text-[var(--muted)]">총 거리</p>
+            <p className="text-sm text-[var(--muted)]">총 거리</p>
           </div>
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{routeCount}</p>
-            <p className="text-xs text-[var(--muted)]">GPS 기록 수</p>
+            <p className="text-sm text-[var(--muted)]">GPS 기록 수</p>
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function MapPage() {
       {/* 크레파스 효과 설명 */}
       {filterMode !== '1d' && routeCount > 0 && (
         <div className="card p-3 text-center">
-          <p className="text-[11px] text-[var(--muted)]">
+          <p className="text-sm text-[var(--muted)]">
             🖍️ 같은 경로를 많이 달릴수록 선이 <span className="font-semibold text-[var(--accent)]">굵고 진하게</span> 표시됩니다
           </p>
         </div>
@@ -252,19 +252,26 @@ export default function MapPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-[var(--foreground)]">{selectedActivity.distance_km.toFixed(2)} km</p>
-              <p className="text-xs text-[var(--muted)]">
+              <p className="text-sm text-[var(--muted)]">
                 {new Date(selectedActivity.activity_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
-            <Link href={`/activity?id=${selectedActivity.id}`} className="text-xs text-[var(--accent)] font-semibold">상세 보기</Link>
+            <Link href={`/activity?id=${selectedActivity.id}`} className="text-sm text-[var(--accent)] font-semibold">상세 보기</Link>
           </div>
         </div>
       )}
 
       {!loading && routeCount === 0 && (
-        <div className="text-center py-8">
-          <p className="text-sm text-[var(--muted)]">아직 GPS 러닝 기록이 없습니다</p>
-          <p className="text-xs text-[var(--muted)] mt-1">Apple Health에서 기록을 가져오면 경로가 표시됩니다</p>
+        <div className="card p-6 text-center space-y-3">
+          <p className="text-4xl">🗺️</p>
+          <p className="text-base font-semibold text-[var(--foreground)]">아직 GPS 러닝 기록이 없습니다</p>
+          <div className="text-sm text-[var(--muted)] space-y-1">
+            <p>Apple Health 연동으로 가져온 기록에는</p>
+            <p>GPS 경로가 포함되지 않습니다.</p>
+            <p className="mt-3 font-medium">GPS 경로를 보려면:</p>
+            <p>Strava, Nike Run Club 등에서 달리면</p>
+            <p>경로가 자동으로 지도에 표시됩니다.</p>
+          </div>
         </div>
       )}
     </div>

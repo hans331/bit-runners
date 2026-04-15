@@ -94,7 +94,7 @@ export default function LogPage() {
                 placeholder="0"
                 className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-base text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]">시</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">시</span>
             </div>
             <div className="relative">
               <input
@@ -106,7 +106,7 @@ export default function LogPage() {
                 placeholder="30"
                 className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-base text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]">분</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">분</span>
             </div>
             <div className="relative">
               <input
@@ -118,7 +118,7 @@ export default function LogPage() {
                 placeholder="00"
                 className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-base text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]">초</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]">초</span>
             </div>
           </div>
         </div>

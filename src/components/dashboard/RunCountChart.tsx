@@ -29,11 +29,11 @@ export default function RunCountChart({ year, month }: Props) {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
-            <XAxis type="number" tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} />
-            <YAxis type="category" dataKey="name" tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} width={50} />
+            <XAxis type="number" tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} />
+            <YAxis type="category" dataKey="name" tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} width={50} />
             <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value) => [`${value}회`, '러닝 횟수']} />
             <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]}>
-              <LabelList dataKey="count" position="right" formatter={(v: unknown) => `${v}회`} style={{ fill: getTextColor(isDark), fontSize: 11, fontWeight: 600 }} />
+              <LabelList dataKey="count" position="right" formatter={(v: unknown) => `${v}회`} style={{ fill: getTextColor(isDark), fontSize: 14, fontWeight: 600 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

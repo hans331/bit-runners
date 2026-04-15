@@ -40,7 +40,7 @@ export default function ShopPage() {
         <Link href="/shop/cart" className="relative text-[var(--foreground)]">
           <ShoppingCart size={22} />
         </Link>
-        <Link href="/shop/orders" className="text-xs text-[var(--accent)] font-semibold">주문내역</Link>
+        <Link href="/shop/orders" className="text-sm text-[var(--accent)] font-semibold">주문내역</Link>
       </div>
 
       {/* 마일리지 배너 */}
@@ -94,20 +94,20 @@ export default function ShopPage() {
               <div className="p-3">
                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">{product.name}</p>
                 {product.description && (
-                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{product.description}</p>
+                  <p className="text-sm text-[var(--muted)] truncate mt-0.5">{product.description}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1.5">
                   <p className="text-sm font-bold text-[var(--foreground)]">{product.price_krw.toLocaleString()}원</p>
                 </div>
                 {product.mileage_price && (
-                  <p className="text-xs text-[var(--accent)] flex items-center gap-0.5 mt-0.5">
+                  <p className="text-sm text-[var(--accent)] flex items-center gap-0.5 mt-0.5">
                     <Coins size={11} />{product.mileage_price.toLocaleString()}P로도 구매 가능
                   </p>
                 )}
                 <button
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock <= 0}
-                  className={`w-full mt-2 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  className={`w-full mt-2 py-2 rounded-lg text-sm font-semibold transition-all ${
                     addedId === product.id
                       ? 'bg-green-500 text-white'
                       : product.stock <= 0

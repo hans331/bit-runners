@@ -37,7 +37,7 @@ export default function GoalProgress({ year, month }: Props) {
                 </Link>
                 <span className={`text-sm font-mono ${isFinished ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-[var(--muted)]'}`}>
                   {entry.distance.toFixed(1)} / {entry.goal}km
-                  {entry.isFallback && <span className="ml-1 text-xs">(전월)</span>}
+                  {entry.isFallback && <span className="ml-1 text-sm">(전월)</span>}
                 </span>
               </div>
               <div className="relative h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -47,13 +47,13 @@ export default function GoalProgress({ year, month }: Props) {
                   rate >= 80 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
                   'bg-gradient-to-r from-blue-400 to-blue-500'
                 }`} style={{ width: `${rate}%` }} />
-                <span className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold ${rate > 50 ? 'text-white' : 'text-[var(--muted)]'}`}>{entry.rate.toFixed(0)}%</span>
+                <span className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-sm font-bold ${rate > 50 ? 'text-white' : 'text-[var(--muted)]'}`}>{entry.rate.toFixed(0)}%</span>
               </div>
             </div>
           );
         })}
       </div>
-      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-[var(--card-border)] text-xs text-[var(--muted)]">
+      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-[var(--card-border)] text-sm text-[var(--muted)]">
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-2.5 rounded bg-emerald-500" /> 달성</span>
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-2.5 rounded bg-blue-500" /> 진행중</span>
         <span className="flex items-center gap-1.5 opacity-40"><span className="w-3.5 h-2.5 rounded bg-slate-400" /> 전월 목표</span>

@@ -60,7 +60,7 @@ export default function ChartsPage() {
         <p className="text-sm text-[var(--muted)]">총 거리</p>
         <p className="text-3xl font-extrabold text-[var(--accent)]">{totalDistance.toFixed(1)} km</p>
         {hasPrevData && prevTotal > 0 && (
-          <p className={`text-xs mt-1 ${totalDistance >= prevTotal ? 'text-green-500' : 'text-red-500'}`}>
+          <p className={`text-sm mt-1 ${totalDistance >= prevTotal ? 'text-green-500' : 'text-red-500'}`}>
             전년 대비 {totalDistance >= prevTotal ? '+' : ''}{(totalDistance - prevTotal).toFixed(1)}km
             ({prevTotal > 0 ? ((totalDistance / prevTotal - 1) * 100).toFixed(0) : 0}%)
           </p>
@@ -73,7 +73,7 @@ export default function ChartsPage() {
           <button
             key={opt.id}
             onClick={() => setPeriodMode(opt.id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
               periodMode === opt.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
             }`}
           >
@@ -86,7 +86,7 @@ export default function ChartsPage() {
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setChartType('bar')}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold ${
             chartType === 'bar' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
           }`}
         >
@@ -94,7 +94,7 @@ export default function ChartsPage() {
         </button>
         <button
           onClick={() => setChartType('line')}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold ${
             chartType === 'line' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
           }`}
         >
@@ -113,32 +113,32 @@ export default function ChartsPage() {
             {chartType === 'bar' ? (
               <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} unit="km" />
+                <XAxis dataKey="label" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
+                <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} unit="km" />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 12 }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
                   formatter={(value) => [`${value}km`]}
                 />
                 {hasPrevData && (
                   <Bar dataKey="prevDistance" name={`${year - 1}년`} fill="#94a3b8" radius={[4, 4, 0, 0]} />
                 )}
                 <Bar dataKey="distance" name={`${year}년`} fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                {hasPrevData && <Legend wrapperStyle={{ fontSize: 11 }} />}
+                {hasPrevData && <Legend wrapperStyle={{ fontSize: 14 }} />}
               </BarChart>
             ) : (
               <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} unit="km" />
+                <XAxis dataKey="label" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
+                <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} unit="km" />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 12 }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
                   formatter={(value) => [`${value}km`]}
                 />
                 {hasPrevData && (
                   <Line type="monotone" dataKey="prevDistance" name={`${year - 1}년`} stroke="#94a3b8" strokeWidth={2} dot={{ r: 3 }} />
                 )}
                 <Line type="monotone" dataKey="distance" name={`${year}년`} stroke="#3B82F6" strokeWidth={2.5} dot={{ r: 4 }} />
-                {hasPrevData && <Legend wrapperStyle={{ fontSize: 11 }} />}
+                {hasPrevData && <Legend wrapperStyle={{ fontSize: 14 }} />}
               </LineChart>
             )}
           </ResponsiveContainer>
@@ -155,7 +155,7 @@ export default function ChartsPage() {
               <div className="text-right">
                 <p className="text-sm font-bold text-[var(--foreground)]">{d.distance.toFixed(1)} km</p>
                 {d.prevDistance !== undefined && d.prevDistance > 0 && (
-                  <p className={`text-[10px] ${d.distance >= d.prevDistance ? 'text-green-500' : 'text-red-500'}`}>
+                  <p className={`text-sm ${d.distance >= d.prevDistance ? 'text-green-500' : 'text-red-500'}`}>
                     전년 {d.prevDistance.toFixed(1)}km
                   </p>
                 )}

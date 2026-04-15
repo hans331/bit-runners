@@ -97,13 +97,13 @@ export default function ConnectPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-[var(--foreground)]">Apple Health</h3>
-            <p className="text-xs text-[var(--muted)] mt-0.5">
+            <p className="text-sm text-[var(--muted)] mt-0.5">
               iPhone의 건강 앱에서 러닝 거리, 시간, 칼로리를 가져옵니다
             </p>
             <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">운동 기록</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">이동 거리</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">활동 에너지</span>
+              <span className="text-sm px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">운동 기록</span>
+              <span className="text-sm px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">이동 거리</span>
+              <span className="text-sm px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-500">활동 에너지</span>
             </div>
 
             {isNative && platform === 'ios' ? (
@@ -119,13 +119,13 @@ export default function ConnectPage() {
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <div className="flex items-center gap-1.5 text-xs text-green-500 font-semibold flex-1">
+                    <div className="flex items-center gap-1.5 text-sm text-green-500 font-semibold flex-1">
                       <Check size={14} /> 연결됨
                     </div>
                     <button
                       onClick={handleSync}
                       disabled={syncing}
-                      className="px-4 py-2 rounded-xl bg-[var(--card-border)] text-[var(--foreground)] text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-[var(--card-border)] text-[var(--foreground)] text-sm font-semibold disabled:opacity-50 flex items-center gap-1.5"
                     >
                       <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
                       동기화
@@ -133,11 +133,11 @@ export default function ConnectPage() {
                   </div>
                 )}
                 {lastSync && (
-                  <p className="text-[10px] text-[var(--muted)]">마지막 동기화: {formatLastSync(lastSync)}</p>
+                  <p className="text-sm text-[var(--muted)]">마지막 동기화: {formatLastSync(lastSync)}</p>
                 )}
               </div>
             ) : (
-              <div className="mt-3 flex items-start gap-2 text-xs text-[var(--muted)]">
+              <div className="mt-3 flex items-start gap-2 text-sm text-[var(--muted)]">
                 <Smartphone size={14} className="flex-shrink-0 mt-0.5" />
                 <span>Routinist iOS 앱에서 연결할 수 있습니다</span>
               </div>
@@ -156,12 +156,12 @@ export default function ConnectPage() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-[var(--foreground)]">Samsung Health / Health Connect</h3>
-            <p className="text-xs text-[var(--muted)] mt-0.5">
+            <p className="text-sm text-[var(--muted)] mt-0.5">
               Android의 Health Connect를 통해 삼성 헬스, Google Fit 등의 데이터를 가져옵니다
             </p>
             <div className="flex flex-wrap gap-1.5 mt-2">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500">운동 기록</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500">이동 거리</span>
+              <span className="text-sm px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500">운동 기록</span>
+              <span className="text-sm px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500">이동 거리</span>
             </div>
 
             {isNative && platform === 'android' ? (
@@ -174,7 +174,7 @@ export default function ConnectPage() {
                 {syncing ? '연결 중...' : '연결하기'}
               </button>
             ) : (
-              <div className="mt-3 flex items-start gap-2 text-xs text-[var(--muted)]">
+              <div className="mt-3 flex items-start gap-2 text-sm text-[var(--muted)]">
                 <Smartphone size={14} className="flex-shrink-0 mt-0.5" />
                 <span>Routinist Android 앱에서 연결할 수 있습니다</span>
               </div>
@@ -196,14 +196,14 @@ export default function ConnectPage() {
 
       {/* 안내 */}
       <div className="mt-6 space-y-3">
-        <div className="flex items-start gap-3 text-xs text-[var(--muted)]">
+        <div className="flex items-start gap-3 text-sm text-[var(--muted)]">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-[var(--foreground)] mb-1">데이터는 어떻게 동기화되나요?</p>
             <p>건강 앱에 저장된 러닝 기록(워크아웃)을 가져옵니다. Nike Run Club, Strava, Garmin 등으로 기록하더라도 건강 앱과 연동되어 있다면 Routinist에서 자동으로 가져올 수 있습니다.</p>
           </div>
         </div>
-        <div className="flex items-start gap-3 text-xs text-[var(--muted)]">
+        <div className="flex items-start gap-3 text-sm text-[var(--muted)]">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-[var(--foreground)] mb-1">개인정보는 안전한가요?</p>

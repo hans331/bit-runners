@@ -89,7 +89,7 @@ export default function LoginPage() {
         <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
       )}
 
-      <p className="mt-8 text-xs text-[var(--muted)] text-center max-w-xs">
+      <p className="mt-8 text-sm text-[var(--muted)] text-center max-w-xs">
         시작하면 <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하는 것으로 간주합니다.
       </p>
     </div>

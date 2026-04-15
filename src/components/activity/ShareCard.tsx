@@ -312,7 +312,7 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
                 <button
                   key={t.name}
                   onClick={() => setThemeIdx(i)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition-all ${
                     i === themeIdx && !bgImage
                       ? 'bg-[var(--accent)] text-white'
                       : 'bg-[var(--card)] text-[var(--muted)]'
@@ -334,12 +334,12 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
           <div className="flex gap-2">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-xs font-semibold text-[var(--foreground)]"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-sm font-semibold text-[var(--foreground)]"
             >
               <ImagePlus size={14} /> {bgImage ? '사진 변경' : '배경 사진 추가'}
             </button>
             {bgImage && (
-              <button onClick={clearPhoto} className="px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-xs text-[var(--muted)]">
+              <button onClick={clearPhoto} className="px-3 py-2 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-sm text-[var(--muted)]">
                 제거
               </button>
             )}

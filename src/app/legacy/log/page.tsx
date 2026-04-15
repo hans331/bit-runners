@@ -60,7 +60,7 @@ export default function LogPage() {
 
       <div className="relative flex items-center gap-3 my-2">
         <div className="flex-1 border-t border-[var(--card-border)]" />
-        <span className="text-xs text-[var(--muted)] font-medium">또는 직접 입력</span>
+        <span className="text-sm text-[var(--muted)] font-medium">또는 직접 입력</span>
         <div className="flex-1 border-t border-[var(--card-border)]" />
       </div>
 

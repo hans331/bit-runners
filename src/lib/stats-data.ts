@@ -352,7 +352,8 @@ export async function fetchPersonalBests(userId: string): Promise<PersonalBest> 
     .from('activities')
     .select('distance_km, duration_seconds, pace_avg_sec_per_km, calories, activity_date')
     .eq('user_id', userId)
-    .order('activity_date', { ascending: false });
+    .order('activity_date', { ascending: false })
+    .limit(1000);
 
   if (!data?.length) return { longestRun: null, fastestPace: null, longestDuration: null, mostCalories: null };
 
@@ -385,7 +386,9 @@ export async function fetchDayOfWeekStats(userId: string): Promise<DayOfWeekStat
   const { data } = await supabase
     .from('activities')
     .select('activity_date, distance_km')
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .order('activity_date', { ascending: false })
+    .limit(1000);
 
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const stats = days.map((day, i) => ({ day, dayIndex: i, runCount: 0, totalDistance: 0, avgDistance: 0 }));
@@ -408,7 +411,9 @@ export async function fetchHourOfDayStats(userId: string): Promise<HourOfDayStat
     .from('activities')
     .select('started_at')
     .eq('user_id', userId)
-    .not('started_at', 'is', null);
+    .not('started_at', 'is', null)
+    .order('activity_date', { ascending: false })
+    .limit(1000);
 
   const hours: HourOfDayStat[] = [];
   for (let h = 0; h < 24; h++) {

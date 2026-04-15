@@ -53,14 +53,14 @@ export default function RankingsPage() {
       <div className="mb-4">
         <div className="flex items-center gap-1 mb-2">
           <MapPin size={14} className="text-[var(--accent)]" />
-          <span className="text-xs font-semibold text-[var(--foreground)]">지역 선택</span>
+          <span className="text-sm font-semibold text-[var(--foreground)]">지역 선택</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {POPULAR_REGIONS.map((region) => (
             <button
               key={region}
               onClick={() => setSelectedRegion(region)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 selectedRegion === region
                   ? 'bg-[var(--accent)] text-white'
                   : 'bg-[var(--card)] text-[var(--muted)] border border-[var(--card-border)]'
@@ -71,7 +71,7 @@ export default function RankingsPage() {
           ))}
         </div>
         {!profile?.region_gu && (
-          <p className="text-xs text-[var(--muted)] mt-2">
+          <p className="text-sm text-[var(--muted)] mt-2">
             <Link href="/profile/edit" className="text-[var(--accent)] underline">프로필</Link> 에서 지역을 설정하면 랭킹에 참여할 수 있습니다
           </p>
         )}
@@ -86,7 +86,7 @@ export default function RankingsPage() {
         <div className="text-center py-12">
           <Trophy size={48} className="mx-auto mb-4 text-[var(--muted)]" />
           <p className="text-sm text-[var(--muted)]">{selectedRegion}에 아직 기록이 없습니다</p>
-          <p className="text-xs text-[var(--muted)] mt-1">첫 번째 러너가 되어보세요!</p>
+          <p className="text-sm text-[var(--muted)] mt-1">첫 번째 러너가 되어보세요!</p>
         </div>
       ) : (
         <div className="card overflow-hidden">
@@ -107,12 +107,12 @@ export default function RankingsPage() {
                 {r.avatar_url ? (
                   <img src={r.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs">🏃🏻</div>
+                  <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--foreground)] truncate">{r.display_name}</p>
-                <p className="text-xs text-[var(--muted)]">{r.run_count}회 러닝</p>
+                <p className="text-sm text-[var(--muted)]">{r.run_count}회 러닝</p>
               </div>
               <p className="text-sm font-bold text-[var(--accent)]">{Number(r.monthly_km).toFixed(1)} km</p>
             </Link>

@@ -46,17 +46,17 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <div key={order.id} className="card p-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-[var(--muted)]">
+                <p className="text-sm text-[var(--muted)]">
                   {new Date(order.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </p>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColor(order.status)}`}>
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${statusColor(order.status)}`}>
                   {orderStatusLabel(order.status)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <p className="text-sm font-bold text-[var(--foreground)]">{order.total_krw.toLocaleString()}원</p>
                 {order.mileage_used > 0 && (
-                  <p className="text-xs text-[var(--accent)]">-{order.mileage_used.toLocaleString()}P 사용</p>
+                  <p className="text-sm text-[var(--accent)]">-{order.mileage_used.toLocaleString()}P 사용</p>
                 )}
               </div>
             </div>

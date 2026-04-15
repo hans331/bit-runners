@@ -38,7 +38,7 @@
 }
 
 html {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 body {
@@ -49,17 +49,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  min-font-size: 14px;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* 최소 폰트 크기 보장 — 노안 접근성 */
+/* 전역 최소 폰트 크기 강제 */
 * {
-  min-font-size: 12px;
+  font-size: inherit;
 }
-/* text-[8px], text-[10px], text-[11px] 등 고정 소형 폰트 강제 확대 */
-[class*="text-\[8px\]"] { font-size: 13px !important; }
-[class*="text-\[9px\]"] { font-size: 13px !important; }
-[class*="text-\[10px\]"] { font-size: 13px !important; }
-[class*="text-\[11px\]"] { font-size: 14px !important; }
+p, span, a, li, td, th, label, input, select, textarea, button, div {
+  min-font-size: 14px;
+}
 
 /* 스크롤바 */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -81,7 +81,7 @@ body {
 
 /* 모바일 최적화 */
 @media (max-width: 640px) {
-  html { font-size: 17px; }
+  html { font-size: 18px; }
   .recharts-text { font-size: 13px; }
   .card { padding: 16px; border-radius: 16px; }
 }

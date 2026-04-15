@@ -92,12 +92,12 @@ export default function GoalsPage() {
 
       <div className="flex gap-2">
         <button onClick={copyPrevMonth}
-          className="text-xs px-3 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+          className="text-sm px-3 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
           전월 목표 복사
         </button>
         {Object.keys(editValues).length > 0 && (
           <button onClick={handleSaveAll} disabled={saving === 'all'}
-            className="text-xs px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white font-medium disabled:opacity-50">
+            className="text-sm px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white font-medium disabled:opacity-50">
             {saving === 'all' ? '저장 중...' : `${Object.keys(editValues).length}명 일괄 저장`}
           </button>
         )}
@@ -107,11 +107,11 @@ export default function GoalsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-[var(--muted)] text-left bg-[var(--sidebar-bg)] border-b border-[var(--card-border)]">
-              <th className="py-3 px-4 font-medium text-xs">이름</th>
-              <th className="py-3 px-4 text-right font-medium text-xs">전월 목표</th>
-              <th className="py-3 px-4 text-right font-medium text-xs">현재 달성</th>
-              <th className="py-3 px-4 text-center font-medium text-xs">{month}월 목표 (km)</th>
-              <th className="py-3 px-4 text-center font-medium text-xs w-16"></th>
+              <th className="py-3 px-4 font-medium text-sm">이름</th>
+              <th className="py-3 px-4 text-right font-medium text-sm">전월 목표</th>
+              <th className="py-3 px-4 text-right font-medium text-sm">현재 달성</th>
+              <th className="py-3 px-4 text-center font-medium text-sm">{month}월 목표 (km)</th>
+              <th className="py-3 px-4 text-center font-medium text-sm w-16"></th>
             </tr>
           </thead>
           <tbody>
@@ -129,10 +129,10 @@ export default function GoalsPage() {
                   <td className="py-2.5 px-4">
                     <Link href={`/member/${encodeURIComponent(m.name)}`} className="font-medium text-[var(--foreground)] hover:text-[var(--accent)]">{m.name}</Link>
                   </td>
-                  <td className="py-2.5 px-4 text-right text-xs font-mono text-[var(--muted)]">
+                  <td className="py-2.5 px-4 text-right text-sm font-mono text-[var(--muted)]">
                     {prevGoal > 0 ? `${prevGoal}km` : '-'}
                   </td>
-                  <td className="py-2.5 px-4 text-right text-xs font-mono font-semibold text-[var(--foreground)]">
+                  <td className="py-2.5 px-4 text-right text-sm font-mono font-semibold text-[var(--foreground)]">
                     {achieved > 0 ? `${achieved.toFixed(1)}km` : '-'}
                   </td>
                   <td className="py-2.5 px-4">
@@ -148,12 +148,12 @@ export default function GoalsPage() {
                   <td className="py-2.5 px-4 text-center">
                     {editVal !== undefined && editVal !== String(currentGoal) && (
                       <button onClick={() => handleSave(m.id, m.name)} disabled={saving === m.id}
-                        className="text-[10px] font-medium px-2 py-1 rounded-lg bg-[var(--accent)] text-white disabled:opacity-50">
+                        className="text-sm font-medium px-2 py-1 rounded-lg bg-[var(--accent)] text-white disabled:opacity-50">
                         {saving === m.id ? '...' : '저장'}
                       </button>
                     )}
                     {currentGoal > 0 && editVal === undefined && (
-                      <span className="text-emerald-500 text-xs">✓</span>
+                      <span className="text-emerald-500 text-sm">✓</span>
                     )}
                   </td>
                 </tr>

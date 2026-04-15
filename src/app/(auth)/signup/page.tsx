@@ -130,7 +130,7 @@ export default function SignupPage() {
             maxLength={20}
             className="w-full px-4 py-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] text-[var(--foreground)] text-base focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
           />
-          <p className="text-xs text-[var(--muted)] mt-1">{displayName.length}/20</p>
+          <p className="text-sm text-[var(--muted)] mt-1">{displayName.length}/20</p>
         </div>
 
         {error && (

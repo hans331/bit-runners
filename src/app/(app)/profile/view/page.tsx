@@ -94,7 +94,7 @@ function UserProfile() {
               const conv = await getOrCreateConversation(userId);
               router.push(`/social/messages/chat?id=${conv.id}`);
             }}
-            className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)] inline-flex items-center gap-1"
+            className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)] inline-flex items-center gap-1"
           >
             <MessageCircle size={14} /> 쪽지
           </button>
@@ -106,15 +106,15 @@ function UserProfile() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{Number(profile.total_distance_km).toFixed(1)}</p>
-            <p className="text-xs text-[var(--muted)]">총 km</p>
+            <p className="text-sm text-[var(--muted)]">총 km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{profile.total_runs}</p>
-            <p className="text-xs text-[var(--muted)]">총 러닝</p>
+            <p className="text-sm text-[var(--muted)]">총 러닝</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{profile.region_gu ?? '-'}</p>
-            <p className="text-xs text-[var(--muted)]">지역</p>
+            <p className="text-sm text-[var(--muted)]">지역</p>
           </div>
         </div>
       </div>
@@ -129,9 +129,9 @@ function UserProfile() {
               <div key={a.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-xs text-[var(--muted)]">{new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
+                  <p className="text-sm text-[var(--muted)]">{new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}</p>
                 </div>
-                <p className="text-xs text-[var(--muted)]">{a.duration_seconds ? `${Math.floor(a.duration_seconds / 60)}분` : ''}</p>
+                <p className="text-sm text-[var(--muted)]">{a.duration_seconds ? `${Math.floor(a.duration_seconds / 60)}분` : ''}</p>
               </div>
             ))}
           </div>

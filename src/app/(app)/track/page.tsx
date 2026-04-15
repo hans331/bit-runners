@@ -229,7 +229,7 @@ export default function TrackPage() {
       >
         {!API_KEY && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-xs text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
+            <p className="text-sm text-[var(--muted)]">Google Maps API 키를 설정하면 지도가 표시됩니다</p>
           </div>
         )}
       </div>
@@ -240,15 +240,15 @@ export default function TrackPage() {
           <div className="grid grid-cols-3 text-center">
             <div>
               <p className="text-3xl font-bold">{distance.toFixed(2)}</p>
-              <p className="text-xs opacity-70">km</p>
+              <p className="text-sm opacity-70">km</p>
             </div>
             <div>
               <p className="text-3xl font-bold">{formatTime(elapsed)}</p>
-              <p className="text-xs opacity-70">시간</p>
+              <p className="text-sm opacity-70">시간</p>
             </div>
             <div>
               <p className="text-3xl font-bold">{formatPace(distance, elapsed)}</p>
-              <p className="text-xs opacity-70">페이스</p>
+              <p className="text-sm opacity-70">페이스</p>
             </div>
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function TrackPage() {
 
       {error && (
         <div className="px-4 py-2 bg-red-500/10 text-center">
-          <p className="text-xs text-red-500">{error}</p>
+          <p className="text-sm text-red-500">{error}</p>
         </div>
       )}
 

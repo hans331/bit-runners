@@ -117,7 +117,7 @@ export default function HistoryPage() {
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Link href="/dashboard" className="text-xs text-[var(--muted)]">← 대시보드</Link>
+        <Link href="/dashboard" className="text-sm text-[var(--muted)]">← 대시보드</Link>
       </div>
       <h2 className="text-xl font-extrabold text-[var(--foreground)]">히스토리</h2>
 
@@ -136,35 +136,35 @@ export default function HistoryPage() {
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-[var(--accent)] opacity-30"><TrendingUp size={24} /></div>
-          <p className="text-[10px] text-[var(--muted)] mb-1">클럽 총 거리</p>
+          <p className="text-sm text-[var(--muted)] mb-1">클럽 총 거리</p>
           <p className="text-3xl font-extrabold text-[var(--accent)] italic">
             {clubSummary ? clubSummary.totalDistance.toFixed(0) : '–'}<span className="text-sm font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">{clubSummary ? `${clubSummary.activeMembers}명 활동` : ''}</p>
+          <p className="text-sm text-[var(--muted)] mt-1">{clubSummary ? `${clubSummary.activeMembers}명 활동` : ''}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-green-500 opacity-30"><Activity size={24} /></div>
-          <p className="text-[10px] text-[var(--muted)] mb-1">인당 평균</p>
+          <p className="text-sm text-[var(--muted)] mb-1">인당 평균</p>
           <p className="text-3xl font-extrabold text-green-600 italic">
             {clubSummary ? clubSummary.avgDistance.toFixed(1) : '–'}<span className="text-sm font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">활동 멤버 기준</p>
+          <p className="text-sm text-[var(--muted)] mt-1">활동 멤버 기준</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-purple-500 opacity-30"><Zap size={24} /></div>
-          <p className="text-[10px] text-[var(--muted)] mb-1">총 러닝</p>
+          <p className="text-sm text-[var(--muted)] mb-1">총 러닝</p>
           <p className="text-3xl font-extrabold text-purple-600 italic">
             {clubSummary ? clubSummary.totalRuns : '–'}<span className="text-sm font-bold not-italic ml-1">회</span>
           </p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">D-{clubSummary?.daysRemaining ?? '–'}</p>
+          <p className="text-sm text-[var(--muted)] mt-1">D-{clubSummary?.daysRemaining ?? '–'}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-orange-500 opacity-30"><Users size={24} /></div>
-          <p className="text-[10px] text-[var(--muted)] mb-1">활동 멤버</p>
+          <p className="text-sm text-[var(--muted)] mb-1">활동 멤버</p>
           <p className="text-3xl font-extrabold text-orange-600 italic">
             {clubSummary ? clubSummary.activeMembers : '–'}<span className="text-sm font-bold not-italic ml-1">명</span>
           </p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">{clubSummary ? `전체 ${clubSummary.totalMembers}명` : ''}</p>
+          <p className="text-sm text-[var(--muted)] mt-1">{clubSummary ? `전체 ${clubSummary.totalMembers}명` : ''}</p>
         </div>
       </div>
 
@@ -183,12 +183,12 @@ export default function HistoryPage() {
               const barWidth = (m.distance_km / maxDistance) * 100;
               return (
                 <div key={m.user_id} className="flex items-center gap-2">
-                  <span className={`w-5 text-xs font-bold text-center flex-shrink-0 ${
+                  <span className={`w-5 text-sm font-bold text-center flex-shrink-0 ${
                     i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-600' : 'text-[var(--muted)]'
                   }`}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                   </span>
-                  <span className="w-14 text-xs font-medium text-[var(--foreground)] truncate flex-shrink-0">{m.display_name}</span>
+                  <span className="w-14 text-sm font-medium text-[var(--foreground)] truncate flex-shrink-0">{m.display_name}</span>
                   <div className="flex-1 h-5 bg-[var(--card-border)] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
@@ -199,8 +199,8 @@ export default function HistoryPage() {
                       style={{ width: `${Math.max(barWidth, 2)}%` }}
                     />
                   </div>
-                  <span className="text-xs text-[var(--muted)] w-16 text-right flex-shrink-0">{m.distance_km.toFixed(1)}km</span>
-                  {m.progress >= 100 && <span className="text-xs">✅</span>}
+                  <span className="text-sm text-[var(--muted)] w-16 text-right flex-shrink-0">{m.distance_km.toFixed(1)}km</span>
+                  {m.progress >= 100 && <span className="text-sm">✅</span>}
                 </div>
               );
             })}
@@ -213,14 +213,14 @@ export default function HistoryPage() {
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[var(--foreground)]">{month}월 목표 달성률</h3>
-            <span className="text-xs text-[var(--muted)]">피니셔율 {finishRate}%</span>
+            <span className="text-sm text-[var(--muted)]">피니셔율 {finishRate}%</span>
           </div>
           <div className="space-y-3">
             {membersWithGoal.map(m => (
               <div key={m.user_id}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-[var(--foreground)]">{m.display_name}</span>
-                  <span className="text-xs text-[var(--muted)]">
+                  <span className="text-sm font-medium text-[var(--foreground)]">{m.display_name}</span>
+                  <span className="text-sm text-[var(--muted)]">
                     {m.distance_km.toFixed(1)} / {m.goal_km}km
                     <span className={`ml-2 font-semibold ${m.progress >= 100 ? 'text-green-500' : 'text-[var(--accent)]'}`}>
                       {m.progress.toFixed(0)}%
@@ -246,9 +246,9 @@ export default function HistoryPage() {
       {/* ========== 러닝 캘린더 (히트맵) ========== */}
       <div className="card p-4">
         <h3 className="text-sm font-bold text-[var(--foreground)] mb-3">러닝 캘린더</h3>
-        <div className="grid grid-cols-7 gap-1 text-center text-xs mb-2">
+        <div className="grid grid-cols-7 gap-1 text-center text-sm mb-2">
           {['일','월','화','수','목','금','토'].map(d => (
-            <span key={d} className="text-[var(--muted)] py-1 text-[10px]">{d}</span>
+            <span key={d} className="text-[var(--muted)] py-1 text-sm">{d}</span>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1">
@@ -270,18 +270,18 @@ export default function HistoryPage() {
             return (
               <div
                 key={day}
-                className={`aspect-square flex flex-col items-center justify-center rounded-lg text-[10px] font-medium relative ${bgClass}`}
+                className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm font-medium relative ${bgClass}`}
               >
                 <span>{day}</span>
                 {clubCount > 0 && (
-                  <span className="text-[8px] opacity-80">{clubCount}명</span>
+                  <span className="text-sm opacity-80">{clubCount}명</span>
                 )}
               </div>
             );
           })}
         </div>
         {/* 범례 */}
-        <div className="flex items-center gap-3 mt-3 text-[10px] text-[var(--muted)] justify-center">
+        <div className="flex items-center gap-3 mt-3 text-sm text-[var(--muted)] justify-center">
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> 50%+</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 inline-block" /> 15%+</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-400 inline-block" /> 1명+</span>
@@ -298,14 +298,14 @@ export default function HistoryPage() {
               const barWidth = (r.run_count / maxRunCount) * 100;
               return (
                 <div key={r.user_id} className="flex items-center gap-2">
-                  <span className="w-14 text-xs font-medium text-[var(--foreground)] truncate flex-shrink-0">{r.display_name}</span>
+                  <span className="w-14 text-sm font-medium text-[var(--foreground)] truncate flex-shrink-0">{r.display_name}</span>
                   <div className="flex-1 h-5 bg-[var(--card-border)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500"
                       style={{ width: `${Math.max(barWidth, 4)}%` }}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-[var(--foreground)] w-8 text-right flex-shrink-0">{r.run_count}회</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)] w-8 text-right flex-shrink-0">{r.run_count}회</span>
                 </div>
               );
             })}
@@ -320,19 +320,19 @@ export default function HistoryPage() {
           <div className="space-y-2.5">
             {cumRanking.map((r, i) => (
               <div key={r.user_id} className="flex items-center gap-2">
-                <span className={`w-5 text-xs font-bold text-center flex-shrink-0 ${
+                <span className={`w-5 text-sm font-bold text-center flex-shrink-0 ${
                   i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-amber-600' : 'text-[var(--muted)]'
                 }`}>
                   {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                 </span>
-                <span className="text-xs font-medium text-[var(--foreground)] truncate flex-shrink-0 w-14">{r.display_name}</span>
+                <span className="text-sm font-medium text-[var(--foreground)] truncate flex-shrink-0 w-14">{r.display_name}</span>
                 <div className="flex-1 h-5 bg-[var(--card-border)] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600"
                     style={{ width: `${Math.max((r.total_distance_km / maxCumDistance) * 100, 2)}%` }}
                   />
                 </div>
-                <span className="text-xs text-[var(--muted)] w-16 text-right flex-shrink-0">{r.total_distance_km.toFixed(0)}km</span>
+                <span className="text-sm text-[var(--muted)] w-16 text-right flex-shrink-0">{r.total_distance_km.toFixed(0)}km</span>
               </div>
             ))}
           </div>
@@ -350,19 +350,19 @@ export default function HistoryPage() {
                   <span>{entry.emoji}</span>
                   <span className="text-sm font-semibold text-green-600">{entry.label}</span>
                 </div>
-                <p className="text-[10px] text-[var(--muted)] mb-2">{entry.description}</p>
+                <p className="text-sm text-[var(--muted)] mb-2">{entry.description}</p>
                 <div className="space-y-1.5">
                   {entry.winners.map((w, i) => (
                     <div key={w.user_id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold ${
+                        <span className={`text-sm font-bold ${
                           i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : 'text-amber-600'
                         }`}>
                           {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
                         </span>
-                        <span className="text-xs font-medium text-[var(--foreground)]">{w.display_name}</span>
+                        <span className="text-sm font-medium text-[var(--foreground)]">{w.display_name}</span>
                       </div>
-                      <span className="text-xs font-semibold text-[var(--accent)]">
+                      <span className="text-sm font-semibold text-[var(--accent)]">
                         {entry.category === 'consistent' ? `${w.count}회` : `${w.value.toFixed(1)}km`}
                       </span>
                     </div>
@@ -380,15 +380,15 @@ export default function HistoryPage() {
         <div className="grid grid-cols-3 gap-4 text-center mb-4">
           <div>
             <p className="text-2xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
-            <p className="text-[10px] text-[var(--muted)]">km</p>
+            <p className="text-sm text-[var(--muted)]">km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{monthlyActivities.length}</p>
-            <p className="text-[10px] text-[var(--muted)]">러닝</p>
+            <p className="text-sm text-[var(--muted)]">러닝</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{totalDuration > 0 ? formatDuration(totalDuration) : '-'}</p>
-            <p className="text-[10px] text-[var(--muted)]">시간</p>
+            <p className="text-sm text-[var(--muted)]">시간</p>
           </div>
         </div>
 
@@ -411,7 +411,7 @@ export default function HistoryPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-xs text-[var(--muted)]">
+                  <p className="text-sm text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.duration_seconds && ` · ${formatDuration(a.duration_seconds)}`}
                     {a.pace_avg_sec_per_km && ` · ${formatPace(a.pace_avg_sec_per_km)}/km`}

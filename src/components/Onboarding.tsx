@@ -136,7 +136,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           <button
             key={gu}
             onClick={() => setRegionGu(regionGu === gu ? '' : gu)}
-            className={`py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`py-2 rounded-lg text-sm font-semibold transition-all ${
               regionGu === gu ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)]'
             }`}
           >

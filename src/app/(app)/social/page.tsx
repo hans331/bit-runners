@@ -84,7 +84,7 @@ export default function SocialPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold text-[var(--foreground)]">내 클럽</h2>
-              <Link href="/social/clubs/create" className="flex items-center gap-1 text-xs text-[var(--accent)] font-semibold">
+              <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-[var(--accent)] font-semibold">
                 <Plus size={14} /> 클럽 만들기
               </Link>
             </div>
@@ -109,7 +109,7 @@ export default function SocialPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--foreground)] truncate">{club.name}</p>
-                      <p className="text-xs text-[var(--muted)]">멤버 {club.member_count}명</p>
+                      <p className="text-sm text-[var(--muted)]">멤버 {club.member_count}명</p>
                     </div>
                   </Link>
                 ))}

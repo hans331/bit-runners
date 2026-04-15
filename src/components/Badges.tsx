@@ -21,9 +21,9 @@ export default function Badges({ finisherCount, longRunCount, attendanceCount, t
     return (
       <span className="inline-flex items-center gap-0.5 ml-1">
         {badges.map(b => (
-          <span key={b.label} className="inline-flex items-center text-[10px] gap-0" title={`${b.label} ${b.count}회`}>
+          <span key={b.label} className="inline-flex items-center text-sm gap-0" title={`${b.label} ${b.count}회`}>
             <span>{b.icon}</span>
-            {b.count > 1 && <span className="text-[9px] font-bold text-[var(--muted)]">x{b.count}</span>}
+            {b.count > 1 && <span className="text-sm font-bold text-[var(--muted)]">x{b.count}</span>}
           </span>
         ))}
       </span>
@@ -33,13 +33,13 @@ export default function Badges({ finisherCount, longRunCount, attendanceCount, t
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {badges.map(b => (
-        <span key={b.label} className={`inline-flex items-center gap-1 text-[11px] font-semibold ${b.color} px-2 py-0.5 rounded-full`}>
+        <span key={b.label} className={`inline-flex items-center gap-1 text-sm font-semibold ${b.color} px-2 py-0.5 rounded-full`}>
           <span>{b.icon}</span>
           <span>{b.label}</span>
           <span className="font-bold">x{b.count}</span>
         </span>
       ))}
-      <span className="text-[10px] text-[var(--muted)]" title="총 러닝 횟수">
+      <span className="text-sm text-[var(--muted)]" title="총 러닝 횟수">
         👟 {totalRuns}회
       </span>
     </div>

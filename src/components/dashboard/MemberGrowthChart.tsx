@@ -30,15 +30,15 @@ export default function MemberGrowthChart() {
   return (
     <div className="card">
       <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">멤버별 월간 거리</h3>
-      <p className="text-[10px] text-[var(--muted)] mb-4">TOP 10</p>
+      <p className="text-sm text-[var(--muted)] mb-4">TOP 10</p>
       <div className="h-64 md:h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
-            <XAxis dataKey="label" tick={{ fill: getTextColor(isDark), fontSize: 10 }} axisLine={{ stroke: getAxisColor(isDark) }} />
-            <YAxis tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} unit="km" />
+            <XAxis dataKey="label" tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} />
+            <YAxis tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} unit="km" />
             <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value) => [`${Number(value).toFixed(1)}km`]} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Legend wrapperStyle={{ fontSize: 14 }} />
             {topMembers.map((mb, i) => <Line key={mb.id} type="monotone" dataKey={mb.name} stroke={COLORS[i]} strokeWidth={2} dot={{ r: 3 }} connectNulls />)}
           </LineChart>
         </ResponsiveContainer>

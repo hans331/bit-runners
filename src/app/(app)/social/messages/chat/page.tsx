@@ -141,7 +141,7 @@ function ChatView() {
                     : 'bg-[var(--card)] text-[var(--foreground)] rounded-bl-md'
                 }`}>
                   <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>
-                  <p className={`text-[10px] mt-1 ${isMine ? 'text-white/60' : 'text-[var(--muted)]'}`}>
+                  <p className={`text-sm mt-1 ${isMine ? 'text-white/60' : 'text-[var(--muted)]'}`}>
                     {new Date(msg.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>

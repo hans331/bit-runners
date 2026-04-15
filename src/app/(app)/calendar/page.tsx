@@ -10,8 +10,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ActivityPhoto } from '@/types';
 
 // 거리에 따른 배경색 반환
-function distanceColor(km: number): string {
-  if (km <= 0) return 'bg-white dark:bg-gray-800';
+function distanceColor(km: number, dateStr: string): string {
+  if (km <= 0) {
+    // 미래 날짜는 흰색, 오늘 포함 과거는 연한 회색
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cellDate = new Date(dateStr + 'T00:00:00');
+    if (cellDate > today) return 'bg-white dark:bg-gray-800';
+    return 'bg-gray-100 dark:bg-gray-700/30';
+  }
   if (km < 3) return 'bg-pink-100 dark:bg-pink-900/30';
   if (km < 5) return 'bg-yellow-100 dark:bg-yellow-900/30';
   if (km < 7) return 'bg-green-200 dark:bg-green-800/40';
@@ -133,15 +140,15 @@ export default function CalendarPage() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
-            <p className="text-[10px] text-[var(--muted)]">km</p>
+            <p className="text-sm text-[var(--muted)]">km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{runDays}</p>
-            <p className="text-[10px] text-[var(--muted)]">러닝 일수</p>
+            <p className="text-sm text-[var(--muted)]">러닝 일수</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{totalDuration > 0 ? formatDuration(totalDuration) : '-'}</p>
-            <p className="text-[10px] text-[var(--muted)]">시간</p>
+            <p className="text-sm text-[var(--muted)]">시간</p>
           </div>
         </div>
       </div>
@@ -149,7 +156,7 @@ export default function CalendarPage() {
       {/* ========== DayOne 스타일 캘린더 ========== */}
       <div className="card p-4">
         {/* 요일 헤더 */}
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] mb-2">
+        <div className="grid grid-cols-7 gap-1 text-center text-sm mb-2">
           {['일','월','화','수','목','금','토'].map((d, i) => (
             <span key={d} className={`py-1 font-semibold ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</span>
           ))}
@@ -170,7 +177,7 @@ export default function CalendarPage() {
             const actIds = dateActivityMap.get(dateStr);
             const photoUrl = photos.get(dateStr);
             const hasPhoto = !!photoUrl;
-            const bgColor = distanceColor(km);
+            const bgColor = distanceColor(km, dateStr);
             const textColor = distanceTextColor(km);
 
             const cell = (
@@ -188,7 +195,7 @@ export default function CalendarPage() {
                 )}
 
                 {/* 날짜 */}
-                <span className={`text-xs font-semibold relative z-10 ${
+                <span className={`text-sm font-semibold relative z-10 ${
                   hasPhoto ? 'text-white' : textColor
                 }`}>
                   {day}
@@ -196,7 +203,7 @@ export default function CalendarPage() {
 
                 {/* 거리 */}
                 {km > 0 && (
-                  <span className={`text-[7px] font-medium relative z-10 ${
+                  <span className={`text-sm font-medium relative z-10 ${
                     hasPhoto ? 'text-white/90' : 'text-[var(--muted)]'
                   }`}>
                     {km.toFixed(1)}
@@ -217,7 +224,7 @@ export default function CalendarPage() {
         </div>
 
         {/* 범례 */}
-        <div className="flex items-center gap-2 mt-4 justify-center text-[9px] text-[var(--muted)]">
+        <div className="flex items-center gap-2 mt-4 justify-center text-sm text-[var(--muted)]">
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-200" /> 0km</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100" /> ~3</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100" /> ~5</span>
@@ -240,7 +247,7 @@ export default function CalendarPage() {
               >
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
-                  <p className="text-[11px] text-[var(--muted)]">
+                  <p className="text-sm text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.duration_seconds && ` · ${formatDuration(a.duration_seconds)}`}
                   </p>

@@ -93,22 +93,22 @@ export default function DataPage() {
 
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-[var(--foreground)]">러닝 데이터</h1>
-        <span className="text-xs text-[var(--muted)]">{tableData.length}건</span>
+        <span className="text-sm text-[var(--muted)]">{tableData.length}건</span>
       </div>
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="card text-center !p-4">
           <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{runningLogs.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">총 러닝 기록</p>
+          <p className="text-sm text-[var(--muted)]">총 러닝 기록</p>
         </div>
         <div className="card text-center !p-4">
           <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{new Set(runningLogs.map(l => l.run_date)).size}</p>
-          <p className="text-[10px] text-[var(--muted)]">활동 일수</p>
+          <p className="text-sm text-[var(--muted)]">활동 일수</p>
         </div>
         <div className="card text-center !p-4">
           <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{members.filter(m => m.status === 'active').length}</p>
-          <p className="text-[10px] text-[var(--muted)]">활동 멤버</p>
+          <p className="text-sm text-[var(--muted)]">활동 멤버</p>
         </div>
       </div>
 
@@ -132,13 +132,13 @@ export default function DataPage() {
           <table className="w-full text-sm whitespace-nowrap">
             <thead>
               <tr className="text-[var(--muted)] text-left bg-[var(--sidebar-bg)] border-b border-[var(--card-border)]">
-                <th className="py-3 px-3 font-medium text-xs sticky left-0 bg-[var(--sidebar-bg)]">날짜</th>
-                <th className="py-3 px-3 font-medium text-xs">이름</th>
-                <th className="py-3 px-3 text-right font-medium text-xs">그날 거리</th>
-                <th className="py-3 px-3 text-right font-medium text-xs">월 누적</th>
-                <th className="py-3 px-3 text-right font-medium text-xs">총 누적</th>
-                <th className="py-3 px-3 text-right font-medium text-xs">월 목표</th>
-                <th className="py-3 px-3 text-right font-medium text-xs">달성률</th>
+                <th className="py-3 px-3 font-medium text-sm sticky left-0 bg-[var(--sidebar-bg)]">날짜</th>
+                <th className="py-3 px-3 font-medium text-sm">이름</th>
+                <th className="py-3 px-3 text-right font-medium text-sm">그날 거리</th>
+                <th className="py-3 px-3 text-right font-medium text-sm">월 누적</th>
+                <th className="py-3 px-3 text-right font-medium text-sm">총 누적</th>
+                <th className="py-3 px-3 text-right font-medium text-sm">월 목표</th>
+                <th className="py-3 px-3 text-right font-medium text-sm">달성률</th>
               </tr>
             </thead>
             <tbody>
@@ -146,25 +146,25 @@ export default function DataPage() {
                 const isFinisher = row.goal > 0 && row.monthCumulative >= row.goal;
                 return (
                   <tr key={row.id} className="border-t border-[var(--card-border)] hover:bg-[var(--card-border)]/30 transition-colors">
-                    <td className="py-2.5 px-3 font-mono text-xs text-[var(--muted)] sticky left-0 bg-[var(--background)]">{row.date}</td>
+                    <td className="py-2.5 px-3 font-mono text-sm text-[var(--muted)] sticky left-0 bg-[var(--background)]">{row.date}</td>
                     <td className="py-2.5 px-3">
                       <Link href={`/member/${encodeURIComponent(row.name)}`}
                         className="text-sm font-medium text-[var(--foreground)] hover:text-[var(--accent)]">{row.name}</Link>
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-xs font-semibold text-[var(--accent)]">
+                    <td className="py-2.5 px-3 text-right font-mono text-sm font-semibold text-[var(--accent)]">
                       +{row.distance.toFixed(2)}km
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-xs text-[var(--foreground)]">
+                    <td className="py-2.5 px-3 text-right font-mono text-sm text-[var(--foreground)]">
                       {row.monthCumulative.toFixed(1)}km
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-xs text-[var(--muted)]">
+                    <td className="py-2.5 px-3 text-right font-mono text-sm text-[var(--muted)]">
                       {row.totalCumulative.toFixed(0)}km
                     </td>
-                    <td className={`py-2.5 px-3 text-right font-mono text-xs ${row.isFallback ? 'text-[var(--muted)] opacity-40' : 'text-[var(--muted)]'}`}>
+                    <td className={`py-2.5 px-3 text-right font-mono text-sm ${row.isFallback ? 'text-[var(--muted)] opacity-40' : 'text-[var(--muted)]'}`}>
                       {row.goal > 0 ? `${row.goal}km` : '-'}
-                      {row.isFallback && <span className="text-[8px] ml-0.5">(전월)</span>}
+                      {row.isFallback && <span className="text-sm ml-0.5">(전월)</span>}
                     </td>
-                    <td className={`py-2.5 px-3 text-right font-mono text-xs font-semibold ${
+                    <td className={`py-2.5 px-3 text-right font-mono text-sm font-semibold ${
                       isFinisher ? 'text-emerald-600 dark:text-emerald-400' :
                       row.rate >= 80 ? 'text-amber-600 dark:text-amber-400' :
                       'text-[var(--muted)]'
@@ -186,14 +186,14 @@ export default function DataPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setPage(0)} disabled={page === 0}
-            className="px-2 py-1.5 text-xs rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">처음</button>
+            className="px-2 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">처음</button>
           <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
             className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">이전</button>
-          <span className="text-xs text-[var(--muted)] px-2">{page + 1} / {totalPages}</span>
+          <span className="text-sm text-[var(--muted)] px-2">{page + 1} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
             className="px-3 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">다음</button>
           <button onClick={() => setPage(totalPages - 1)} disabled={page >= totalPages - 1}
-            className="px-2 py-1.5 text-xs rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">마지막</button>
+            className="px-2 py-1.5 text-sm rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--muted)] disabled:opacity-30">마지막</button>
         </div>
       )}
     </div>

@@ -54,12 +54,12 @@ export default function AwardsPage() {
               hof.color === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
               'text-red-500 dark:text-red-400'
             }`}>{hof.title}</h3>
-            <p className="text-xs text-[var(--muted)] mb-3">{hof.sub}</p>
+            <p className="text-sm text-[var(--muted)] mb-3">{hof.sub}</p>
             <div className="space-y-1">
               {hof.data.slice(0, 8).map((e, i) => (
                 <Link key={e.name} href={`/member/${encodeURIComponent(e.name)}`}
                   className="flex items-center gap-2 py-1.5 px-2 rounded-xl hover:bg-[var(--card-border)] transition-colors">
-                  <span className="w-5 text-center text-xs">{i < 3 ? ['🥇','🥈','🥉'][i] : <span className="text-[var(--muted)] font-mono text-[10px]">{i+1}</span>}</span>
+                  <span className="w-5 text-center text-sm">{i < 3 ? ['🥇','🥈','🥉'][i] : <span className="text-[var(--muted)] font-mono text-sm">{i+1}</span>}</span>
                   <span className="flex-1 text-sm text-[var(--foreground)] font-medium">{e.name}</span>
                   <span className={`text-sm font-mono font-semibold ${
                     hof.color === 'amber' ? 'text-amber-600 dark:text-amber-400' :
@@ -68,7 +68,7 @@ export default function AwardsPage() {
                   }`}>{e.count}회</span>
                 </Link>
               ))}
-              {hof.data.length === 0 && <p className="text-xs text-[var(--muted)] px-2">일별 데이터 필요</p>}
+              {hof.data.length === 0 && <p className="text-sm text-[var(--muted)] px-2">일별 데이터 필요</p>}
             </div>
           </div>
         ))}
@@ -82,23 +82,23 @@ export default function AwardsPage() {
             <div key={`${a.year}-${a.month}`} className="border-l-3 border-[var(--accent)] pl-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-bold text-[var(--foreground)]">{a.label}</h4>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${a.finisherRate >= 70 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : a.finisherRate >= 50 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>피니셔율 {a.finisherRate.toFixed(0)}%</span>
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${a.finisherRate >= 70 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : a.finisherRate >= 50 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>피니셔율 {a.finisherRate.toFixed(0)}%</span>
               </div>
               <div className="space-y-2">
                 {a.longRunner && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full">🏆 롱러너</span>
+                    <span className="text-sm font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full">🏆 롱러너</span>
                     <Link href={`/member/${encodeURIComponent(a.longRunner.name)}`} className="text-sm font-medium hover:text-[var(--accent)]">{a.longRunner.name}</Link>
-                    <span className="text-xs text-[var(--muted)] font-mono">{a.longRunner.distance.toFixed(1)}km</span>
+                    <span className="text-sm text-[var(--muted)] font-mono">{a.longRunner.distance.toFixed(1)}km</span>
                   </div>
                 )}
                 {a.attendance && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full mt-0.5">🔥 개근상</span>
+                    <span className="text-sm font-semibold bg-red-500/10 text-red-500 dark:text-red-400 px-2.5 py-1 rounded-full mt-0.5">🔥 개근상</span>
                     <div className="flex flex-wrap gap-1">
                       {a.runDaysList.map((rd, idx) => (
                         <Link key={rd.name} href={`/member/${encodeURIComponent(rd.name)}`}
-                          className={`text-xs bg-[var(--card-border)] px-2 py-1 rounded-lg hover:text-[var(--accent)] ${idx === 0 ? 'font-bold text-red-500 dark:text-red-400' : 'text-[var(--foreground)]'}`}>
+                          className={`text-sm bg-[var(--card-border)] px-2 py-1 rounded-lg hover:text-[var(--accent)] ${idx === 0 ? 'font-bold text-red-500 dark:text-red-400' : 'text-[var(--foreground)]'}`}>
                           {rd.name} <span className="font-mono text-[var(--muted)]">{rd.days}일</span>
                         </Link>
                       ))}
@@ -107,10 +107,10 @@ export default function AwardsPage() {
                 )}
                 {a.finishers.length > 0 && (
                   <div className="flex items-start gap-2">
-                    <span className="text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full mt-0.5">🏅 피니셔</span>
+                    <span className="text-sm font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full mt-0.5">🏅 피니셔</span>
                     <div className="flex flex-wrap gap-1">
                       {a.finishers.map(f => (
-                        <Link key={f.name} href={`/member/${encodeURIComponent(f.name)}`} className="text-[11px] text-[var(--foreground)] hover:text-[var(--accent)] bg-[var(--card-border)] px-2 py-1 rounded-lg">{f.name} <span className="text-[var(--muted)]">{f.distance.toFixed(0)}/{f.goal}</span></Link>
+                        <Link key={f.name} href={`/member/${encodeURIComponent(f.name)}`} className="text-sm text-[var(--foreground)] hover:text-[var(--accent)] bg-[var(--card-border)] px-2 py-1 rounded-lg">{f.name} <span className="text-[var(--muted)]">{f.distance.toFixed(0)}/{f.goal}</span></Link>
                       ))}
                     </div>
                   </div>

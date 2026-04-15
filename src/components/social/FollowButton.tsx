@@ -36,7 +36,7 @@ export default function FollowButton({ userId, initialFollowing, onToggle }: Fol
     <button
       onClick={handleToggle}
       disabled={loading}
-      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${
+      className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 ${
         following
           ? 'bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)]'
           : 'bg-[var(--accent)] text-white'

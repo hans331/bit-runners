@@ -167,9 +167,9 @@ function ClubDetail() {
             <LogIn size={16} /> 클럽 가입
           </button>
         ) : myRole === 'owner' ? (
-          <p className="mt-3 text-xs text-[var(--accent)] font-semibold flex items-center justify-center gap-1"><Crown size={14} /> 클럽 오너</p>
+          <p className="mt-3 text-sm text-[var(--accent)] font-semibold flex items-center justify-center gap-1"><Crown size={14} /> 클럽 오너</p>
         ) : (
-          <button onClick={handleLeave} disabled={actionLoading} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)] font-semibold text-xs disabled:opacity-50">
+          <button onClick={handleLeave} disabled={actionLoading} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)] font-semibold text-sm disabled:opacity-50">
             <LogOut size={14} /> 탈퇴
           </button>
         )}
@@ -188,7 +188,7 @@ function ClubDetail() {
             <p className="text-sm font-semibold text-[var(--foreground)]">
               {copied ? '복사됨!' : '초대 링크 복사'}
             </p>
-            <p className="text-xs text-[var(--muted)] truncate">링크를 친구에게 보내면 바로 가입할 수 있어요</p>
+            <p className="text-sm text-[var(--muted)] truncate">링크를 친구에게 보내면 바로 가입할 수 있어요</p>
           </div>
         </button>
       )}
@@ -225,10 +225,10 @@ function ClubDetail() {
                 </Link>
                 <Link href={`/profile/view?id=${member.user_id}`} className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[var(--foreground)] truncate">{member.profile?.display_name ?? '러너'}</p>
-                  <p className="text-xs text-[var(--muted)]">{Number(member.profile?.total_distance_km ?? 0).toFixed(1)}km · {member.profile?.total_runs ?? 0}회</p>
+                  <p className="text-sm text-[var(--muted)]">{Number(member.profile?.total_distance_km ?? 0).toFixed(1)}km · {member.profile?.total_runs ?? 0}회</p>
                 </Link>
                 {member.role !== 'member' && (
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
                     member.role === 'owner' ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600'
                   }`}>{member.role === 'owner' ? '오너' : '관리자'}</span>
                 )}
@@ -280,7 +280,7 @@ function ClubDetail() {
                     {a.profiles?.display_name ?? '러너'}
                     <span className="text-[var(--muted)] font-normal ml-2">{Number(a.distance_km).toFixed(2)}km</span>
                   </p>
-                  <p className="text-xs text-[var(--muted)]">
+                  <p className="text-sm text-[var(--muted)]">
                     {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
                     {a.duration_seconds ? ` · ${formatDuration(a.duration_seconds)}` : ''}
                     {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
@@ -296,7 +296,7 @@ function ClubDetail() {
       {activeTab === 'settings' && isAdmin && (
         <div className="card p-5 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-[var(--muted)] mb-1 block">클럽 이름</label>
+            <label className="text-sm font-semibold text-[var(--muted)] mb-1 block">클럽 이름</label>
             <input
               type="text"
               value={editName}
@@ -306,7 +306,7 @@ function ClubDetail() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-[var(--muted)] mb-1 block">소개</label>
+            <label className="text-sm font-semibold text-[var(--muted)] mb-1 block">소개</label>
             <textarea
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
@@ -318,7 +318,7 @@ function ClubDetail() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-[var(--foreground)]">공개 클럽</p>
-              <p className="text-xs text-[var(--muted)]">누구나 검색하고 가입할 수 있습니다</p>
+              <p className="text-sm text-[var(--muted)]">누구나 검색하고 가입할 수 있습니다</p>
             </div>
             <button
               onClick={() => setEditPublic(!editPublic)}

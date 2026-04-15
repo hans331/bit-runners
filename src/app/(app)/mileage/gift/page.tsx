@@ -60,7 +60,7 @@ export default function GiftMileagePage() {
 
       {/* 잔액 */}
       <div className="card p-4 mb-4 text-center">
-        <p className="text-xs text-[var(--muted)]">보유 마일리지</p>
+        <p className="text-sm text-[var(--muted)]">보유 마일리지</p>
         <p className="text-2xl font-bold text-[var(--foreground)]">{balance.toLocaleString()}P</p>
       </div>
 
@@ -102,9 +102,9 @@ export default function GiftMileagePage() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-[var(--foreground)]">{selectedUser.display_name}</p>
-            <p className="text-xs text-[var(--muted)]">받는 사람</p>
+            <p className="text-sm text-[var(--muted)]">받는 사람</p>
           </div>
-          <button onClick={() => setSelectedUser(null)} className="text-xs text-[var(--accent)]">변경</button>
+          <button onClick={() => setSelectedUser(null)} className="text-sm text-[var(--accent)]">변경</button>
         </div>
       )}
 
@@ -122,11 +122,11 @@ export default function GiftMileagePage() {
         />
         <div className="flex gap-2 justify-center">
           {[100, 500, 1000].map((v) => (
-            <button key={v} onClick={() => setAmount(String(v))} className="px-4 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-xs font-semibold text-[var(--foreground)]">
+            <button key={v} onClick={() => setAmount(String(v))} className="px-4 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-sm font-semibold text-[var(--foreground)]">
               {v.toLocaleString()}P
             </button>
           ))}
-          <button onClick={() => setAmount(String(balance))} className="px-4 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-xs font-semibold text-[var(--accent)]">
+          <button onClick={() => setAmount(String(balance))} className="px-4 py-1.5 rounded-lg bg-[var(--card)] border border-[var(--card-border)] text-sm font-semibold text-[var(--accent)]">
             전액
           </button>
         </div>

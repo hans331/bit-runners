@@ -56,7 +56,7 @@ export default function RunCalendar() {
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {weekDays.map(d => (
-          <div key={d} className={`text-center text-xs font-medium py-1.5 ${d === '일' ? 'text-red-400' : d === '토' ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</div>
+          <div key={d} className={`text-center text-sm font-medium py-1.5 ${d === '일' ? 'text-red-400' : d === '토' ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</div>
         ))}
       </div>
 
@@ -67,16 +67,16 @@ export default function RunCalendar() {
           <button
             key={day.day}
             onClick={() => setSelectedDay(day.day === selectedDay ? null : day.day)}
-            className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs font-medium transition-all hover:ring-2 hover:ring-[var(--accent)] ${getColor(day.count)} ${selectedDay === day.day ? 'ring-2 ring-[var(--accent)]' : ''}`}
+            className={`aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-all hover:ring-2 hover:ring-[var(--accent)] ${getColor(day.count)} ${selectedDay === day.day ? 'ring-2 ring-[var(--accent)]' : ''}`}
           >
-            <span className="text-xs leading-none">{day.day}</span>
-            {day.count > 0 && <span className="text-[10px] font-bold leading-none mt-0.5">{day.count}명</span>}
+            <span className="text-sm leading-none">{day.day}</span>
+            {day.count > 0 && <span className="text-sm font-bold leading-none mt-0.5">{day.count}명</span>}
           </button>
         ))}
       </div>
 
       {/* 범례 */}
-      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[var(--card-border)] text-xs text-[var(--muted)]">
+      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[var(--card-border)] text-sm text-[var(--muted)]">
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-emerald-500" /> 50%+</span>
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-emerald-300 dark:bg-emerald-600" /> 15%+</span>
         <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded bg-amber-200 dark:bg-amber-700" /> 1명+</span>

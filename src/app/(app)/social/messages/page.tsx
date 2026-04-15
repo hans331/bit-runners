@@ -43,7 +43,7 @@ export default function MessagesPage() {
         <div className="text-center py-16">
           <MessageCircle size={48} className="mx-auto mb-4 text-[var(--muted)]" />
           <p className="text-sm text-[var(--muted)]">아직 쪽지가 없습니다</p>
-          <p className="text-xs text-[var(--muted)] mt-1">다른 러너의 프로필에서 쪽지를 보내보세요</p>
+          <p className="text-sm text-[var(--muted)] mt-1">다른 러너의 프로필에서 쪽지를 보내보세요</p>
         </div>
       ) : (
         <div className="card divide-y divide-[var(--card-border)]">
@@ -65,11 +65,11 @@ export default function MessagesPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)] truncate">
                     {conv.other_user?.display_name ?? '러너'}
                   </p>
-                  <p className="text-[10px] text-[var(--muted)] flex-shrink-0 ml-2">
+                  <p className="text-sm text-[var(--muted)] flex-shrink-0 ml-2">
                     {formatTime(conv.last_message_at)}
                   </p>
                 </div>
-                <p className="text-xs text-[var(--muted)] truncate mt-0.5">
+                <p className="text-sm text-[var(--muted)] truncate mt-0.5">
                   {conv.last_message?.body ?? '대화를 시작하세요'}
                 </p>
               </div>

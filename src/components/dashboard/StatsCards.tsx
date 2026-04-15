@@ -44,13 +44,13 @@ export default function StatsCards({ year, month }: Props) {
       {cards.map(c => (
         <div key={c.label} className={`bg-gradient-to-br ${c.gradient} border ${c.border} rounded-2xl p-4 md:p-5 transition-all`}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs md:text-sm font-medium text-[var(--muted)]">{c.label}</p>
+            <p className="text-sm md:text-sm font-medium text-[var(--muted)]">{c.label}</p>
             {c.icon}
           </div>
           <p className={`text-3xl md:text-4xl font-extrabold ${c.valueColor} tracking-tight`}>
             {c.value}<span className="text-sm md:text-base font-semibold ml-0.5">{c.unit}</span>
           </p>
-          <p className="text-xs md:text-sm text-[var(--muted)] mt-1.5">{c.sub}</p>
+          <p className="text-sm md:text-sm text-[var(--muted)] mt-1.5">{c.sub}</p>
         </div>
       ))}
     </div>

@@ -47,7 +47,7 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
           <span className="text-2xl">🏃🏻</span>
           <div className="leading-none">
             <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
-            <p className="text-[8px] text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
+            <p className="text-sm text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
           </div>
         </Link>
 
@@ -177,7 +177,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="border-t border-[var(--card-border)] pt-4 mb-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] px-4 mb-3">
+        <p className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)] px-4 mb-3">
           멤버 ({activeMembers.length})
         </p>
       </div>
@@ -196,11 +196,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                   : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
                 }`}
             >
-              <span className={`w-6 text-center text-xs font-mono ${i < 3 ? 'font-bold' : 'text-[var(--muted)]'}`}>
+              <span className={`w-6 text-center text-sm font-mono ${i < 3 ? 'font-bold' : 'text-[var(--muted)]'}`}>
                 {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
               </span>
               <span className="flex-1 truncate">{m.name}<Badges {...badges} compact /></span>
-              <span className="text-xs font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
+              <span className="text-sm font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
             </Link>
           );
         })}
@@ -209,7 +209,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {dormantMembers.length > 0 && (
         <>
           <div className="border-t border-[var(--card-border)] pt-4 mt-4 mb-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] px-4 mb-3">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)] px-4 mb-3">
               휴면 ({dormantMembers.length})
             </p>
           </div>
@@ -225,9 +225,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     : 'text-[var(--foreground)] hover:bg-[var(--card-border)]'
                   }`}
               >
-                <span className="w-6 text-center text-xs text-[var(--muted)]">💤</span>
+                <span className="w-6 text-center text-sm text-[var(--muted)]">💤</span>
                 <span className="flex-1 truncate">{m.name}</span>
-                <span className="text-xs font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
+                <span className="text-sm font-mono text-[var(--muted)]">{m.total.toFixed(0)}km</span>
               </Link>
             ))}
           </div>

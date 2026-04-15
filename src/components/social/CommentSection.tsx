@@ -95,16 +95,16 @@ export default function CommentSection({ activityId, activityOwnerId }: CommentS
                   {comment.profile?.avatar_url ? (
                     <img src={comment.profile.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs">🏃🏻</div>
+                    <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>
                   )}
                 </div>
               </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <Link href={`/profile/view?id=${comment.user_id}`} className="text-xs font-semibold text-[var(--foreground)]">
+                  <Link href={`/profile/view?id=${comment.user_id}`} className="text-sm font-semibold text-[var(--foreground)]">
                     {comment.profile?.display_name ?? '러너'}
                   </Link>
-                  <span className="text-[10px] text-[var(--muted)]">{formatTime(comment.created_at)}</span>
+                  <span className="text-sm text-[var(--muted)]">{formatTime(comment.created_at)}</span>
                   {comment.user_id === user?.id && (
                     <button onClick={() => handleDelete(comment.id)} className="text-[var(--muted)] hover:text-red-500 ml-auto">
                       <Trash2 size={12} />

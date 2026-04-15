@@ -27,12 +27,12 @@ export default function FinisherHistory() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 20, right: 5, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={getAxisColor(isDark)} />
-            <XAxis dataKey="label" tick={{ fill: getTextColor(isDark), fontSize: 10 }} axisLine={{ stroke: getAxisColor(isDark) }} />
-            <YAxis tick={{ fill: getTextColor(isDark), fontSize: 11 }} axisLine={{ stroke: getAxisColor(isDark) }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+            <XAxis dataKey="label" tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} />
+            <YAxis tick={{ fill: getTextColor(isDark), fontSize: 14 }} axisLine={{ stroke: getAxisColor(isDark) }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <Tooltip contentStyle={getTooltipStyle(isDark)} formatter={(value) => [`${Number(value).toFixed(0)}%`, '피니셔율']} />
             <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
               {data.map((entry, i) => <Cell key={i} fill={entry.rate >= 70 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />)}
-              <LabelList dataKey="display" position="top" style={{ fill: getTextColor(isDark), fontSize: 10, fontWeight: 600 }} />
+              <LabelList dataKey="display" position="top" style={{ fill: getTextColor(isDark), fontSize: 14, fontWeight: 600 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

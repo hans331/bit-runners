@@ -110,15 +110,15 @@ export default function ProfilePage() {
         <div className="grid grid-cols-3 gap-4 text-center mt-5 pt-5 border-t border-[var(--card-border)]">
           <div>
             <p className="text-2xl font-bold text-[var(--accent)]">{Number(totalKm).toFixed(1)}</p>
-            <p className="text-xs text-[var(--muted)]">총 km</p>
+            <p className="text-sm text-[var(--muted)]">총 km</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{totalRuns}</p>
-            <p className="text-xs text-[var(--muted)]">총 러닝</p>
+            <p className="text-sm text-[var(--muted)]">총 러닝</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-[var(--foreground)]">{streak}</p>
-            <p className="text-xs text-[var(--muted)]">연속일 🔥</p>
+            <p className="text-sm text-[var(--muted)]">연속일 🔥</p>
           </div>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function ProfilePage() {
             {regionalRanks.map(r => (
               <div key={r.level} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold w-6 text-center rounded py-0.5 ${
+                  <span className={`text-sm font-bold w-6 text-center rounded py-0.5 ${
                     r.level === '동' ? 'bg-green-100 text-green-700' :
                     r.level === '구' ? 'bg-blue-100 text-blue-700' :
                     'bg-purple-100 text-purple-700'
@@ -147,13 +147,13 @@ export default function ProfilePage() {
                   <span className="text-sm font-bold text-[var(--accent)]">
                     {r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : `${r.rank}위`}
                   </span>
-                  <span className="text-xs text-[var(--muted)]">/ {r.total}명</span>
+                  <span className="text-sm text-[var(--muted)]">/ {r.total}명</span>
                 </div>
               </div>
             ))}
           </div>
           {!profile?.region_gu && (
-            <Link href="/profile/edit" className="text-xs text-[var(--accent)] font-semibold mt-3 inline-block">
+            <Link href="/profile/edit" className="text-sm text-[var(--accent)] font-semibold mt-3 inline-block">
               지역을 설정하면 랭킹에 참여할 수 있어요 →
             </Link>
           )}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
             <h3 className="text-sm font-bold text-[var(--foreground)]">지역 랭킹</h3>
           </div>
           <p className="text-sm text-[var(--muted)]">프로필에서 지역을 설정하면 시/구/동 단위 랭킹을 볼 수 있어요</p>
-          <Link href="/profile/edit" className="text-xs text-[var(--accent)] font-semibold mt-2 inline-block">
+          <Link href="/profile/edit" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
             지역 설정하기 →
           </Link>
         </div>
@@ -179,13 +179,13 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2 mb-3">
             <Award size={16} className="text-yellow-500" />
             <h3 className="text-sm font-bold text-[var(--foreground)]">배지</h3>
-            <span className="text-[10px] text-[var(--muted)]">{badges.length}개 획득</span>
+            <span className="text-sm text-[var(--muted)]">{badges.length}개 획득</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {badges.map(b => (
               <div key={b.label} className="flex items-center gap-1 bg-[var(--card-border)]/50 rounded-full px-3 py-1.5">
                 <span className="text-sm">{b.icon}</span>
-                <span className="text-[11px] font-medium text-[var(--foreground)]">{b.label}</span>
+                <span className="text-sm font-medium text-[var(--foreground)]">{b.label}</span>
               </div>
             ))}
           </div>
@@ -195,7 +195,7 @@ export default function ProfilePage() {
       {/* 메뉴 섹션 */}
       {menuSections.map(section => (
         <div key={section.title}>
-          <p className="text-xs text-[var(--muted)] font-semibold px-1 mb-1.5">{section.title}</p>
+          <p className="text-sm text-[var(--muted)] font-semibold px-1 mb-1.5">{section.title}</p>
           <div className="card divide-y divide-[var(--card-border)]">
             {section.items.map((item) => (
               <Link key={item.href} href={item.href} className="flex items-center justify-between px-4 py-3.5">
@@ -219,7 +219,7 @@ export default function ProfilePage() {
         로그아웃
       </button>
 
-      <p className="text-center text-xs text-[var(--muted)]">Routinist v1.0.0</p>
+      <p className="text-center text-sm text-[var(--muted)]">Routinist v1.0.0</p>
     </div>
   );
 }

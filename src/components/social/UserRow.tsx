@@ -28,7 +28,7 @@ export default function UserRow({ profile, currentUserId, isFollowing = false, s
       </Link>
       <Link href={`/profile/view?id=${profile.id}`} className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-[var(--foreground)] truncate">{profile.display_name}</p>
-        <p className="text-xs text-[var(--muted)]">{Number(profile.total_distance_km).toFixed(1)}km · {profile.total_runs}회</p>
+        <p className="text-sm text-[var(--muted)]">{Number(profile.total_distance_km).toFixed(1)}km · {profile.total_runs}회</p>
       </Link>
       {showFollow && !isSelf && (
         <FollowButton

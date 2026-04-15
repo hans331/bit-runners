@@ -10,8 +10,15 @@ export default function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState(false);
+
   useEffect(() => {
-    fetchClubs().then(setClubs).finally(() => setLoading(false));
+    const timeout = setTimeout(() => { setLoading(false); setError(true); }, 10000);
+    fetchClubs()
+      .then(setClubs)
+      .catch((err) => { console.warn('[Clubs] 클럽 목록 로드 실패:', err); setError(true); })
+      .finally(() => { clearTimeout(timeout); setLoading(false); });
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
@@ -27,6 +34,17 @@ export default function ClubsPage() {
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+        </div>
+      ) : error && clubs.length === 0 ? (
+        <div className="text-center py-12">
+          <Users size={48} className="mx-auto mb-4 text-[var(--muted)]" />
+          <p className="text-sm text-[var(--muted)]">클럽 목록을 불러올 수 없습니다</p>
+          <button
+            onClick={() => { setError(false); setLoading(true); fetchClubs().then(setClubs).catch(() => setError(true)).finally(() => setLoading(false)); }}
+            className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block"
+          >
+            다시 시도
+          </button>
         </div>
       ) : clubs.length === 0 ? (
         <div className="text-center py-12">
@@ -50,9 +68,9 @@ export default function ClubsPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-[var(--foreground)] truncate">{club.name}</p>
                 {club.description && (
-                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{club.description}</p>
+                  <p className="text-sm text-[var(--muted)] truncate mt-0.5">{club.description}</p>
                 )}
-                <p className="text-xs text-[var(--muted)] mt-1">멤버 {club.member_count}명</p>
+                <p className="text-sm text-[var(--muted)] mt-1">멤버 {club.member_count}명</p>
               </div>
             </Link>
           ))}

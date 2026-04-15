@@ -43,21 +43,35 @@ export default function StatsPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const [monthly, weekly, bests, days, hours, pace] = await Promise.all([
-        fetchDistanceByPeriod(user.id, 'monthly', year),
-        fetchDistanceByPeriod(user.id, 'weekly', year),
-        fetchPersonalBests(user.id),
-        fetchDayOfWeekStats(user.id),
-        fetchHourOfDayStats(user.id),
-        fetchPaceTrend(user.id),
+      const withTimeout = <T,>(p: Promise<T>, ms: number, fallback: T): Promise<T> =>
+        Promise.race([p, new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
+
+      const results = await Promise.allSettled([
+        withTimeout(fetchDistanceByPeriod(user.id, 'monthly', year), 10000, []),
+        withTimeout(fetchDistanceByPeriod(user.id, 'weekly', year), 10000, []),
+        withTimeout(fetchPersonalBests(user.id), 10000, null),
+        withTimeout(fetchDayOfWeekStats(user.id), 10000, []),
+        withTimeout(fetchHourOfDayStats(user.id), 10000, []),
+        withTimeout(fetchPaceTrend(user.id), 10000, []),
       ]);
-      setMonthlyData(monthly);
-      setWeeklyData(weekly);
-      setPersonalBests(bests);
-      setDayStats(days);
-      setHourStats(hours);
-      setPaceTrend(pace);
-    } catch {} finally { setLoading(false); }
+
+      const val = <T,>(r: PromiseSettledResult<T>, fallback: T): T =>
+        r.status === 'fulfilled' ? r.value : fallback;
+
+      setMonthlyData(val(results[0], []));
+      setWeeklyData(val(results[1], []));
+      setPersonalBests(val(results[2], null));
+      setDayStats(val(results[3], []));
+      setHourStats(val(results[4], []));
+      setPaceTrend(val(results[5], []));
+
+      // Log any failures for debugging
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') console.warn(`[Stats] Query ${i} failed:`, r.reason);
+      });
+    } catch (err) {
+      console.warn('[Stats] 데이터 로드 실패:', err);
+    } finally { setLoading(false); }
   }, [user, year]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -104,7 +118,7 @@ export default function StatsPage() {
       <div className="flex items-center gap-3">
         <Link href="/dashboard" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
         <h1 className="text-lg font-bold text-[var(--foreground)] flex-1">내 통계</h1>
-        <Link href="/stats/charts" className="text-xs text-[var(--accent)] font-semibold">상세 차트</Link>
+        <Link href="/stats/charts" className="text-sm text-[var(--accent)] font-semibold">상세 차트</Link>
       </div>
 
       {/* ========== 요약 카드 ========== */}
@@ -119,25 +133,25 @@ export default function StatsPage() {
           </div>
           <div>
             <p className="text-lg font-bold text-[var(--foreground)]">{profile?.display_name}</p>
-            <p className="text-xs text-[var(--muted)]">통산 {Number(totalKm).toFixed(0)}km · {totalRuns}회 러닝</p>
+            <p className="text-sm text-[var(--muted)]">통산 {Number(totalKm).toFixed(0)}km · {totalRuns}회 러닝</p>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3 text-center">
           <div>
             <p className="text-xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
-            <p className="text-[10px] text-[var(--muted)]">이달 km</p>
+            <p className="text-sm text-[var(--muted)]">이달 km</p>
           </div>
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{yearlyTotal.toFixed(0)}</p>
-            <p className="text-[10px] text-[var(--muted)]">올해 km</p>
+            <p className="text-sm text-[var(--muted)]">올해 km</p>
           </div>
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{streak}</p>
-            <p className="text-[10px] text-[var(--muted)]">연속일 🔥</p>
+            <p className="text-sm text-[var(--muted)]">연속일 🔥</p>
           </div>
           <div>
             <p className="text-xl font-bold text-[var(--foreground)]">{totalRuns}</p>
-            <p className="text-[10px] text-[var(--muted)]">총 러닝</p>
+            <p className="text-sm text-[var(--muted)]">총 러닝</p>
           </div>
         </div>
       </div>
@@ -146,7 +160,7 @@ export default function StatsPage() {
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-[var(--foreground)]">월별 거리 추이</h3>
-          <span className="text-xs text-[var(--muted)]">
+          <span className="text-sm text-[var(--muted)]">
             {yearlyPrevTotal > 0 && (
               <span className={yearlyTotal >= yearlyPrevTotal ? 'text-green-500' : 'text-red-500'}>
                 전년 대비 {yearlyTotal >= yearlyPrevTotal ? '+' : ''}{(yearlyTotal - yearlyPrevTotal).toFixed(0)}km
@@ -157,10 +171,10 @@ export default function StatsPage() {
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 10, fill: 'var(--muted)' }} />
+            <XAxis dataKey="label" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
+            <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} />
             <Tooltip
-              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 11 }}
+              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
               formatter={(value) => [`${value}km`]}
             />
             {yearlyPrevTotal > 0 && (
@@ -177,10 +191,10 @@ export default function StatsPage() {
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-            <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 10, fill: 'var(--muted)' }} />
+            <XAxis dataKey="label" tick={{ fontSize: 13, fill: 'var(--muted)' }} />
+            <YAxis tick={{ fontSize: 14, fill: 'var(--muted)' }} />
             <Tooltip
-              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 11 }}
+              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
               formatter={(value) => [`${value}km`]}
             />
             <Bar dataKey="distance" fill="#8B5CF6" radius={[3, 3, 0, 0]} />
@@ -195,21 +209,21 @@ export default function StatsPage() {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={paceTrend.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--muted)' }} />
+              <XAxis dataKey="month" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
               <YAxis
-                tick={{ fontSize: 10, fill: 'var(--muted)' }}
+                tick={{ fontSize: 14, fill: 'var(--muted)' }}
                 reversed
                 domain={['dataMin - 20', 'dataMax + 20']}
                 tickFormatter={(v: number) => `${Math.floor(v / 60)}'${String(v % 60).padStart(2, '0')}"`}
               />
               <Tooltip
-                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 11 }}
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
                 formatter={(value) => [formatPace(Number(value)), '평균 페이스']}
               />
               <Line type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
-          <p className="text-[10px] text-[var(--muted)] mt-2 text-center">아래로 갈수록 빠른 페이스 (1km+ 러닝만 포함)</p>
+          <p className="text-sm text-[var(--muted)] mt-2 text-center">아래로 갈수록 빠른 페이스 (1km+ 러닝만 포함)</p>
         </div>
       )}
 
@@ -223,30 +237,30 @@ export default function StatsPage() {
           <div className="grid grid-cols-2 gap-3">
             {personalBests.longestRun && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
-                <p className="text-[10px] text-[var(--muted)] mb-1">최장 거리</p>
+                <p className="text-sm text-[var(--muted)] mb-1">최장 거리</p>
                 <p className="text-lg font-bold text-[var(--foreground)]">{personalBests.longestRun.distance_km.toFixed(2)}km</p>
-                <p className="text-[10px] text-[var(--muted)]">{personalBests.longestRun.date}</p>
+                <p className="text-sm text-[var(--muted)]">{personalBests.longestRun.date}</p>
               </div>
             )}
             {personalBests.fastestPace && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
-                <p className="text-[10px] text-[var(--muted)] mb-1">최빠 페이스</p>
+                <p className="text-sm text-[var(--muted)] mb-1">최빠 페이스</p>
                 <p className="text-lg font-bold text-[var(--foreground)]">{formatPace(personalBests.fastestPace.pace)}/km</p>
-                <p className="text-[10px] text-[var(--muted)]">{personalBests.fastestPace.date} ({personalBests.fastestPace.distance_km.toFixed(1)}km)</p>
+                <p className="text-sm text-[var(--muted)]">{personalBests.fastestPace.date} ({personalBests.fastestPace.distance_km.toFixed(1)}km)</p>
               </div>
             )}
             {personalBests.longestDuration && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
-                <p className="text-[10px] text-[var(--muted)] mb-1">최장 시간</p>
+                <p className="text-sm text-[var(--muted)] mb-1">최장 시간</p>
                 <p className="text-lg font-bold text-[var(--foreground)]">{formatDuration(personalBests.longestDuration.duration)}</p>
-                <p className="text-[10px] text-[var(--muted)]">{personalBests.longestDuration.date}</p>
+                <p className="text-sm text-[var(--muted)]">{personalBests.longestDuration.date}</p>
               </div>
             )}
             {personalBests.mostCalories && (
               <div className="bg-[var(--card-border)]/30 rounded-xl p-3">
-                <p className="text-[10px] text-[var(--muted)] mb-1">최다 칼로리</p>
+                <p className="text-sm text-[var(--muted)] mb-1">최다 칼로리</p>
                 <p className="text-lg font-bold text-[var(--foreground)]">{personalBests.mostCalories.calories}kcal</p>
-                <p className="text-[10px] text-[var(--muted)]">{personalBests.mostCalories.date}</p>
+                <p className="text-sm text-[var(--muted)]">{personalBests.mostCalories.date}</p>
               </div>
             )}
           </div>
@@ -260,13 +274,13 @@ export default function StatsPage() {
             <Calendar size={16} className="text-blue-500" />
             <h3 className="text-sm font-bold text-[var(--foreground)]">요일별 러닝 패턴</h3>
           </div>
-          <p className="text-xs text-[var(--muted)] mb-3">
+          <p className="text-sm text-[var(--muted)] mb-3">
             주로 <span className="font-semibold text-[var(--accent)]">{maxDay.day}요일</span>에 달려요 ({maxDay.runCount}회)
           </p>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={dayStats}>
               <PolarGrid stroke="var(--card-border)" />
-              <PolarAngleAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
+              <PolarAngleAxis dataKey="day" tick={{ fontSize: 14, fill: 'var(--muted)' }} />
               <Radar name="러닝 횟수" dataKey="runCount" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
             </RadarChart>
           </ResponsiveContainer>
@@ -274,9 +288,9 @@ export default function StatsPage() {
           <div className="grid grid-cols-7 gap-1 mt-3 text-center">
             {dayStats.map(d => (
               <div key={d.day}>
-                <p className="text-[10px] text-[var(--muted)]">{d.day}</p>
-                <p className="text-xs font-bold text-[var(--foreground)]">{d.runCount}</p>
-                <p className="text-[8px] text-[var(--muted)]">{d.avgDistance}km</p>
+                <p className="text-sm text-[var(--muted)]">{d.day}</p>
+                <p className="text-sm font-bold text-[var(--foreground)]">{d.runCount}</p>
+                <p className="text-sm text-[var(--muted)]">{d.avgDistance}km</p>
               </div>
             ))}
           </div>
@@ -290,7 +304,7 @@ export default function StatsPage() {
             <Clock size={16} className="text-orange-500" />
             <h3 className="text-sm font-bold text-[var(--foreground)]">시간대별 러닝 분포</h3>
           </div>
-          <p className="text-xs text-[var(--muted)] mb-3">
+          <p className="text-sm text-[var(--muted)] mb-3">
             주로 <span className="font-semibold text-[var(--accent)]">{maxHourGroup.label}</span>에 달려요
           </p>
           <div className="space-y-2">
@@ -300,14 +314,14 @@ export default function StatsPage() {
               const colors = ['#6366F1', '#F59E0B', '#EF4444', '#8B5CF6'];
               return (
                 <div key={g.label} className="flex items-center gap-2">
-                  <span className="w-24 text-xs text-[var(--foreground)] flex-shrink-0">{g.label}</span>
+                  <span className="w-24 text-sm text-[var(--foreground)] flex-shrink-0">{g.label}</span>
                   <div className="flex-1 h-5 bg-[var(--card-border)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{ width: `${Math.max(barWidth, 2)}%`, backgroundColor: colors[i] }}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-[var(--foreground)] w-8 text-right">{g.count}회</span>
+                  <span className="text-sm font-semibold text-[var(--foreground)] w-8 text-right">{g.count}회</span>
                 </div>
               );
             })}
@@ -324,12 +338,12 @@ export default function StatsPage() {
         <div className="flex items-center justify-center gap-6">
           <div className="text-center">
             <p className="text-4xl font-extrabold text-orange-500">{streak}</p>
-            <p className="text-xs text-[var(--muted)]">현재 연속일</p>
+            <p className="text-sm text-[var(--muted)]">현재 연속일</p>
           </div>
           <div className="w-px h-12 bg-[var(--card-border)]" />
           <div className="text-center">
             <p className="text-4xl font-extrabold text-[var(--foreground)]">{totalRuns}</p>
-            <p className="text-xs text-[var(--muted)]">총 러닝 횟수</p>
+            <p className="text-sm text-[var(--muted)]">총 러닝 횟수</p>
           </div>
         </div>
       </div>

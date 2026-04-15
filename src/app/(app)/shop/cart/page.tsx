@@ -103,7 +103,7 @@ export default function CartPage() {
           <button className="w-full mt-4 py-3.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-base">
             결제하기
           </button>
-          <p className="text-center text-xs text-[var(--muted)] mt-2">결제 기능은 PG 연동 후 활성화됩니다</p>
+          <p className="text-center text-sm text-[var(--muted)] mt-2">결제 기능은 PG 연동 후 활성화됩니다</p>
         </>
       )}
     </div>

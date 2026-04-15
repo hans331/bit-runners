@@ -86,7 +86,7 @@ export default function SupportPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-[var(--muted)]">
+        <p className="text-center text-sm text-[var(--muted)]">
           &copy; {new Date().getFullYear()} Routinist. All rights reserved.
         </p>
       </div>
