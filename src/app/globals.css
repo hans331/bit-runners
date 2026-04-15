@@ -37,6 +37,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  font-size: 18px; /* 기본 16px → 18px 확대 (노안 접근성) */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -44,6 +48,7 @@ body {
   transition: background-color 0.3s, color 0.3s;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
 /* 스크롤바 */
@@ -62,11 +67,12 @@ body {
 }
 
 /* Recharts 반응형 텍스트 */
-.recharts-text { font-size: 12px; }
+.recharts-text { font-size: 14px; }
 
 /* 모바일 최적화 */
 @media (max-width: 640px) {
-  .recharts-text { font-size: 10px; }
+  html { font-size: 17px; }
+  .recharts-text { font-size: 12px; }
   .card { padding: 16px; border-radius: 16px; }
 }
 
