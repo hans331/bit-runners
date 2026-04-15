@@ -195,6 +195,32 @@ async function syncViaDistance(
   }
 }
 
+// 프로필 통산 집계 갱신
+async function updateProfileTotals(userId: string): Promise<void> {
+  try {
+    const supabase = getSupabase();
+    const { data } = await supabase
+      .from('activities')
+      .select('distance_km')
+      .eq('user_id', userId);
+
+    if (data) {
+      const totalRuns = data.length;
+      const totalDistanceKm = data.reduce((sum, a) => sum + Number(a.distance_km), 0);
+      await supabase
+        .from('profiles')
+        .update({
+          total_runs: totalRuns,
+          total_distance_km: Math.round(totalDistanceKm * 100) / 100,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+    }
+  } catch (e) {
+    console.error('프로필 통산 집계 갱신 실패:', e);
+  }
+}
+
 // 메인 동기화 함수 — userId(auth.users id)를 받음
 export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
@@ -207,7 +233,9 @@ export async function syncHealthData(userId: string): Promise<SyncResult> {
 
   const platform = getPlatform();
   if (platform === 'ios') {
-    return syncFromHealthKit(userId);
+    const result = await syncFromHealthKit(userId);
+    await updateProfileTotals(userId);
+    return result;
   }
 
   return { success: false, message: '지원하지 않는 플랫폼입니다.', synced: 0 };
