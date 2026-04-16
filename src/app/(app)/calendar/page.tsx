@@ -12,18 +12,18 @@ import type { ActivityPhoto } from '@/types';
 // 거리에 따른 배경색 반환
 function distanceColor(km: number, dateStr: string): string {
   if (km <= 0) {
-    // 미래 날짜는 흰색, 오늘 포함 과거는 연한 회색
+    // 미래 날짜는 흰색/다크 회색, 오늘 포함 과거는 연한 회색
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-white/10';
-    return 'bg-gray-100 dark:bg-gray-100/20';
+    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
+    return 'bg-gray-100 dark:bg-zinc-700';
   }
-  if (km < 3) return 'bg-pink-100 dark:bg-pink-900/30';
-  if (km < 5) return 'bg-yellow-100 dark:bg-yellow-900/30';
-  if (km < 7) return 'bg-green-200 dark:bg-green-800/40';
-  if (km < 10) return 'bg-green-400 dark:bg-green-700/60';
-  return 'bg-green-600 dark:bg-green-600/80 text-white';
+  if (km < 3) return 'bg-pink-100 dark:bg-pink-800/50';
+  if (km < 5) return 'bg-yellow-100 dark:bg-yellow-700/50';
+  if (km < 7) return 'bg-green-200 dark:bg-green-700/60';
+  if (km < 10) return 'bg-green-400 dark:bg-green-600/70';
+  return 'bg-green-600 dark:bg-green-500/80 text-white';
 }
 
 // 거리에 따른 텍스트 색
@@ -225,12 +225,12 @@ export default function CalendarPage() {
 
         {/* 범례 */}
         <div className="flex items-center gap-2 mt-4 justify-center text-xs text-[var(--muted)]">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-200" /> 0km</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100" /> ~3</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100" /> ~5</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200" /> ~7</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400" /> ~10</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600" /> 10+</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600" /> 0km</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 dark:bg-pink-800/50" /> ~3</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100 dark:bg-yellow-700/50" /> ~5</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 dark:bg-green-700/60" /> ~7</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 dark:bg-green-600/70" /> ~10</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600 dark:bg-green-500/80" /> 10+</span>
         </div>
       </div>
 
