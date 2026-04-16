@@ -24,22 +24,31 @@ function CallbackHandler() {
       return;
     }
 
+    const goToDashboard = () => {
+      // 여러 번 호출 방지
+      try { router.replace('/dashboard'); } catch {}
+      // 폴백: router가 동작하지 않을 경우
+      setTimeout(() => {
+        if (window.location.pathname.includes('callback')) {
+          window.location.href = '/dashboard';
+        }
+      }, 2000);
+    };
+
     const handleAuth = async () => {
       try {
+        // 1. PKCE code 교환
         if (code) {
-          // PKCE: authorization code → session
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-          if (data.session) {
-            // onAuthStateChange가 세션을 감지할 시간을 줌
-            await new Promise(r => setTimeout(r, 300));
-            router.replace('/dashboard');
+          if (!error && data.session) {
+            await new Promise(r => setTimeout(r, 500));
+            goToDashboard();
             return;
           }
+          if (error) console.warn('[Auth Callback] code 교환 실패:', error.message);
         }
 
-        // code가 없거나 실패 시 → 해시 토큰 확인 + 기존 세션 폴백
-        // URL hash에서 토큰 추출 시도
+        // 2. URL hash에서 토큰 추출
         if (typeof window !== 'undefined' && window.location.hash) {
           const hashParams = new URLSearchParams(window.location.hash.substring(1));
           const accessToken = hashParams.get('access_token');
@@ -51,19 +60,19 @@ function CallbackHandler() {
               refresh_token: refreshToken,
             });
             if (!error && data.session) {
-              await new Promise(r => setTimeout(r, 300));
-              router.replace('/dashboard');
+              await new Promise(r => setTimeout(r, 500));
+              goToDashboard();
               return;
             }
           }
         }
 
-        // 최종 폴백: 세션이 이미 설정되었는지 재시도 (최대 5초)
-        for (let i = 0; i < 5; i++) {
+        // 3. 세션이 이미 설정되었는지 재시도 (최대 3초)
+        for (let i = 0; i < 3; i++) {
           await new Promise(r => setTimeout(r, 1000));
           const { data: { session } } = await supabase.auth.getSession();
           if (session) {
-            router.replace('/dashboard');
+            goToDashboard();
             return;
           }
         }
@@ -73,7 +82,13 @@ function CallbackHandler() {
         router.replace('/login');
       } catch (err) {
         console.error('[Auth Callback] 처리 실패:', err);
-        router.replace('/login');
+        // 에러 발생해도 세션이 이미 있을 수 있음
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          goToDashboard();
+        } else {
+          router.replace('/login');
+        }
       }
     };
 

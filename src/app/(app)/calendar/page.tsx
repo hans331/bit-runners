@@ -15,8 +15,10 @@ function distanceColor(km: number, dateStr: string): string {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
-    return 'bg-gray-100 dark:bg-zinc-700';
+    // 미래 날짜: 아주 연한 연두
+    if (cellDate > today) return 'bg-green-50 dark:bg-green-950/20';
+    // 오늘 이전 미러닝: 연한 회색
+    return 'bg-gray-100 dark:bg-zinc-800/50';
   }
   if (km < 3) return 'bg-green-200 dark:bg-green-900/40';
   if (km < 5) return 'bg-green-300 dark:bg-green-800/50';
@@ -195,8 +197,6 @@ export default function CalendarPage() {
         onChange={handleFileChange}
       />
 
-      <h2 className="text-xl font-bold text-[var(--foreground)]">러닝 캘린더</h2>
-
       {uploading && (
         <div className="card p-3 text-center">
           <div className="animate-spin w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full mx-auto" />
@@ -314,12 +314,15 @@ export default function CalendarPage() {
           })}
         </div>
 
-        {/* 범례 — git 잔디 스타일 */}
-        <div className="flex items-center gap-2 mt-4 justify-center text-xs text-[var(--muted)]">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-100 dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600" /> 0</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 dark:bg-green-900/40" /> ~3</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 dark:bg-green-700/60" /> ~7</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600 dark:bg-green-500/80" /> 10+</span>
+        {/* 범례 — git 잔디 블록 스타일 */}
+        <div className="flex items-center gap-1.5 mt-4 justify-center text-xs text-[var(--muted)]">
+          <span>0</span>
+          <span className="w-4 h-4 rounded-sm bg-gray-100 dark:bg-zinc-800/50" />
+          <span className="w-4 h-4 rounded-sm bg-green-200 dark:bg-green-900/40" />
+          <span className="w-4 h-4 rounded-sm bg-green-400 dark:bg-green-700/60" />
+          <span className="w-4 h-4 rounded-sm bg-green-500 dark:bg-green-600/70" />
+          <span className="w-4 h-4 rounded-sm bg-green-600 dark:bg-green-500/80" />
+          <span>10+</span>
         </div>
       </div>
 
@@ -408,7 +411,7 @@ export default function CalendarPage() {
                 </Link>
               ))}
 
-              {/* 사진으로 공유하기 버튼 */}
+              {/* 사진 추가/변경 */}
               <button
                 onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm"
@@ -416,6 +419,26 @@ export default function CalendarPage() {
                 <Camera size={16} />
                 {dayPhoto ? '사진 변경하기' : '사진으로 꾸미기'}
               </button>
+
+              {/* 공유 기능: 러닝 데이터 오버레이 이미지 공유 */}
+              {dayActivities.length > 0 && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const shareText = `${dateLabel}\n🏃 ${dayKm.toFixed(1)}km${dayDuration > 0 ? ` · ${formatDuration(dayDuration)}` : ''}\n\n#Routinist #러닝`;
+                      if (navigator.share) {
+                        await navigator.share({ title: 'Routinist 러닝 기록', text: shareText });
+                      } else {
+                        await navigator.clipboard.writeText(shareText);
+                        alert('러닝 기록이 클립보드에 복사되었습니다!');
+                      }
+                    } catch {}
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-sm"
+                >
+                  📤 러닝 기록 공유하기
+                </button>
+              )}
 
               <button
                 onClick={() => setShowDetail(null)}

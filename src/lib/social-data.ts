@@ -151,12 +151,15 @@ export async function createClub(name: string, description?: string): Promise<Cl
     .single();
   if (error) throw error;
 
-  // 생성자를 owner로 추가
-  await supabase.from('club_members').insert({
+  // 생성자를 owner로 추가 (실패해도 클럽 자체는 반환)
+  const { error: memberError } = await supabase.from('club_members').insert({
     club_id: data.id,
     user_id: user.id,
     role: 'owner',
   });
+  if (memberError) {
+    console.warn('[클럽 멤버 추가 실패]', memberError.message);
+  }
 
   return data as Club;
 }

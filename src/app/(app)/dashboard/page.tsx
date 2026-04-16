@@ -128,13 +128,13 @@ export default function DashboardPage() {
     if (!user) { setDataLoading(false); return; }
     setDataLoading(true);
     try {
-      const clubs = await withTimeout(getMyClubs(), 8000, []);
+      const clubs = await withTimeout(getMyClubs(), 5000, []);
       if (clubs.length > 0) {
         const club = clubs[0];
         setClubName(club.name);
         const [membersResult, summaryResult] = await Promise.allSettled([
-          withTimeout(fetchClubMemberProgress(club.id, year, month), 10000, []),
-          withTimeout(fetchClubSummary(club.id, year, month), 10000, null),
+          withTimeout(fetchClubMemberProgress(club.id, year, month), 6000, []),
+          withTimeout(fetchClubSummary(club.id, year, month), 6000, null),
         ]);
         if (membersResult.status === 'fulfilled') setRaceMembers(membersResult.value);
         if (summaryResult.status === 'fulfilled' && summaryResult.value) setClubSummary(summaryResult.value);
@@ -198,6 +198,20 @@ export default function DashboardPage() {
           히스토리 <ChevronRight size={16} />
         </Link>
       </div>
+
+      {/* 지역 미설정 유도 배너 */}
+      {profile && !profile.region_gu && (
+        <Link href="/profile/edit" className="block card p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-0">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📍</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">지역을 설정하면 랭킹에 참여할 수 있어요!</p>
+              <p className="text-xs text-[var(--muted)]">프로필에서 시/구/동을 선택해보세요</p>
+            </div>
+            <ChevronRight size={16} className="text-[var(--accent)]" />
+          </div>
+        </Link>
+      )}
 
       {/* ========== 4 요약 카드 (2x2) ========== */}
       <div className="grid grid-cols-2 gap-3">
@@ -431,8 +445,8 @@ export default function DashboardPage() {
           <div className="text-center py-6 space-y-2">
             <p className="text-3xl">👟</p>
             <p className="text-sm font-medium text-[var(--foreground)]">아직 기록이 없습니다</p>
-            <Link href="/track" className="text-sm text-[var(--accent)] font-semibold inline-block">
-              첫 달리기 시작하기 →
+            <Link href="/connect" className="text-sm text-[var(--accent)] font-semibold inline-block">
+              건강 앱 연동하기 →
             </Link>
           </div>
         ) : (

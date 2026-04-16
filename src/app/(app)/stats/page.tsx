@@ -42,8 +42,8 @@ function miniCalDistanceColor(km: number, dateStr: string): string {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
-    return 'bg-gray-100 dark:bg-zinc-700';
+    if (cellDate > today) return 'bg-green-50 dark:bg-green-950/20';
+    return 'bg-gray-100 dark:bg-zinc-800/50';
   }
   if (km < 3) return 'bg-green-200 dark:bg-green-900/40';
   if (km < 5) return 'bg-green-300 dark:bg-green-800/50';
@@ -84,12 +84,12 @@ export default function StatsPage() {
         Promise.race([p, new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
 
       const results = await Promise.allSettled([
-        withTimeout(fetchDistanceByPeriod(user.id, 'monthly', year), 10000, []),
-        withTimeout(fetchDistanceByPeriod(user.id, 'weekly', year), 10000, []),
-        withTimeout(fetchPersonalBests(user.id), 10000, null),
-        withTimeout(fetchDayOfWeekStats(user.id), 10000, []),
-        withTimeout(fetchHourOfDayStats(user.id), 10000, []),
-        withTimeout(fetchPaceTrend(user.id), 10000, []),
+        withTimeout(fetchDistanceByPeriod(user.id, 'monthly', year), 5000, []),
+        withTimeout(fetchDistanceByPeriod(user.id, 'weekly', year), 5000, []),
+        withTimeout(fetchPersonalBests(user.id), 5000, null),
+        withTimeout(fetchDayOfWeekStats(user.id), 5000, []),
+        withTimeout(fetchHourOfDayStats(user.id), 5000, []),
+        withTimeout(fetchPaceTrend(user.id), 5000, []),
       ]);
 
       const val = <T,>(r: PromiseSettledResult<T>, fallback: T): T =>
@@ -172,10 +172,33 @@ export default function StatsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">내 통계</h1>
-        <div className="flex justify-center py-20">
-          <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+      <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+        {/* 프로필 스켈레톤 */}
+        <div className="card p-6 animate-pulse">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-14 h-14 rounded-full bg-[var(--card-border)]" />
+            <div className="space-y-2 flex-1">
+              <div className="h-5 bg-[var(--card-border)] rounded w-32" />
+              <div className="h-3 bg-[var(--card-border)] rounded w-48" />
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="text-center space-y-1">
+                <div className="h-8 bg-[var(--card-border)] rounded mx-auto w-12" />
+                <div className="h-3 bg-[var(--card-border)] rounded mx-auto w-10" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* 차트 스켈레톤 */}
+        <div className="card p-5 animate-pulse">
+          <div className="h-4 bg-[var(--card-border)] rounded w-24 mb-4" />
+          <div className="h-32 bg-[var(--card-border)] rounded" />
+        </div>
+        <div className="card p-5 animate-pulse">
+          <div className="h-4 bg-[var(--card-border)] rounded w-32 mb-4" />
+          <div className="h-32 bg-[var(--card-border)] rounded" />
         </div>
       </div>
     );
@@ -183,9 +206,7 @@ export default function StatsPage() {
 
   return (
     <PullToRefresh onRefresh={loadData}>
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
-      {/* 헤더 */}
-      <h1 className="text-2xl font-bold text-[var(--foreground)]">내 통계</h1>
+    <div className="max-w-lg mx-auto px-4 py-4 space-y-4 pb-8">
 
       {/* ========== 1. 프로필 요약 카드 ========== */}
       <div className="card p-6">

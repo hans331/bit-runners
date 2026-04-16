@@ -43,30 +43,33 @@ export default function HistoryPage() {
     if (!user) return;
     getMyClubs().then(clubs => {
       if (clubs.length > 0) setClubId(clubs[0].id);
-    }).catch(() => {});
+      else setClubLoading(false); // 클럽 없으면 즉시 로딩 종료
+    }).catch(() => setClubLoading(false));
   }, [user]);
 
   // 월 변경 시 클럽 데이터 로드
   const loadClubData = useCallback(async () => {
-    if (!clubId) return;
+    if (!clubId) { setClubLoading(false); return; }
     setClubLoading(true);
     try {
-      const [summary, memberData, runs, calendar, fame] = await Promise.all([
+      const results = await Promise.allSettled([
         fetchClubSummary(clubId, year, month),
         fetchClubMemberProgress(clubId, year, month),
         fetchMemberRunCounts(clubId, year, month),
         fetchClubCalendar(clubId, year, month),
         fetchHallOfFame(clubId, year, month),
       ]);
-      setClubSummary(summary);
-      setMembers(memberData);
-      setRunCounts(runs);
-      setCalendarData(calendar);
-      setHallOfFame(fame);
+      if (results[0].status === 'fulfilled') setClubSummary(results[0].value);
+      if (results[1].status === 'fulfilled') setMembers(results[1].value);
+      if (results[2].status === 'fulfilled') setRunCounts(results[2].value);
+      if (results[3].status === 'fulfilled') setCalendarData(results[3].value);
+      if (results[4].status === 'fulfilled') setHallOfFame(results[4].value);
 
-      // 통산 누적은 한 번만
-      const cumData = await fetchCumulativeRanking(clubId);
-      setCumRanking(cumData);
+      // 통산 누적
+      try {
+        const cumData = await fetchCumulativeRanking(clubId);
+        setCumRanking(cumData);
+      } catch {}
     } catch {} finally {
       setClubLoading(false);
     }
@@ -115,11 +118,10 @@ export default function HistoryPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
-      {/* 헤더 */}
+      {/* 대시보드 링크 */}
       <div className="flex items-center gap-2">
         <Link href="/dashboard" className="text-xs text-[var(--muted)]">← 대시보드</Link>
       </div>
-      <h2 className="text-xl font-bold text-[var(--foreground)]">히스토리</h2>
 
       {/* 월 선택 */}
       <div className="flex items-center justify-between">
@@ -136,35 +138,35 @@ export default function HistoryPage() {
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-[var(--accent)] opacity-30"><TrendingUp size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">클럽 총 거리</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 거리' : '이달 거리'}</p>
           <p className="text-3xl font-extrabold text-[var(--accent)] italic">
-            {clubSummary ? clubSummary.totalDistance.toFixed(0) : '–'}<span className="text-base font-bold not-italic ml-1">km</span>
+            {clubSummary ? clubSummary.totalDistance.toFixed(0) : monthlyDistance.toFixed(1)}<span className="text-base font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `${clubSummary.activeMembers}명 활동` : ''}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `${clubSummary.activeMembers}명 활동` : `${month}월 누적`}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-green-500 opacity-30"><Activity size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">인당 평균</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '인당 평균' : '이달 러닝'}</p>
           <p className="text-3xl font-extrabold text-green-600 italic">
-            {clubSummary ? clubSummary.avgDistance.toFixed(1) : '–'}<span className="text-base font-bold not-italic ml-1">km</span>
+            {clubSummary ? clubSummary.avgDistance.toFixed(1) : monthlyActivities.length}<span className="text-base font-bold not-italic ml-1">{clubSummary ? 'km' : '회'}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">활동 멤버 기준</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? '활동 멤버 기준' : `${month}월 활동`}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-purple-500 opacity-30"><Zap size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">총 러닝</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 러닝' : '이달 시간'}</p>
           <p className="text-3xl font-extrabold text-purple-600 italic">
-            {clubSummary ? clubSummary.totalRuns : '–'}<span className="text-base font-bold not-italic ml-1">회</span>
+            {clubSummary ? clubSummary.totalRuns : (totalDuration > 0 ? formatDuration(totalDuration) : '0')}<span className="text-base font-bold not-italic ml-1">{clubSummary ? '회' : ''}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">D-{clubSummary?.daysRemaining ?? '–'}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `D-${clubSummary.daysRemaining}` : '운동 시간'}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-orange-500 opacity-30"><Users size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">활동 멤버</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '활동 멤버' : '러닝 일수'}</p>
           <p className="text-3xl font-extrabold text-orange-600 italic">
-            {clubSummary ? clubSummary.activeMembers : '–'}<span className="text-base font-bold not-italic ml-1">명</span>
+            {clubSummary ? clubSummary.activeMembers : new Set(monthlyActivities.map(a => a.activity_date)).size}<span className="text-base font-bold not-italic ml-1">{clubSummary ? '명' : '일'}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `전체 ${clubSummary.totalMembers}명` : ''}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `전체 ${clubSummary.totalMembers}명` : `${month}월 중`}</p>
         </div>
       </div>
 

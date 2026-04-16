@@ -197,24 +197,25 @@ export default function MapPage() {
           return point;
         });
 
-        // 두께: 3px(1회) → 12px(최다)
-        const weight = 3 + ratio * 9;
-        const opacity = 0.5 + ratio * 0.5;
+        // 두께: 2px(1회) → 10px(최다) — 1회는 가늘게
+        const weight = 2 + ratio * 8;
+        const opacity = 0.4 + ratio * 0.6;
 
-        // 색상: 연한 초록 → 초록 → 노랑 → 주황 → 빨강 (5단계)
+        // 색상: 연한 파랑 → 초록 → 노랑 → 주황 → 빨강 (잔디 그라데이션)
+        // 1회(ratio=0)일 때 연한 파랑, 최다일 때 진한 빨강
         let r: number, g: number, b: number;
         if (ratio < 0.25) {
           const t = ratio / 0.25;
-          r = Math.round(100 - t * 100); g = Math.round(180 + t * 40); b = Math.round(255 - t * 155);
+          r = Math.round(130 + t * 0); g = Math.round(190 + t * 30); b = Math.round(255 - t * 100);
         } else if (ratio < 0.5) {
           const t = (ratio - 0.25) / 0.25;
-          r = Math.round(t * 255); g = Math.round(220 - t * 20); b = Math.round(100 - t * 100);
+          r = Math.round(130 * (1 - t)); g = Math.round(220 - t * 20); b = Math.round(155 - t * 155);
         } else if (ratio < 0.75) {
           const t = (ratio - 0.5) / 0.25;
-          r = 255; g = Math.round(200 - t * 100); b = 0;
+          r = Math.round(t * 255); g = Math.round(200 - t * 80); b = 0;
         } else {
           const t = (ratio - 0.75) / 0.25;
-          r = Math.round(255 - t * 30); g = Math.round(100 - t * 100); b = 0;
+          r = Math.round(255 - t * 30); g = Math.round(120 - t * 120); b = 0;
         }
 
         const polyline = new google.maps.Polyline({
@@ -245,8 +246,7 @@ export default function MapPage() {
   }, []);
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
-      <h1 className="text-xl font-bold text-[var(--foreground)]">내 러닝 지도</h1>
+    <div className="max-w-lg mx-auto px-4 py-4 space-y-4 pb-8">
 
       {/* 오늘의 명언 */}
       <div className="card p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-0">
@@ -293,29 +293,19 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* 히트맵 범례 */}
+      {/* 히트맵 범례 — 잔디 블록 스타일 */}
       {filterMode !== '1d' && routeCount > 0 && (
-        <div className="card p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+        <div className="card p-4">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--muted)]">
             <span>1회</span>
-            <span>달릴수록 굵고 진하게</span>
+            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(130,190,255)' }} />
+            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(80,210,155)' }} />
+            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(180,180,0)' }} />
+            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(255,120,0)' }} />
+            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(225,0,0)' }} />
             <span>최다</span>
           </div>
-          <div className="relative h-3 rounded-full overflow-hidden" style={{
-            background: 'linear-gradient(to right, rgb(100,180,255), rgb(0,220,100), rgb(255,200,0), rgb(255,100,0), rgb(225,0,0))'
-          }}>
-            <div className="absolute inset-0" style={{
-              background: 'linear-gradient(to right, transparent 0%, transparent 100%)',
-              maskImage: 'linear-gradient(to right, 1px, 4px, 8px, 12px, 16px)',
-            }} />
-          </div>
-          <div className="flex justify-between">
-            <div className="w-6 h-1 rounded-full" style={{ background: 'rgb(100,180,255)' }} />
-            <div className="w-6 h-1.5 rounded-full" style={{ background: 'rgb(0,220,100)' }} />
-            <div className="w-6 h-2 rounded-full" style={{ background: 'rgb(255,200,0)' }} />
-            <div className="w-6 h-2.5 rounded-full" style={{ background: 'rgb(255,100,0)' }} />
-            <div className="w-6 h-3 rounded-full" style={{ background: 'rgb(225,0,0)' }} />
-          </div>
+          <p className="text-center text-xs text-[var(--muted)] mt-2">달릴수록 굵고 진하게</p>
         </div>
       )}
 

@@ -5,7 +5,7 @@ import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Home, BarChart3, Map, Trophy, User, Play } from 'lucide-react';
+import { Home, BarChart3, Map, Trophy, User } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 import AppLogo from '@/components/AppLogo';
 
@@ -45,9 +45,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router]);
 
-  // 앱 열 때 + 포그라운드 복귀 시 자동 동기화
+  // 앱 열 때 + 포그라운드 복귀 + 30분 주기 자동 동기화
   useEffect(() => {
     if (!user) return;
+
+    const SYNC_INTERVAL_MS = 30 * 60 * 1000; // 30분
 
     const doSync = async () => {
       const now = Date.now();
@@ -65,6 +67,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // 앱 로드 시 한 번 실행
     doSync();
 
+    // 30분 주기 자동 동기화 (앱이 열려있을 때)
+    const intervalId = setInterval(doSync, SYNC_INTERVAL_MS);
+
     // Capacitor 앱 포그라운드 복귀 감지
     let removeListener: (() => void) | null = null;
 
@@ -78,7 +83,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }).catch(() => {});
     }
 
-    return () => { removeListener?.(); };
+    return () => {
+      clearInterval(intervalId);
+      removeListener?.();
+    };
   }, [user]);
 
   if (loading) {
@@ -93,60 +101,47 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
-  const isTrackPage = pathname === '/track';
-
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
       {/* 헤더 — 동적 타이틀 */}
-      {!isTrackPage && (
-        <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
-          <div className="px-4 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Link href="/dashboard"><AppLogo size={28} /></Link>
-              <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
-                {PAGE_TITLES[pathname] || Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k + '/'))?.[1] || 'Routinist'}
-              </h1>
-            </div>
+      <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
+        <div className="px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard"><AppLogo size={28} /></Link>
+            <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
+              {PAGE_TITLES[pathname] || Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k + '/'))?.[1] || 'Routinist'}
+            </h1>
           </div>
-        </header>
-      )}
+        </div>
+      </header>
 
       {/* 메인 컨텐츠 */}
       <main className="flex-1 overflow-y-auto">
         <UserDataProvider>{children}</UserDataProvider>
       </main>
 
-      {/* 하단 5탭 네비게이션 + FAB */}
-      {!isTrackPage && (
-        <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-          {/* 러닝 시작 FAB */}
-          <Link
-            href="/track"
-            className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/30 flex items-center justify-center active:scale-90 transition-transform z-10"
-          >
-            <Play size={24} fill="white" className="ml-0.5" />
-          </Link>
-          <div className="flex justify-around items-center h-16">
-            {TABS.map((tab, i) => {
-              const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200 ${
-                    isActive
-                      ? 'text-[var(--accent)] bg-[var(--accent)]/10'
-                      : 'text-[var(--muted)]'
-                  }`}
-                >
-                  <tab.Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.5} />
-                  <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      )}
+      {/* 하단 5탭 네비게이션 */}
+      <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+        <div className="flex justify-around items-center h-16">
+          {TABS.map((tab, i) => {
+            const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200 ${
+                  isActive
+                    ? 'text-[var(--accent)] bg-[var(--accent)]/10'
+                    : 'text-[var(--muted)]'
+                }`}
+              >
+                <tab.Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.5} />
+                <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

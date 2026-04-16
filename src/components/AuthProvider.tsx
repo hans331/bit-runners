@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { getSupabase } from '@/lib/supabase';
 import { getProfile, handleOAuthCallback } from '@/lib/auth';
+// getSupabase is also used in deep link fallback
 import type { Profile } from '@/types';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -83,22 +84,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     import('@capacitor/app').then(({ App }) => {
       App.addListener('appUrlOpen', async ({ url }) => {
-        // routinist://auth/callback#access_token=...
-        if (url.includes('auth/callback')) {
-          // 최대 2번 시도
-          for (let attempt = 0; attempt < 2; attempt++) {
+        console.log('[Auth] 딥링크 수신:', url);
+        // routinist://auth/callback#access_token=... 또는 ?code=...
+        if (url.includes('auth/callback') || url.includes('access_token') || url.includes('code=')) {
+          // 최대 3번 시도
+          for (let attempt = 0; attempt < 3; attempt++) {
             try {
               const session = await handleOAuthCallback(url);
               if (session) {
-                console.log('[Auth] OAuth 콜백 성공');
+                console.log('[Auth] OAuth 콜백 성공 (시도 ' + (attempt + 1) + ')');
                 return;
               }
               // 세션이 null이면 잠시 대기 후 재시도
-              if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+              await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
             } catch (e) {
               console.error(`[Auth] OAuth callback 시도 ${attempt + 1} 실패:`, e);
-              if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+              await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
             }
+          }
+          // 모든 시도 실패해도 세션이 이미 설정됐을 수 있음
+          const supabase = getSupabase();
+          const { data: { session: existingSession } } = await supabase.auth.getSession();
+          if (existingSession) {
+            console.log('[Auth] 기존 세션 발견, 로그인 성공');
+          } else {
+            console.warn('[Auth] 모든 OAuth 시도 실패');
           }
         }
       }).then(handle => {
