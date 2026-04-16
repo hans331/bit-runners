@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
+import PullToRefresh from '@/components/PullToRefresh';
 import { getMonthlyDistance, getWeeklyActivities, getStreak, formatPace, formatDuration } from '@/lib/routinist-data';
 import { getMyClubs } from '@/lib/social-data';
 import {
@@ -163,7 +164,7 @@ export default function DashboardPage() {
     return <Onboarding onComplete={() => { setShowOnboarding(false); localStorage.setItem('onboarding_done', '1'); }} />;
   }
 
-  const { activities, goals, loading } = useUserData();
+  const { activities, goals, loading, refresh } = useUserData();
 
   const monthlyDistance = getMonthlyDistance(activities, year, month);
   const currentGoal = goals.find(g => g.year === year && g.month === month);
@@ -177,7 +178,12 @@ export default function DashboardPage() {
 
   const recentActivities = activities.slice(0, 3);
 
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([loadClubData(), refresh()]);
+  }, [loadClubData, refresh]);
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
       {/* 헤더 — 닉네임 터치 시 내 통계 페이지 */}
       <div className="flex items-center justify-between pt-2">
@@ -488,5 +494,6 @@ export default function DashboardPage() {
         ) : null;
       })()}
     </div>
+    </PullToRefresh>
   );
 }

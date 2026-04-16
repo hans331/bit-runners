@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { Trophy, Flame, Clock, Calendar, ChevronRight, BarChart3, TrendingUp } from 'lucide-react';
 import { chartStyle } from '@/lib/chart-theme';
 import AppLogo from '@/components/AppLogo';
+import PullToRefresh from '@/components/PullToRefresh';
 
 type PeriodMode = 'weekly' | 'monthly' | 'quarterly' | 'half' | 'yearly';
 type ChartType = 'bar' | 'line';
@@ -181,6 +182,7 @@ export default function StatsPage() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
       {/* 헤더 */}
       <h1 className="text-2xl font-bold text-[var(--foreground)]">내 통계</h1>
@@ -609,5 +611,6 @@ export default function StatsPage() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

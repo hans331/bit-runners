@@ -8,8 +8,9 @@ import { getStreak, formatPace } from '@/lib/routinist-data';
 import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, ShoppingBag, Coins, Gift } from 'lucide-react';
+import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, ShoppingBag, Coins, Gift, Sun, Moon, Monitor } from 'lucide-react';
 import AppLogo from '@/components/AppLogo';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
@@ -46,6 +47,8 @@ export default function ProfilePage() {
   if (totalRuns >= 50) badges.push({ icon: '⚡', label: '50회 러닝', gradient: 'from-yellow-100 to-lime-100 dark:from-yellow-900/30 dark:to-lime-900/30' });
   if (streak >= 7) badges.push({ icon: '💪', label: '7일 연속', gradient: 'from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30' });
   if (streak >= 30) badges.push({ icon: '🌟', label: '30일 연속', gradient: 'from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30' });
+
+  const { mode, setMode } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -207,6 +210,31 @@ export default function ProfilePage() {
           </div>
         </div>
       ))}
+
+      {/* 화면 모드 */}
+      <div className="card p-4">
+        <p className="text-xs text-[var(--muted)] font-semibold mb-3">화면 모드</p>
+        <div className="flex gap-2">
+          {([
+            { id: 'light' as const, label: '라이트', Icon: Sun },
+            { id: 'dark' as const, label: '다크', Icon: Moon },
+            { id: 'system' as const, label: '시스템', Icon: Monitor },
+          ]).map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => setMode(opt.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                mode === opt.id
+                  ? 'bg-[var(--accent)] text-white'
+                  : 'bg-[var(--card-border)]/30 text-[var(--muted)]'
+              }`}
+            >
+              <opt.Icon size={14} />
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* 로그아웃 */}
       <button

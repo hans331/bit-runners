@@ -5,7 +5,7 @@ import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Home, BarChart3, Map, Trophy, User } from 'lucide-react';
+import { Home, BarChart3, Map, Trophy, User, Play } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 import AppLogo from '@/components/AppLogo';
 
@@ -116,11 +116,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <UserDataProvider>{children}</UserDataProvider>
       </main>
 
-      {/* 하단 5탭 네비게이션 — pill 활성 효과 */}
+      {/* 하단 5탭 네비게이션 + FAB */}
       {!isTrackPage && (
         <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+          {/* 러닝 시작 FAB */}
+          <Link
+            href="/track"
+            className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/30 flex items-center justify-center active:scale-90 transition-transform z-10"
+          >
+            <Play size={24} fill="white" className="ml-0.5" />
+          </Link>
           <div className="flex justify-around items-center h-16">
-            {TABS.map((tab) => {
+            {TABS.map((tab, i) => {
               const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
               return (
                 <Link
