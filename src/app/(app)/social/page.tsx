@@ -5,13 +5,12 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { searchUsers, fetchPublicUsers, getMyClubs, fetchFollowing } from '@/lib/social-data';
 import UserRow from '@/components/social/UserRow';
-import { Users, Trophy, MessageCircle, Search, Plus } from 'lucide-react';
+import { Users, Trophy, Search, Plus } from 'lucide-react';
 import type { Profile, Club } from '@/types';
 
 const SECTIONS = [
   { id: 'clubs', label: '클럽', Icon: Users },
   { id: 'rankings', label: '랭킹', Icon: Trophy },
-  { id: 'messages', label: '메시지', Icon: MessageCircle },
 ] as const;
 
 type SectionId = typeof SECTIONS[number]['id'];
@@ -171,17 +170,6 @@ export default function SocialPage() {
         </div>
       )}
 
-      {/* 메시지 섹션 → 바로 이동 */}
-      {activeSection === 'messages' && (
-        <div className="text-center py-12">
-          <MessageCircle size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">쪽지</h2>
-          <p className="text-xs text-[var(--muted)] mb-4">러닝 친구에게 응원 메시지를 보내보세요</p>
-          <Link href="/social/messages" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
-            <MessageCircle size={16} /> 쪽지함 열기
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

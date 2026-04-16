@@ -8,7 +8,7 @@ import { getStreak, formatPace } from '@/lib/routinist-data';
 import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, PenLine, ShoppingBag, Coins, Gift } from 'lucide-react';
+import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, ShoppingBag, Coins, Gift } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
@@ -59,7 +59,6 @@ export default function ProfilePage() {
         { href: '/history', label: '클럽 히스토리', Icon: Users },
         { href: '/goals', label: '목표 설정', Icon: Target },
         { href: '/connect', label: '건강 앱 연동', Icon: Heart },
-        { href: '/log', label: '수동 기록 입력', Icon: PenLine },
       ],
     },
     {
@@ -73,6 +72,7 @@ export default function ProfilePage() {
     {
       title: '기타',
       items: [
+        { href: '/social/messages', label: '쪽지함', Icon: MessageCircle },
         { href: '/support', label: '고객 지원', Icon: HelpCircle },
         { href: '/privacy', label: '개인정보처리방침', Icon: Shield },
       ],

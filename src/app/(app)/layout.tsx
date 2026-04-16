@@ -110,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   }`}
                 >
                   <tab.Icon size={20} />
-                  <span className="text-[11px] font-medium">{tab.label}</span>
+                  <span className="text-xs font-medium">{tab.label}</span>
                 </Link>
               );
             })}

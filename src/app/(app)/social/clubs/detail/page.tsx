@@ -7,12 +7,16 @@ import {
   fetchClub, fetchClubMembers, joinClub, leaveClub, isClubMember,
   getMyClubRole, updateMemberRole, removeMember, updateClub, fetchClubActivities,
 } from '@/lib/social-data';
+import {
+  fetchClubMemberProgress, fetchClubSummary, fetchMemberRunCounts, fetchCumulativeRanking, fetchHallOfFame,
+  type MemberProgress, type ClubSummary, type MemberRunCount, type CumulativeRanking, type HallOfFameEntry,
+} from '@/lib/stats-data';
 import { formatPace, formatDuration } from '@/lib/routinist-data';
-import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import type { Club, ClubMember } from '@/types';
 
-type TabId = 'members' | 'activity' | 'settings';
+type TabId = 'dashboard' | 'members' | 'activity' | 'settings';
 
 function ClubDetail() {
   const searchParams = useSearchParams();
@@ -27,8 +31,16 @@ function ClubDetail() {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>('members');
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [copied, setCopied] = useState(false);
+
+  // 대시보드 데이터
+  const [dashSummary, setDashSummary] = useState<ClubSummary | null>(null);
+  const [dashMembers, setDashMembers] = useState<MemberProgress[]>([]);
+  const [dashRunCounts, setDashRunCounts] = useState<MemberRunCount[]>([]);
+  const [dashCumulative, setDashCumulative] = useState<CumulativeRanking[]>([]);
+  const [dashHallOfFame, setDashHallOfFame] = useState<HallOfFameEntry[]>([]);
+  const [dashLoading, setDashLoading] = useState(false);
 
   // 설정 상태
   const [editName, setEditName] = useState('');
@@ -68,6 +80,29 @@ function ClubDetail() {
       fetchClubActivities(clubId).then(setActivities).catch(() => {});
     }
   }, [activeTab, clubId, activities.length]);
+
+  // 대시보드 탭 진입 시 클럽 통계 로드
+  const now = new Date();
+  const dashYear = now.getFullYear();
+  const dashMonth = now.getMonth() + 1;
+
+  useEffect(() => {
+    if (activeTab !== 'dashboard' || !clubId) return;
+    setDashLoading(true);
+    Promise.allSettled([
+      fetchClubSummary(clubId, dashYear, dashMonth),
+      fetchClubMemberProgress(clubId, dashYear, dashMonth),
+      fetchMemberRunCounts(clubId, dashYear, dashMonth),
+      fetchCumulativeRanking(clubId),
+      fetchHallOfFame(clubId, dashYear, dashMonth),
+    ]).then(results => {
+      if (results[0].status === 'fulfilled' && results[0].value) setDashSummary(results[0].value);
+      if (results[1].status === 'fulfilled') setDashMembers(results[1].value);
+      if (results[2].status === 'fulfilled') setDashRunCounts(results[2].value);
+      if (results[3].status === 'fulfilled') setDashCumulative(results[3].value);
+      if (results[4].status === 'fulfilled') setDashHallOfFame(results[4].value);
+    }).finally(() => setDashLoading(false));
+  }, [activeTab, clubId, dashYear, dashMonth]);
 
   const handleJoin = async () => {
     if (!clubId) return;
@@ -131,6 +166,7 @@ function ClubDetail() {
 
   const isAdmin = myRole === 'owner' || myRole === 'admin';
   const tabs: { id: TabId; label: string; show: boolean }[] = [
+    { id: 'dashboard', label: '대시보드', show: isMember },
     { id: 'members', label: `멤버 (${members.length})`, show: true },
     { id: 'activity', label: '활동', show: isMember },
     { id: 'settings', label: '설정', show: isAdmin },
@@ -207,6 +243,174 @@ function ClubDetail() {
           </button>
         ))}
       </div>
+
+      {/* 대시보드 탭 */}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-4">
+          {dashLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <>
+              {/* 요약 카드 */}
+              {dashSummary && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="card p-4">
+                    <p className="text-xs text-[var(--muted)]">클럽 총 거리</p>
+                    <p className="text-3xl font-extrabold text-[var(--accent)]">{dashSummary.totalDistance.toFixed(0)}<span className="text-base ml-1">km</span></p>
+                    <p className="text-xs text-[var(--muted)]">{dashSummary.activeMembers}명 활동</p>
+                  </div>
+                  <div className="card p-4">
+                    <p className="text-xs text-[var(--muted)]">인당 평균</p>
+                    <p className="text-3xl font-extrabold text-green-600">{dashSummary.avgDistance.toFixed(1)}<span className="text-base ml-1">km</span></p>
+                    <p className="text-xs text-[var(--muted)]">활동 멤버 기준</p>
+                  </div>
+                  <div className="card p-4">
+                    <p className="text-xs text-[var(--muted)]">총 러닝</p>
+                    <p className="text-3xl font-extrabold text-purple-600">{dashSummary.totalRuns}<span className="text-base ml-1">회</span></p>
+                    <p className="text-xs text-[var(--muted)]">{dashSummary.daysRemaining > 0 ? `D-${dashSummary.daysRemaining}` : '이달 완료'}</p>
+                  </div>
+                  <div className="card p-4">
+                    <p className="text-xs text-[var(--muted)]">활동 멤버</p>
+                    <p className="text-3xl font-extrabold text-orange-600">{dashSummary.activeMembers}<span className="text-base ml-1">명</span></p>
+                    <p className="text-xs text-[var(--muted)]">전체 {dashSummary.totalMembers}명</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 거리 순위 */}
+              {dashMembers.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-base font-bold text-[var(--foreground)] mb-3">{dashMonth}월 거리 순위</h3>
+                  <div className="space-y-2">
+                    {[...dashMembers].sort((a, b) => b.distance_km - a.distance_km).map((m, i) => {
+                      const maxDist = dashMembers[0] ? Math.max(...dashMembers.map(x => x.distance_km)) : 1;
+                      const barW = maxDist > 0 ? (m.distance_km / maxDist) * 100 : 0;
+                      return (
+                        <div key={m.user_id} className="flex items-center gap-2">
+                          <span className="w-5 text-sm font-bold text-center flex-shrink-0">
+                            {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                          </span>
+                          <span className="w-14 text-sm truncate flex-shrink-0 font-medium text-[var(--foreground)]">{m.display_name}</span>
+                          <div className="flex-1 h-5 bg-[var(--card-border)] rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${m.progress >= 100 ? 'bg-gradient-to-r from-green-400 to-green-500' : 'bg-gradient-to-r from-blue-400 to-blue-500'}`}
+                              style={{ width: `${Math.max(barW, 2)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-[var(--foreground)] font-semibold w-16 text-right">{m.distance_km.toFixed(1)}km</span>
+                          {m.progress >= 100 && <span className="text-sm">✅</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 목표 달성률 */}
+              {dashMembers.filter(m => m.goal_km > 0).length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-base font-bold text-[var(--foreground)] mb-3">{dashMonth}월 목표 달성률</h3>
+                  <div className="space-y-2.5">
+                    {[...dashMembers].filter(m => m.goal_km > 0).sort((a, b) => b.progress - a.progress).map(m => (
+                      <div key={m.user_id}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-[var(--foreground)]">{m.display_name}</span>
+                          <span className="text-xs text-[var(--muted)]">{m.distance_km.toFixed(1)} / {m.goal_km}km</span>
+                        </div>
+                        <div className="h-4 bg-[var(--card-border)] rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${m.progress >= 100 ? 'bg-green-500' : m.progress >= 50 ? 'bg-blue-500' : 'bg-blue-300'}`}
+                            style={{ width: `${Math.min(m.progress, 100)}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-right text-[var(--muted)] mt-0.5">{m.progress.toFixed(0)}%</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 러닝 횟수 */}
+              {dashRunCounts.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-base font-bold text-[var(--foreground)] mb-3">{dashMonth}월 러닝 횟수</h3>
+                  <div className="space-y-1.5">
+                    {dashRunCounts.map(m => {
+                      const maxC = Math.max(...dashRunCounts.map(x => x.run_count));
+                      const barW = maxC > 0 ? (m.run_count / maxC) * 100 : 0;
+                      return (
+                        <div key={m.user_id} className="flex items-center gap-2">
+                          <span className="w-14 text-sm truncate flex-shrink-0">{m.display_name}</span>
+                          <div className="flex-1 h-4 bg-[var(--card-border)] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500" style={{ width: `${Math.max(barW, 4)}%` }} />
+                          </div>
+                          <span className="text-xs font-semibold w-8 text-right">{m.run_count}회</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 통산 누적 랭킹 */}
+              {dashCumulative.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-base font-bold text-[var(--foreground)] mb-3">통산 누적 랭킹</h3>
+                  <div className="space-y-1.5">
+                    {dashCumulative.map((m, i) => {
+                      const maxD = dashCumulative[0]?.total_distance_km || 1;
+                      const barW = (m.total_distance_km / maxD) * 100;
+                      return (
+                        <div key={m.user_id} className="flex items-center gap-2">
+                          <span className="w-5 text-sm font-bold text-center">{i <= 2 ? ['🥇','🥈','🥉'][i] : i + 1}</span>
+                          <span className="w-14 text-sm truncate flex-shrink-0">{m.display_name}</span>
+                          <div className="flex-1 h-4 bg-[var(--card-border)] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600" style={{ width: `${Math.max(barW, 4)}%` }} />
+                          </div>
+                          <span className="text-xs font-semibold w-16 text-right">{m.total_distance_km.toFixed(0)}km</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 명예의 전당 */}
+              {dashHallOfFame.length > 0 && (
+                <div className="card p-5">
+                  <h3 className="text-base font-bold text-[var(--foreground)] mb-4">명예의 전당</h3>
+                  <div className="space-y-4">
+                    {dashHallOfFame.map(cat => (
+                      <div key={cat.category} className="bg-[var(--card-border)]/20 rounded-xl p-4">
+                        <p className="text-sm font-bold text-[var(--accent)] mb-2">{cat.emoji} {cat.label}</p>
+                        <p className="text-xs text-[var(--muted)] mb-2">{cat.description}</p>
+                        <div className="space-y-1">
+                          {cat.winners.map((w, i) => (
+                            <div key={i} className="flex items-center justify-between">
+                              <span className="text-sm text-[var(--foreground)]">
+                                {i <= 2 ? ['🥇','🥈','🥉'][i] : `${i + 1}`} {w.display_name}
+                              </span>
+                              <span className="text-sm font-semibold text-[var(--accent)]">{w.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 히스토리 전체 보기 */}
+              <Link href="/history" className="card p-4 flex items-center justify-between">
+                <span className="text-sm font-semibold text-[var(--foreground)]">전체 히스토리 보기</span>
+                <ChevronRight size={16} className="text-[var(--accent)]" />
+              </Link>
+            </>
+          )}
+        </div>
+      )}
 
       {/* 멤버 탭 */}
       {activeTab === 'members' && (

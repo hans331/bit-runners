@@ -1,22 +1,31 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
 import { getMonthlyDistance, formatDuration } from '@/lib/routinist-data';
 import { getSupabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Camera } from 'lucide-react';
 import type { ActivityPhoto } from '@/types';
 
 // 거리에 따른 배경색 반환
+// 미래 날짜용 밝은 파스텔 색상 (순환)
+const FUTURE_COLORS = [
+  'bg-pink-50 dark:bg-pink-900/20',
+  'bg-sky-50 dark:bg-sky-900/20',
+  'bg-amber-50 dark:bg-amber-900/20',
+  'bg-emerald-50 dark:bg-emerald-900/20',
+];
+
 function distanceColor(km: number, dateStr: string): string {
   if (km <= 0) {
-    // 미래 날짜는 흰색/다크 회색, 오늘 포함 과거는 연한 회색
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
+    if (cellDate > today) {
+      return FUTURE_COLORS[cellDate.getDate() % FUTURE_COLORS.length];
+    }
     return 'bg-gray-100 dark:bg-zinc-700';
   }
   if (km < 3) return 'bg-pink-100 dark:bg-pink-800/50';
@@ -42,6 +51,10 @@ export default function CalendarPage() {
 
   // 사진 데이터
   const [photos, setPhotos] = useState<Map<string, string>>(new Map());
+  const [customPhotos, setCustomPhotos] = useState<Map<string, string>>(new Map());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // 월간 활동 데이터
   const monthlyActivities = useMemo(() =>
@@ -104,6 +117,68 @@ export default function CalendarPage() {
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
 
+  // 커스텀 캘린더 사진 로드
+  const loadCustomPhotos = useCallback(async () => {
+    if (!user) return;
+    const supabase = getSupabase();
+    const { data } = await supabase
+      .from('calendar_photos')
+      .select('date, photo_url')
+      .eq('user_id', user.id)
+      .gte('date', `${year}-${String(month).padStart(2, '0')}-01`)
+      .lte('date', `${year}-${String(month).padStart(2, '0')}-${new Date(year, month, 0).getDate()}`);
+
+    if (data?.length) {
+      const map = new Map<string, string>();
+      data.forEach(p => map.set(p.date, p.photo_url));
+      setCustomPhotos(map);
+    }
+  }, [user, year, month]);
+
+  useEffect(() => { loadCustomPhotos(); }, [loadCustomPhotos]);
+
+  // 사진 선택 핸들러
+  const handlePhotoSelect = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !selectedDate) return;
+
+    setUploading(true);
+    try {
+      const supabase = getSupabase();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `calendar/${user.id}/${selectedDate}.${ext}`;
+
+      await supabase.storage.from('photos').upload(path, file, { upsert: true });
+
+      const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
+      const photoUrl = urlData.publicUrl + '?t=' + Date.now();
+
+      // calendar_photos 테이블에 저장 (upsert)
+      await supabase.from('calendar_photos').upsert({
+        user_id: user.id,
+        date: selectedDate,
+        photo_url: photoUrl,
+      }, { onConflict: 'user_id,date' });
+
+      setCustomPhotos(prev => {
+        const next = new Map(prev);
+        next.set(selectedDate, photoUrl);
+        return next;
+      });
+    } catch (err) {
+      console.warn('사진 업로드 실패:', err);
+    } finally {
+      setUploading(false);
+      setSelectedDate(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const monthlyDistance = getMonthlyDistance(activities, year, month);
   const totalDuration = monthlyActivities.reduce((s, a) => s + (a.duration_seconds || 0), 0);
   const runDays = new Set(monthlyActivities.map(a => a.activity_date)).size;
@@ -122,7 +197,23 @@ export default function CalendarPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+      {/* 숨겨진 파일 입력 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       <h2 className="text-xl font-extrabold text-[var(--foreground)]">러닝 캘린더</h2>
+
+      {uploading && (
+        <div className="card p-3 text-center">
+          <div className="animate-spin w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full mx-auto" />
+          <p className="text-xs text-[var(--muted)] mt-1">사진 업로드 중...</p>
+        </div>
+      )}
 
       {/* 월 선택 */}
       <div className="flex items-center justify-between">
@@ -175,7 +266,7 @@ export default function CalendarPage() {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const km = dateDistanceMap.get(dateStr) || 0;
             const actIds = dateActivityMap.get(dateStr);
-            const photoUrl = photos.get(dateStr);
+            const photoUrl = customPhotos.get(dateStr) || photos.get(dateStr);
             const hasPhoto = !!photoUrl;
             const bgColor = distanceColor(km, dateStr);
             const textColor = distanceTextColor(km);
@@ -209,6 +300,16 @@ export default function CalendarPage() {
                     {km.toFixed(1)}
                   </span>
                 )}
+
+                {/* 사진 추가 아이콘 (활동이 있는 날만) */}
+                {km > 0 && !hasPhoto && (
+                  <button
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handlePhotoSelect(dateStr); }}
+                    className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-black/20 flex items-center justify-center z-20"
+                  >
+                    <Camera size={8} className="text-white" />
+                  </button>
+                )}
               </div>
             );
 
@@ -216,10 +317,14 @@ export default function CalendarPage() {
             if (actIds?.length === 1) {
               return <Link key={day} href={`/activity?id=${actIds[0]}`}>{cell}</Link>;
             } else if (actIds && actIds.length > 1) {
-              // 같은 날 여러 활동이면 첫 활동으로 이동
               return <Link key={day} href={`/activity?id=${actIds[0]}`}>{cell}</Link>;
             }
-            return <div key={day}>{cell}</div>;
+            // 활동이 없는 날도 사진 선택 가능
+            return (
+              <div key={day} onClick={() => handlePhotoSelect(dateStr)} className="cursor-pointer">
+                {cell}
+              </div>
+            );
           })}
         </div>
 

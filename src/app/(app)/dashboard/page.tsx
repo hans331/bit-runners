@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
 import { getMonthlyDistance, getWeeklyActivities, getStreak, formatPace, formatDuration } from '@/lib/routinist-data';
@@ -8,12 +8,20 @@ import { getMyClubs } from '@/lib/social-data';
 import {
   fetchClubMemberProgress,
   fetchClubSummary,
+  fetchDistanceByPeriod,
+  fetchPaceTrend,
   type MemberProgress,
   type ClubSummary,
+  type PeriodDistance,
+  type PaceTrend,
 } from '@/lib/stats-data';
+import { chartStyle } from '@/lib/chart-theme';
+import {
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 import Onboarding from '@/components/Onboarding';
 import Link from 'next/link';
-import { ChevronRight, Flag, MapPin, Zap, TrendingUp, Users, Activity } from 'lucide-react';
+import { ChevronRight, Flag, MapPin, Zap, TrendingUp, Users, Activity, Flame } from 'lucide-react';
 
 // 거리 순위 바 차트
 function DistanceRanking({ members, currentUserId }: { members: MemberProgress[]; currentUserId?: string }) {
@@ -93,6 +101,8 @@ export default function DashboardPage() {
   const [clubSummary, setClubSummary] = useState<ClubSummary | null>(null);
   const [clubName, setClubName] = useState('');
   const [dataLoading, setDataLoading] = useState(true);
+  const [weeklyData, setWeeklyData] = useState<PeriodDistance[]>([]);
+  const [paceTrendData, setPaceTrendData] = useState<PaceTrend[]>([]);
 
   useEffect(() => {
     const dismissed = typeof window !== 'undefined' && localStorage.getItem('onboarding_done');
@@ -136,6 +146,18 @@ export default function DashboardPage() {
   }, [user, year, month]);
 
   useEffect(() => { loadClubData(); }, [loadClubData]);
+
+  // 개인 통계 차트 데이터 로드
+  useEffect(() => {
+    if (!user) return;
+    Promise.allSettled([
+      fetchDistanceByPeriod(user.id, 'weekly', year),
+      fetchPaceTrend(user.id),
+    ]).then(results => {
+      if (results[0].status === 'fulfilled') setWeeklyData(results[0].value.slice(-8));
+      if (results[1].status === 'fulfilled') setPaceTrendData(results[1].value.slice(-6));
+    });
+  }, [user, year]);
 
   if (showOnboarding) {
     return <Onboarding onComplete={() => { setShowOnboarding(false); localStorage.setItem('onboarding_done', '1'); }} />;
@@ -365,6 +387,101 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ========== 주간 거리 트렌드 ========== */}
+      {weeklyData.length > 0 && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-bold text-[var(--foreground)]">주간 거리 트렌드</h3>
+            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
+              상세 <ChevronRight size={14} />
+            </Link>
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={weeklyData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <defs>
+                <linearGradient id="dashWeeklyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#A78BFA" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                formatter={(value) => [`${value}km`]}
+                cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
+              />
+              <Bar dataKey="distance" fill="url(#dashWeeklyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ========== 페이스 추이 ========== */}
+      {paceTrendData.some(p => p.avgPace !== null) && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-bold text-[var(--foreground)]">페이스 추이</h3>
+            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
+              상세 <ChevronRight size={14} />
+            </Link>
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={paceTrendData.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="dashPaceGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--muted)' }}
+                reversed
+                domain={['dataMin - 20', 'dataMax + 20']}
+                tickFormatter={(v: number) => `${Math.floor(v / 60)}'${String(Math.round(v % 60)).padStart(2, '0')}"`}
+                axisLine={false} tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                formatter={(value) => [formatPace(Number(value)), '평균 페이스']}
+              />
+              <Area type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={2.5} fill="url(#dashPaceGrad)" dot={{ r: 4, fill: '#10B981' }} animationDuration={chartStyle.animationDuration} />
+            </AreaChart>
+          </ResponsiveContainer>
+          <p className="text-xs text-[var(--muted)] mt-1 text-center">아래로 갈수록 빠른 페이스</p>
+        </div>
+      )}
+
+      {/* ========== 이번 주 요약 ========== */}
+      {(() => {
+        const weekActivities = getWeeklyActivities(activities);
+        const weekKm = weekActivities.reduce((s, a) => s + Number(a.distance_km), 0);
+        const weekRuns = weekActivities.length;
+        const currentStreak = getStreak(activities);
+        return (weekKm > 0 || currentStreak > 0) ? (
+          <div className="card p-5">
+            <h3 className="text-base font-bold text-[var(--foreground)] mb-3">이번 주 요약</h3>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-3xl font-extrabold text-[var(--accent)]">{weekKm.toFixed(1)}</p>
+                <p className="text-xs text-[var(--muted)]">km</p>
+              </div>
+              <div>
+                <p className="text-3xl font-extrabold text-[var(--foreground)]">{weekRuns}</p>
+                <p className="text-xs text-[var(--muted)]">러닝</p>
+              </div>
+              <div>
+                <p className="text-3xl font-extrabold text-orange-500">{currentStreak}</p>
+                <p className="text-xs text-[var(--muted)]">연속일 🔥</p>
+              </div>
+            </div>
+          </div>
+        ) : null;
+      })()}
     </div>
   );
 }

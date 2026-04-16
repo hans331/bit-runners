@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Share2, Download, X, ChevronLeft, ChevronRight, ImagePlus } from 'lucide-react';
+import { isNativeApp } from '@/lib/health-sync';
 import type { Activity } from '@/types';
 
 interface ShareCardProps {
@@ -268,22 +269,57 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
 
   const clearPhoto = () => setBgImage(null);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!canvasRef.current) return;
-    const link = document.createElement('a');
-    link.download = `routinist-${activity.activity_date}.png`;
-    link.href = canvasRef.current.toDataURL('image/png');
-    link.click();
+
+    if (isNativeApp()) {
+      // iOS/Android: Capacitor Filesystem + Share
+      try {
+        const base64 = canvasRef.current.toDataURL('image/png').split(',')[1];
+        const { Filesystem, Directory } = await import('@capacitor/filesystem');
+        const fileName = `routinist-${activity.activity_date}.png`;
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.Cache,
+        });
+        // 네이티브 공유 시트로 열기
+        const { Share } = await import('@capacitor/share');
+        await Share.share({
+          title: `${activity.distance_km.toFixed(2)}km 러닝`,
+          url: result.uri,
+        });
+      } catch (err) {
+        console.warn('네이티브 저장 실패, 웹 폴백:', err);
+        // 웹 폴백
+        const link = document.createElement('a');
+        link.download = `routinist-${activity.activity_date}.png`;
+        link.href = canvasRef.current.toDataURL('image/png');
+        link.click();
+      }
+    } else {
+      const link = document.createElement('a');
+      link.download = `routinist-${activity.activity_date}.png`;
+      link.href = canvasRef.current.toDataURL('image/png');
+      link.click();
+    }
   };
 
   const handleShare = async () => {
     if (!canvasRef.current) return;
+
+    if (isNativeApp()) {
+      // 네이티브에서는 handleDownload가 공유까지 처리
+      await handleDownload();
+      return;
+    }
+
     canvasRef.current.toBlob(async (blob) => {
       if (!blob) return;
       const file = new File([blob], `routinist-${activity.activity_date}.png`, { type: 'image/png' });
       if (navigator.share) {
-        try { await navigator.share({ files: [file], title: `${activity.distance_km.toFixed(2)}km 러닝` }); } catch { handleDownload(); }
-      } else { handleDownload(); }
+        try { await navigator.share({ files: [file], title: `${activity.distance_km.toFixed(2)}km 러닝` }); } catch { /* cancelled */ }
+      } else { await handleDownload(); }
     }, 'image/png');
   };
 

@@ -17,11 +17,12 @@ import {
   type PaceTrend,
 } from '@/lib/stats-data';
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Legend,
 } from 'recharts';
 import Link from 'next/link';
 import { Trophy, Flame, Clock, Calendar, ChevronRight, BarChart3, TrendingUp } from 'lucide-react';
+import { chartStyle } from '@/lib/chart-theme';
 
 type PeriodMode = 'weekly' | 'monthly' | 'quarterly' | 'half' | 'yearly';
 type ChartType = 'bar' | 'line';
@@ -39,14 +40,14 @@ function miniCalDistanceColor(km: number, dateStr: string): string {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) return 'bg-white dark:bg-white/10';
-    return 'bg-gray-100 dark:bg-gray-100/20';
+    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
+    return 'bg-gray-100 dark:bg-zinc-700';
   }
-  if (km < 3) return 'bg-green-200 dark:bg-green-800/40';
-  if (km < 5) return 'bg-green-300 dark:bg-green-700/50';
-  if (km < 7) return 'bg-green-400 dark:bg-green-700/60';
-  if (km < 10) return 'bg-green-500 dark:bg-green-600/70';
-  return 'bg-green-600 dark:bg-green-600/80';
+  if (km < 3) return 'bg-green-200 dark:bg-green-800/50';
+  if (km < 5) return 'bg-green-300 dark:bg-green-700/60';
+  if (km < 7) return 'bg-green-400 dark:bg-green-600/70';
+  if (km < 10) return 'bg-green-500 dark:bg-green-600/80';
+  return 'bg-green-600 dark:bg-green-500/90';
 }
 
 export default function StatsPage() {
@@ -275,17 +276,24 @@ export default function StatsPage() {
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-            <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} />
+            <defs>
+              <linearGradient id="monthlyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#60A5FA" />
+                <stop offset="100%" stopColor="#3B82F6" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
             <Tooltip
-              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
+              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
               formatter={(value) => [`${value}km`]}
+              cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
             />
             {yearlyPrevTotal > 0 && (
-              <Bar dataKey="prevDistance" name={`${year - 1}년`} fill="#94a3b8" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="prevDistance" name={`${year - 1}년`} fill="#CBD5E1" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
             )}
-            <Bar dataKey="distance" name={`${year}년`} fill="#3B82F6" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="distance" name={`${year}년`} fill="url(#monthlyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -295,14 +303,21 @@ export default function StatsPage() {
         <h3 className="text-base font-bold text-[var(--foreground)] mb-3">최근 12주 러닝</h3>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-            <XAxis dataKey="label" tick={{ fontSize: 13, fill: 'var(--muted)' }} />
-            <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} />
+            <defs>
+              <linearGradient id="weeklyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#A78BFA" />
+                <stop offset="100%" stopColor="#8B5CF6" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
             <Tooltip
-              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
+              contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
               formatter={(value) => [`${value}km`]}
+              cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
             />
-            <Bar dataKey="distance" fill="#8B5CF6" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="distance" fill="url(#weeklyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -312,21 +327,28 @@ export default function StatsPage() {
         <div className="card p-5">
           <h3 className="text-base font-bold text-[var(--foreground)] mb-3">페이스 추이 (최근 12개월)</h3>
           <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={paceTrend.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
+            <AreaChart data={paceTrend.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="paceGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
               <YAxis
-                tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }}
                 reversed
                 domain={['dataMin - 20', 'dataMax + 20']}
                 tickFormatter={(v: number) => `${Math.floor(v / 60)}'${String(v % 60).padStart(2, '0')}"`}
+                axisLine={false} tickLine={false}
               />
               <Tooltip
-                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
                 formatter={(value) => [formatPace(Number(value)), '평균 페이스']}
               />
-              <Line type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
-            </LineChart>
+              <Area type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={chartStyle.strokeWidth} fill="url(#paceGrad)" dot={{ r: chartStyle.dotRadius, fill: '#10B981' }} activeDot={{ r: chartStyle.activeDotRadius, strokeWidth: 2 }} animationDuration={chartStyle.animationDuration} />
+            </AreaChart>
           </ResponsiveContainer>
           <p className="text-xs text-[var(--muted)] mt-2 text-center">아래로 갈수록 빠른 페이스 (1km+ 러닝만 포함)</p>
         </div>
@@ -384,9 +406,9 @@ export default function StatsPage() {
           </p>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={dayStats}>
-              <PolarGrid stroke="var(--card-border)" />
-              <PolarAngleAxis dataKey="day" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
-              <Radar name="러닝 횟수" dataKey="runCount" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
+              <PolarGrid stroke="var(--card-border)" strokeDasharray={chartStyle.gridDash} />
+              <PolarAngleAxis dataKey="day" tick={{ fontSize: 13, fill: 'var(--muted)', fontWeight: 600 }} />
+              <Radar name="러닝 횟수" dataKey="runCount" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.2} strokeWidth={2.5} dot={{ r: 4, fill: '#3B82F6' }} animationDuration={chartStyle.animationDuration} />
             </RadarChart>
           </ResponsiveContainer>
           <div className="grid grid-cols-7 gap-1 mt-3 text-center">
@@ -518,34 +540,47 @@ export default function StatsPage() {
           <ResponsiveContainer width="100%" height={250}>
             {chartType === 'bar' ? (
               <BarChart data={detailData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} unit="km" />
+                <defs>
+                  <linearGradient id="detailGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#60A5FA" />
+                    <stop offset="100%" stopColor="#3B82F6" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} unit="km" axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
                   formatter={(value) => [`${value}km`]}
+                  cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
                 />
                 {hasDetailPrev && (
-                  <Bar dataKey="prevDistance" name={`${detailYear - 1}년`} fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="prevDistance" name={`${detailYear - 1}년`} fill="#CBD5E1" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
                 )}
-                <Bar dataKey="distance" name={`${detailYear}년`} fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                {hasDetailPrev && <Legend wrapperStyle={{ fontSize: 14 }} />}
+                <Bar dataKey="distance" name={`${detailYear}년`} fill="url(#detailGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
+                {hasDetailPrev && <Legend wrapperStyle={{ fontSize: 13 }} />}
               </BarChart>
             ) : (
-              <LineChart data={detailData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'var(--muted)' }} />
-                <YAxis tick={{ fontSize: 12, fill: 'var(--muted)' }} unit="km" />
+              <AreaChart data={detailData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="detailAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} unit="km" axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 12, fontSize: 14 }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
                   formatter={(value) => [`${value}km`]}
                 />
                 {hasDetailPrev && (
-                  <Line type="monotone" dataKey="prevDistance" name={`${detailYear - 1}년`} stroke="#94a3b8" strokeWidth={2} dot={{ r: 3 }} />
+                  <Area type="monotone" dataKey="prevDistance" name={`${detailYear - 1}년`} stroke="#94a3b8" strokeWidth={2} fill="none" dot={{ r: 3, fill: '#94a3b8' }} animationDuration={chartStyle.animationDuration} />
                 )}
-                <Line type="monotone" dataKey="distance" name={`${detailYear}년`} stroke="#3B82F6" strokeWidth={2.5} dot={{ r: 4 }} />
-                {hasDetailPrev && <Legend wrapperStyle={{ fontSize: 14 }} />}
-              </LineChart>
+                <Area type="monotone" dataKey="distance" name={`${detailYear}년`} stroke="#3B82F6" strokeWidth={chartStyle.strokeWidth} fill="url(#detailAreaGrad)" dot={{ r: chartStyle.dotRadius, fill: '#3B82F6' }} activeDot={{ r: chartStyle.activeDotRadius, strokeWidth: 2 }} animationDuration={chartStyle.animationDuration} />
+                {hasDetailPrev && <Legend wrapperStyle={{ fontSize: 13 }} />}
+              </AreaChart>
             )}
           </ResponsiveContainer>
         )}

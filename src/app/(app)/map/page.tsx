@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { fetchRoutesForUser } from '@/lib/map-data';
 import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
@@ -8,6 +8,29 @@ import Link from 'next/link';
 import type { Activity } from '@/types';
 
 type FilterMode = '1d' | '3d' | '7d' | '30d' | 'all';
+
+const RUNNING_QUOTES = [
+  '달리는 것은 나 자신과의 약속이다',
+  '어제보다 한 걸음 더, 그것이 성장이다',
+  '느려도 괜찮아, 멈추지만 않으면 돼',
+  '달릴 때 가장 솔직한 나를 만난다',
+  '매일 달리는 사람은 매일 이기는 사람이다',
+  '시작이 반이다, 오늘도 신발 끈을 묶자',
+  '땀은 노력의 증거, 기록은 성장의 증거',
+  '같은 길도 매번 다른 이야기가 된다',
+  '달리기는 가장 정직한 운동이다',
+  '오늘 뛴 거리가 내일의 자신감이 된다',
+  '바람을 가르며 달리는 순간, 모든 고민은 사라진다',
+  '달리기는 혼자 하지만, 결코 외롭지 않다',
+  '1km든 10km든, 달린 사람이 이기는 거야',
+  '꾸준함이 재능을 이긴다',
+  '내가 달리는 이유는 어제의 나를 넘기 위해서',
+  '러닝은 명상이다, 발로 하는 명상',
+  '오늘 달리지 않으면, 내일 후회한다',
+  '같은 코스를 달려도 매번 새로운 기록이 된다',
+  '달리기를 멈추면 시간도 멈춘다',
+  '한 발짝씩, 그렇게 멀리 간다',
+];
 
 const FILTERS: { id: FilterMode; label: string }[] = [
   { id: '1d', label: '1일' },
@@ -129,32 +152,13 @@ export default function MapPage() {
         polyline.addListener('click', () => setSelectedActivity(activity));
         polylinesRef.current.push(polyline);
       });
-    } else if (filterMode === 'all' || filtered.length > 50) {
-      // 전체/대량 모드: 성능을 위해 활동 단위 폴리라인 (세그먼트 분리 안 함)
-      filtered.forEach(activity => {
-        if (!activity.route_data?.coordinates?.length) return;
-        const path = activity.route_data.coordinates.map(([lng, lat]) => {
-          const point = { lat, lng };
-          bounds.extend(point);
-          hasPoints = true;
-          return point;
-        });
-
-        const polyline = new google.maps.Polyline({
-          path,
-          geodesic: true,
-          strokeColor: '#FF4500',
-          strokeOpacity: 0.6,
-          strokeWeight: 3,
-          map: googleMapRef.current,
-        });
-
-        polylinesRef.current.push(polyline);
-      });
     } else {
-      // 3일/7일/30일 모드: 크레파스 덧칠 효과
+      // 3일/7일/30일/전체 모드: 크레파스 덧칠 효과
       const segmentCounts = buildHeatSegments(filtered);
       const maxVisits = Math.max(...segmentCounts.values(), 1);
+
+      // 세그먼트를 방문횟수 버킷으로 그룹화 (성능 최적화)
+      const bucketPaths = new Map<number, google.maps.LatLngLiteral[][]>();
 
       filtered.forEach(activity => {
         if (!activity.route_data?.coordinates?.length) return;
@@ -169,32 +173,63 @@ export default function MapPage() {
           const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
           const visits = segmentCounts.get(key) || 1;
 
-          const ratio = visits / maxVisits;
-          const weight = 3 + ratio * 7;
-          const opacity = 0.3 + ratio * 0.7;
-
-          // 색상: 연한 주황 → 진한 빨강
-          const r = 255;
-          const g = Math.round(140 - ratio * 120);
-          const b = Math.round(50 - ratio * 50);
-
           const p1 = { lat: lat1, lng: lng1 };
           const p2 = { lat: lat2, lng: lng2 };
           bounds.extend(p1);
           bounds.extend(p2);
           hasPoints = true;
 
+          if (!bucketPaths.has(visits)) bucketPaths.set(visits, []);
+          bucketPaths.get(visits)!.push([p1, p2]);
+        }
+      });
+
+      // 버킷별로 폴리라인 생성 (세그먼트 수천 개 → 버킷 수십 개로 축소)
+      bucketPaths.forEach((segments, visits) => {
+        const ratio = visits / maxVisits;
+        // 두께: 2px(1회) → 16px(최다) — 극적 차이
+        const weight = 2 + ratio * 14;
+        const opacity = 0.3 + ratio * 0.7;
+
+        // 색상: 연한 하늘색 → 초록 → 노랑 → 주황 → 진한 빨강 (5단계)
+        let r: number, g: number, b: number;
+        if (ratio < 0.25) {
+          // 연한 하늘색 → 초록
+          const t = ratio / 0.25;
+          r = Math.round(100 - t * 100);
+          g = Math.round(180 + t * 40);
+          b = Math.round(255 - t * 155);
+        } else if (ratio < 0.5) {
+          // 초록 → 노랑
+          const t = (ratio - 0.25) / 0.25;
+          r = Math.round(0 + t * 255);
+          g = Math.round(220 - t * 20);
+          b = Math.round(100 - t * 100);
+        } else if (ratio < 0.75) {
+          // 노랑 → 주황
+          const t = (ratio - 0.5) / 0.25;
+          r = 255;
+          g = Math.round(200 - t * 100);
+          b = 0;
+        } else {
+          // 주황 → 진한 빨강
+          const t = (ratio - 0.75) / 0.25;
+          r = Math.round(255 - t * 30);
+          g = Math.round(100 - t * 100);
+          b = 0;
+        }
+
+        segments.forEach(seg => {
           const polyline = new google.maps.Polyline({
-            path: [p1, p2],
+            path: seg,
             geodesic: true,
             strokeColor: `rgb(${r},${g},${b})`,
             strokeOpacity: opacity,
             strokeWeight: weight,
             map: googleMapRef.current,
           });
-
           polylinesRef.current.push(polyline);
-        }
+        });
       });
     }
 
@@ -207,9 +242,20 @@ export default function MapPage() {
   const totalKm = filtered.reduce((sum, a) => sum + Number(a.distance_km), 0);
   const routeCount = filtered.filter(a => a.route_data).length;
 
+  // 일별 명언 로테이션
+  const todayQuote = useMemo(() => {
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    return RUNNING_QUOTES[dayOfYear % RUNNING_QUOTES.length];
+  }, []);
+
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
       <h1 className="text-xl font-extrabold text-[var(--foreground)]">내 러닝 지도</h1>
+
+      {/* 오늘의 명언 */}
+      <div className="card p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-0">
+        <p className="text-sm text-center italic text-[var(--foreground)]">"{todayQuote}"</p>
+      </div>
 
       {/* 기간 필터 */}
       <div className="flex gap-1.5">
@@ -251,12 +297,29 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* 크레파스 효과 설명 */}
+      {/* 히트맵 범례 */}
       {filterMode !== '1d' && routeCount > 0 && (
-        <div className="card p-3 text-center">
-          <p className="text-xs text-[var(--muted)]">
-            🖍️ 같은 경로를 많이 달릴수록 선이 <span className="font-semibold text-[var(--accent)]">굵고 진하게</span> 표시됩니다
-          </p>
+        <div className="card p-4 space-y-3">
+          <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+            <span>1회</span>
+            <span>달릴수록 굵고 진하게</span>
+            <span>최다</span>
+          </div>
+          <div className="relative h-3 rounded-full overflow-hidden" style={{
+            background: 'linear-gradient(to right, rgb(100,180,255), rgb(0,220,100), rgb(255,200,0), rgb(255,100,0), rgb(225,0,0))'
+          }}>
+            <div className="absolute inset-0" style={{
+              background: 'linear-gradient(to right, transparent 0%, transparent 100%)',
+              maskImage: 'linear-gradient(to right, 1px, 4px, 8px, 12px, 16px)',
+            }} />
+          </div>
+          <div className="flex justify-between">
+            <div className="w-6 h-1 rounded-full" style={{ background: 'rgb(100,180,255)' }} />
+            <div className="w-6 h-1.5 rounded-full" style={{ background: 'rgb(0,220,100)' }} />
+            <div className="w-6 h-2 rounded-full" style={{ background: 'rgb(255,200,0)' }} />
+            <div className="w-6 h-2.5 rounded-full" style={{ background: 'rgb(255,100,0)' }} />
+            <div className="w-6 h-3 rounded-full" style={{ background: 'rgb(225,0,0)' }} />
+          </div>
         </div>
       )}
 
