@@ -85,10 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       App.addListener('appUrlOpen', async ({ url }) => {
         // routinist://auth/callback#access_token=...
         if (url.includes('auth/callback')) {
-          try {
-            await handleOAuthCallback(url);
-          } catch (e) {
-            console.error('OAuth callback error:', e);
+          // 최대 2번 시도
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const session = await handleOAuthCallback(url);
+              if (session) {
+                console.log('[Auth] OAuth 콜백 성공');
+                return;
+              }
+              // 세션이 null이면 잠시 대기 후 재시도
+              if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+            } catch (e) {
+              console.error(`[Auth] OAuth callback 시도 ${attempt + 1} 실패:`, e);
+              if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+            }
           }
         }
       }).then(handle => {

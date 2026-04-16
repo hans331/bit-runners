@@ -230,7 +230,7 @@ export default function StatsPage() {
             </div>
           </div>
           {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px] mb-1">
+          <div className="grid grid-cols-7 gap-1 text-center text-xs mb-1">
             {['일','월','화','수','목','금','토'].map((d, i) => (
               <span key={d} className={`${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</span>
             ))}
@@ -247,13 +247,13 @@ export default function StatsPage() {
               const bg = miniCalDistanceColor(km, dateStr);
               return (
                 <div key={day} className={`aspect-square rounded-md flex items-center justify-center ${bg}`}>
-                  <span className={`text-[11px] font-medium ${km >= 7 ? 'text-white' : 'text-[var(--foreground)]'}`}>{day}</span>
+                  <span className={`text-xs font-medium ${km >= 7 ? 'text-white' : 'text-[var(--foreground)]'}`}>{day}</span>
                 </div>
               );
             })}
           </div>
           {/* 범례 */}
-          <div className="flex items-center gap-2 mt-2 justify-center text-[10px] text-[var(--muted)]">
+          <div className="flex items-center gap-2 mt-2 justify-center text-xs text-[var(--muted)]">
             <span className="flex items-center gap-0.5"><span className="w-2.5 h-2.5 rounded bg-white border border-gray-200" /> 0</span>
             <span className="flex items-center gap-0.5"><span className="w-2.5 h-2.5 rounded bg-green-200" /> ~3</span>
             <span className="flex items-center gap-0.5"><span className="w-2.5 h-2.5 rounded bg-green-400" /> ~7</span>

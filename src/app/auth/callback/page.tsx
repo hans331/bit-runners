@@ -27,18 +27,20 @@ function CallbackHandler() {
       });
     } else {
       // code가 없으면 해시 기반 토큰 확인 (implicit flow fallback)
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      // 최대 3번 시도 (0.5초, 1.5초, 3초 간격)
+      const checkSession = async (attempt: number) => {
+        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           router.replace('/dashboard');
-        } else {
-          // 잠시 대기 후 재확인
-          setTimeout(() => {
-            supabase.auth.getSession().then(({ data: { session: s } }) => {
-              router.replace(s ? '/dashboard' : '/login');
-            });
-          }, 2000);
+          return;
         }
-      });
+        if (attempt < 3) {
+          setTimeout(() => checkSession(attempt + 1), attempt === 0 ? 500 : attempt === 1 ? 1500 : 3000);
+        } else {
+          router.replace('/login');
+        }
+      };
+      checkSession(0);
     }
   }, [router, searchParams]);
 

@@ -41,28 +41,52 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
 
   // URL에서 hash fragment 추출: ...#access_token=xxx&refresh_token=yyy
   const hashPart = url.includes('#') ? url.split('#')[1] : '';
-  const params = new URLSearchParams(hashPart);
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
+  // query params도 확인 (일부 프로바이더는 ?로 보냄)
+  const queryPart = url.includes('?') ? url.split('?')[1]?.split('#')[0] : '';
+
+  const hashParams = new URLSearchParams(hashPart);
+  const queryParams = new URLSearchParams(queryPart);
+
+  const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+
+  // 인앱 브라우저 닫기 (토큰 유무와 관계없이)
+  if (isNativeApp()) {
+    try {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.close();
+    } catch {}
+  }
 
   if (accessToken && refreshToken) {
     const { data, error } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
     });
-    if (error) throw error;
-
-    // 인앱 브라우저 닫기
-    if (isNativeApp()) {
-      try {
-        const { Browser } = await import('@capacitor/browser');
-        await Browser.close();
-      } catch {}
+    if (error) {
+      console.error('[Auth] setSession 실패:', error.message);
+      throw error;
     }
-
     return data.session;
   }
 
+  // 토큰이 없으면 code 기반 교환 시도 (PKCE flow)
+  const code = hashParams.get('code') || queryParams.get('code');
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error('[Auth] exchangeCode 실패:', error.message);
+      throw error;
+    }
+    return data.session;
+  }
+
+  // 마지막 폴백: 기존 세션 확인 (리다이렉트 후 이미 세션이 설정됐을 수 있음)
+  await new Promise(r => setTimeout(r, 1000));
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) return session;
+
+  console.warn('[Auth] OAuth callback에서 토큰/코드를 찾을 수 없음:', url);
   return null;
 }
 
