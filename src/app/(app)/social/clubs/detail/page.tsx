@@ -15,6 +15,7 @@ import { formatPace, formatDuration } from '@/lib/routinist-data';
 import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import type { Club, ClubMember } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 type TabId = 'dashboard' | 'members' | 'activity' | 'settings';
 
@@ -423,7 +424,7 @@ function ClubDetail() {
                     {member.profile?.avatar_url ? (
                       <img src={member.profile.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-lg">🏃🏻</div>
+                      <div className="w-full h-full flex items-center justify-center"><AppLogo size={24} /></div>
                     )}
                   </div>
                 </Link>
@@ -476,7 +477,7 @@ function ClubDetail() {
                   {a.profiles?.avatar_url ? (
                     <img src={a.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>
+                    <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

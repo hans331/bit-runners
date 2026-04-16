@@ -6,6 +6,7 @@ import { updateProfile, uploadAvatar } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Camera } from 'lucide-react';
 import Link from 'next/link';
+import AppLogo from '@/components/AppLogo';
 
 export default function ProfileEditPage() {
   const { user, profile, refreshProfile } = useAuth();
@@ -84,7 +85,7 @@ export default function ProfileEditPage() {
           {avatarPreview ? (
             <img src={avatarPreview} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl">🏃🏻</div>
+            <div className="w-full h-full flex items-center justify-center"><AppLogo size={48} /></div>
           )}
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
             <Camera size={24} className="text-white" />

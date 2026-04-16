@@ -259,6 +259,74 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ========== 주간 거리 트렌드 (상단 배치) ========== */}
+      {weeklyData.length > 0 && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-[var(--foreground)]">주간 거리 트렌드</h3>
+            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
+              상세 <ChevronRight size={14} />
+            </Link>
+          </div>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={weeklyData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+              <defs>
+                <linearGradient id="dashWeeklyGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#A78BFA" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                formatter={(value) => [`${value}km`]}
+                cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
+              />
+              <Bar dataKey="distance" fill="url(#dashWeeklyGrad2)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ========== 페이스 추이 (상단 배치) ========== */}
+      {paceTrendData.some(p => p.avgPace !== null) && (
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-[var(--foreground)]">페이스 추이</h3>
+            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
+              상세 <ChevronRight size={14} />
+            </Link>
+          </div>
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={paceTrendData.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="dashPaceGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--muted)' }}
+                reversed
+                domain={['dataMin - 20', 'dataMax + 20']}
+                tickFormatter={(v: number) => `${Math.floor(v / 60)}'${String(Math.round(v % 60)).padStart(2, '0')}"`}
+                axisLine={false} tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
+                formatter={(value) => [formatPace(Number(value)), '평균 페이스']}
+              />
+              <Area type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={2.5} fill="url(#dashPaceGrad2)" dot={{ r: 4, fill: '#10B981' }} animationDuration={chartStyle.animationDuration} />
+            </AreaChart>
+          </ResponsiveContainer>
+          <p className="text-xs text-[var(--muted)] mt-1 text-center">아래로 갈수록 빠른 페이스</p>
+        </div>
+      )}
+
       {/* ========== 월간 거리 순위 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
@@ -392,74 +460,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      {/* ========== 주간 거리 트렌드 ========== */}
-      {weeklyData.length > 0 && (
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[var(--foreground)]">주간 거리 트렌드</h3>
-            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
-              상세 <ChevronRight size={14} />
-            </Link>
-          </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={weeklyData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-              <defs>
-                <linearGradient id="dashWeeklyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#A78BFA" />
-                  <stop offset="100%" stopColor="#8B5CF6" />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [`${value}km`]}
-                cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
-              />
-              <Bar dataKey="distance" fill="url(#dashWeeklyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* ========== 페이스 추이 ========== */}
-      {paceTrendData.some(p => p.avgPace !== null) && (
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-[var(--foreground)]">페이스 추이</h3>
-            <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
-              상세 <ChevronRight size={14} />
-            </Link>
-          </div>
-          <ResponsiveContainer width="100%" height={140}>
-            <AreaChart data={paceTrendData.filter(p => p.avgPace !== null)} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
-              <defs>
-                <linearGradient id="dashPaceGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#10B981" stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
-              <YAxis
-                tick={{ fontSize: 11, fill: 'var(--muted)' }}
-                reversed
-                domain={['dataMin - 20', 'dataMax + 20']}
-                tickFormatter={(v: number) => `${Math.floor(v / 60)}'${String(Math.round(v % 60)).padStart(2, '0')}"`}
-                axisLine={false} tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}
-                formatter={(value) => [formatPace(Number(value)), '평균 페이스']}
-              />
-              <Area type="monotone" dataKey="avgPace" stroke="#10B981" strokeWidth={2.5} fill="url(#dashPaceGrad)" dot={{ r: 4, fill: '#10B981' }} animationDuration={chartStyle.animationDuration} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <p className="text-xs text-[var(--muted)] mt-1 text-center">아래로 갈수록 빠른 페이스</p>
-        </div>
-      )}
 
       {/* ========== 이번 주 요약 ========== */}
       {(() => {

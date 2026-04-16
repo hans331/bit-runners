@@ -8,6 +8,7 @@ import { getSupabase } from '@/lib/supabase';
 import { ArrowLeft, Send, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import type { Message, Profile } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 function ChatView() {
   const searchParams = useSearchParams();
@@ -113,7 +114,7 @@ function ChatView() {
             {otherUser?.avatar_url ? (
               <img src={otherUser.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>
+              <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>
             )}
           </div>
           <span className="text-sm font-semibold text-[var(--foreground)] truncate">

@@ -7,6 +7,7 @@ import { searchUsers } from '@/lib/social-data';
 import { ArrowLeft, Search, Gift } from 'lucide-react';
 import Link from 'next/link';
 import type { Profile } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 export default function GiftMileagePage() {
   const { user } = useAuth();
@@ -87,7 +88,7 @@ export default function GiftMileagePage() {
                   className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[var(--card-border)]/30"
                 >
                   <div className="w-8 h-8 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
-                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>}
+                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>}
                   </div>
                   <span className="text-sm font-medium text-[var(--foreground)]">{u.display_name}</span>
                 </button>
@@ -98,7 +99,7 @@ export default function GiftMileagePage() {
       ) : (
         <div className="card p-4 mb-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
-            {selectedUser.avatar_url ? <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">🏃🏻</div>}
+            {selectedUser.avatar_url ? <img src={selectedUser.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><AppLogo size={24} /></div>}
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-[var(--foreground)]">{selectedUser.display_name}</p>

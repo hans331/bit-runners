@@ -6,6 +6,7 @@ import { fetchComments, addComment, deleteComment, fetchCheers, toggleCheer, has
 import { Heart, Send, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { ActivityComment } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 interface CommentSectionProps {
   activityId: string;
@@ -95,7 +96,7 @@ export default function CommentSection({ activityId, activityOwnerId }: CommentS
                   {comment.profile?.avatar_url ? (
                     <img src={comment.profile.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm">🏃🏻</div>
+                    <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>
                   )}
                 </div>
               </Link>

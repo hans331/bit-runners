@@ -6,6 +6,7 @@ import { signInWithProvider } from '@/lib/auth';
 import { useAuth } from '@/components/AuthProvider';
 import { useEffect } from 'react';
 import type { Provider } from '@supabase/supabase-js';
+import AppLogo from '@/components/AppLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,8 +43,8 @@ export default function LoginPage() {
 
       {/* 로고 */}
       <div className="text-center mb-12 relative z-10">
-        <div className="w-24 h-24 mx-auto mb-4 rounded-3xl bg-white/80 dark:bg-white/10 backdrop-blur-sm shadow-lg flex items-center justify-center">
-          <span className="text-5xl">🏃🏻</span>
+        <div className="mx-auto mb-4">
+          <AppLogo size={80} />
         </div>
         <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Routinist</h1>
         <p className="text-sm text-[var(--muted)] mt-2">달리기로 만드는 나만의 루틴</p>

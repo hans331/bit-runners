@@ -10,6 +10,7 @@ import { getOrCreateConversation } from '@/lib/message-data';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { Profile, Activity } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 function UserProfile() {
   const searchParams = useSearchParams();
@@ -72,7 +73,7 @@ function UserProfile() {
           {profile.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl">🏃🏻</div>
+            <div className="w-full h-full flex items-center justify-center"><AppLogo size={40} /></div>
           )}
         </div>
         <h2 className="text-3xl font-bold text-[var(--foreground)]">{profile.display_name}</h2>

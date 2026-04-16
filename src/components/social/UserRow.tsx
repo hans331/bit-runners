@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { Profile } from '@/types';
 import FollowButton from './FollowButton';
+import AppLogo from '@/components/AppLogo';
 
 interface UserRowProps {
   profile: Profile;
@@ -22,7 +23,7 @@ export default function UserRow({ profile, currentUserId, isFollowing = false, s
           {profile.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-lg">🏃🏻</div>
+            <div className="w-full h-full flex items-center justify-center"><AppLogo size={24} /></div>
           )}
         </div>
       </Link>

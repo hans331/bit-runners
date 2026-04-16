@@ -6,6 +6,7 @@ import { fetchConversations } from '@/lib/message-data';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { Conversation } from '@/types';
+import AppLogo from '@/components/AppLogo';
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -57,7 +58,7 @@ export default function MessagesPage() {
                 {conv.other_user?.avatar_url ? (
                   <img src={conv.other_user.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-lg">🏃🏻</div>
+                  <div className="w-full h-full flex items-center justify-center"><AppLogo size={24} /></div>
                 )}
               </div>
               <div className="flex-1 min-w-0">

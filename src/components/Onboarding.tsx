@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { updateProfile } from '@/lib/auth';
+import AppLogo from '@/components/AppLogo';
 import { Target, MapPin, ChevronRight } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 
@@ -53,7 +54,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const steps = [
     // Step 0: 환영
     <div key="welcome" className="text-center">
-      <span className="text-6xl block mb-6">🏃🏻</span>
+      <div className="mb-6"><AppLogo size={72} /></div>
       <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">Routinist에 오신 걸 환영합니다!</h2>
       <p className="text-xs text-[var(--muted)] mb-8">나만의 러닝 루틴을 만들어볼까요?</p>
       <button
@@ -149,7 +150,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         disabled={saving}
         className="w-full py-3.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-base disabled:opacity-50"
       >
-        {saving ? '설정 중...' : '시작하기! 🏃🏻'}
+        {saving ? '설정 중...' : '시작하기!'}
       </button>
       <button
         onClick={handleFinish}

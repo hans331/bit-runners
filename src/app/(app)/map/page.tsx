@@ -153,83 +153,79 @@ export default function MapPage() {
         polylinesRef.current.push(polyline);
       });
     } else {
-      // 3일/7일/30일/전체 모드: 크레파스 덧칠 효과
-      const segmentCounts = buildHeatSegments(filtered);
-      const maxVisits = Math.max(...segmentCounts.values(), 1);
+      // 3일/7일/30일/전체 모드: 덧칠 히트맵
+      // 각 활동의 전체 경로를 하나의 폴리라인으로 렌더링
+      // 같은 경로를 여러 번 달리면 점점 진하고 굵어짐
 
-      // 세그먼트를 방문횟수 버킷으로 그룹화 (성능 최적화)
-      const bucketPaths = new Map<number, google.maps.LatLngLiteral[][]>();
-
+      // 활동별 경로 횟수 카운트
+      const routeVisits = new Map<string, number>();
       filtered.forEach(activity => {
         if (!activity.route_data?.coordinates?.length) return;
+        // 경로의 시작/끝점으로 대략적인 경로 ID 생성
         const coords = activity.route_data.coordinates;
-
-        for (let i = 0; i < coords.length - 1; i++) {
-          const [lng1, lat1] = coords[i];
-          const [lng2, lat2] = coords[i + 1];
-
-          const k1 = coordKey(lat1, lng1);
-          const k2 = coordKey(lat2, lng2);
-          const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
-          const visits = segmentCounts.get(key) || 1;
-
-          const p1 = { lat: lat1, lng: lng1 };
-          const p2 = { lat: lat2, lng: lng2 };
-          bounds.extend(p1);
-          bounds.extend(p2);
-          hasPoints = true;
-
-          if (!bucketPaths.has(visits)) bucketPaths.set(visits, []);
-          bucketPaths.get(visits)!.push([p1, p2]);
-        }
+        const startKey = coordKey(coords[0][1], coords[0][0], 3);
+        const endKey = coordKey(coords[coords.length - 1][1], coords[coords.length - 1][0], 3);
+        const routeId = `${startKey}-${endKey}`;
+        routeVisits.set(routeId, (routeVisits.get(routeId) || 0) + 1);
       });
+      const maxVisits = Math.max(...routeVisits.values(), 1);
 
-      // 버킷별로 폴리라인 생성 (세그먼트 수천 개 → 버킷 수십 개로 축소)
-      bucketPaths.forEach((segments, visits) => {
+      // 방문 횟수가 적은 것부터 그려서 많이 달린 경로가 위에 올라옴
+      const sortedActivities = [...filtered]
+        .filter(a => a.route_data?.coordinates?.length)
+        .sort((a, b) => {
+          const getVisits = (act: typeof a) => {
+            const c = act.route_data!.coordinates;
+            const sk = coordKey(c[0][1], c[0][0], 3);
+            const ek = coordKey(c[c.length - 1][1], c[c.length - 1][0], 3);
+            return routeVisits.get(`${sk}-${ek}`) || 1;
+          };
+          return getVisits(a) - getVisits(b);
+        });
+
+      sortedActivities.forEach(activity => {
+        const coords = activity.route_data!.coordinates;
+        const startKey = coordKey(coords[0][1], coords[0][0], 3);
+        const endKey = coordKey(coords[coords.length - 1][1], coords[coords.length - 1][0], 3);
+        const visits = routeVisits.get(`${startKey}-${endKey}`) || 1;
         const ratio = visits / maxVisits;
-        // 두께: 2px(1회) → 16px(최다) — 극적 차이
-        const weight = 2 + ratio * 14;
-        const opacity = 0.3 + ratio * 0.7;
 
-        // 색상: 연한 하늘색 → 초록 → 노랑 → 주황 → 진한 빨강 (5단계)
+        const path = coords.map(([lng, lat]) => {
+          const point = { lat, lng };
+          bounds.extend(point);
+          hasPoints = true;
+          return point;
+        });
+
+        // 두께: 3px(1회) → 12px(최다)
+        const weight = 3 + ratio * 9;
+        const opacity = 0.5 + ratio * 0.5;
+
+        // 색상: 연한 초록 → 초록 → 노랑 → 주황 → 빨강 (5단계)
         let r: number, g: number, b: number;
         if (ratio < 0.25) {
-          // 연한 하늘색 → 초록
           const t = ratio / 0.25;
-          r = Math.round(100 - t * 100);
-          g = Math.round(180 + t * 40);
-          b = Math.round(255 - t * 155);
+          r = Math.round(100 - t * 100); g = Math.round(180 + t * 40); b = Math.round(255 - t * 155);
         } else if (ratio < 0.5) {
-          // 초록 → 노랑
           const t = (ratio - 0.25) / 0.25;
-          r = Math.round(0 + t * 255);
-          g = Math.round(220 - t * 20);
-          b = Math.round(100 - t * 100);
+          r = Math.round(t * 255); g = Math.round(220 - t * 20); b = Math.round(100 - t * 100);
         } else if (ratio < 0.75) {
-          // 노랑 → 주황
           const t = (ratio - 0.5) / 0.25;
-          r = 255;
-          g = Math.round(200 - t * 100);
-          b = 0;
+          r = 255; g = Math.round(200 - t * 100); b = 0;
         } else {
-          // 주황 → 진한 빨강
           const t = (ratio - 0.75) / 0.25;
-          r = Math.round(255 - t * 30);
-          g = Math.round(100 - t * 100);
-          b = 0;
+          r = Math.round(255 - t * 30); g = Math.round(100 - t * 100); b = 0;
         }
 
-        segments.forEach(seg => {
-          const polyline = new google.maps.Polyline({
-            path: seg,
-            geodesic: true,
-            strokeColor: `rgb(${r},${g},${b})`,
-            strokeOpacity: opacity,
-            strokeWeight: weight,
-            map: googleMapRef.current,
-          });
-          polylinesRef.current.push(polyline);
+        const polyline = new google.maps.Polyline({
+          path,
+          geodesic: true,
+          strokeColor: `rgb(${r},${g},${b})`,
+          strokeOpacity: opacity,
+          strokeWeight: weight,
+          map: googleMapRef.current,
         });
+        polylinesRef.current.push(polyline);
       });
     }
 

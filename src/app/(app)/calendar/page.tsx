@@ -9,35 +9,23 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Camera } from 'lucide-react';
 import type { ActivityPhoto } from '@/types';
 
-// 거리에 따른 배경색 반환
-// 미래 날짜용 밝은 파스텔 색상 (순환)
-const FUTURE_COLORS = [
-  'bg-pink-50 dark:bg-pink-900/20',
-  'bg-sky-50 dark:bg-sky-900/20',
-  'bg-amber-50 dark:bg-amber-900/20',
-  'bg-emerald-50 dark:bg-emerald-900/20',
-];
-
+// Git 잔디 스타일 — 초록 단일 그라데이션
 function distanceColor(km: number, dateStr: string): string {
   if (km <= 0) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    if (cellDate > today) {
-      return FUTURE_COLORS[cellDate.getDate() % FUTURE_COLORS.length];
-    }
+    if (cellDate > today) return 'bg-white dark:bg-zinc-800';
     return 'bg-gray-100 dark:bg-zinc-700';
   }
-  if (km < 3) return 'bg-pink-100 dark:bg-pink-800/50';
-  if (km < 5) return 'bg-yellow-100 dark:bg-yellow-700/50';
-  if (km < 7) return 'bg-green-200 dark:bg-green-700/60';
-  if (km < 10) return 'bg-green-400 dark:bg-green-600/70';
-  return 'bg-green-600 dark:bg-green-500/80 text-white';
+  if (km < 3) return 'bg-green-200 dark:bg-green-900/40';
+  if (km < 5) return 'bg-green-300 dark:bg-green-800/50';
+  if (km < 7) return 'bg-green-400 dark:bg-green-700/60';
+  if (km < 10) return 'bg-green-500 dark:bg-green-600/70';
+  return 'bg-green-600 dark:bg-green-500/80';
 }
 
-// 거리에 따른 텍스트 색
 function distanceTextColor(km: number): string {
-  if (km >= 10) return 'text-white';
   if (km >= 7) return 'text-white';
   return 'text-[var(--foreground)]';
 }
@@ -55,6 +43,7 @@ export default function CalendarPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showDetail, setShowDetail] = useState<string | null>(null); // 날짜 상세 모달
 
   // 월간 활동 데이터
   const monthlyActivities = useMemo(() =>
@@ -313,28 +302,23 @@ export default function CalendarPage() {
               </div>
             );
 
-            // 활동이 있으면 클릭 가능
-            if (actIds?.length === 1) {
-              return <Link key={day} href={`/activity?id=${actIds[0]}`}>{cell}</Link>;
-            } else if (actIds && actIds.length > 1) {
-              return <Link key={day} href={`/activity?id=${actIds[0]}`}>{cell}</Link>;
+            // 활동이 있으면 상세 모달 열기
+            if (km > 0) {
+              return (
+                <div key={day} onClick={() => setShowDetail(dateStr)} className="cursor-pointer">
+                  {cell}
+                </div>
+              );
             }
-            // 활동이 없는 날도 사진 선택 가능
-            return (
-              <div key={day} onClick={() => handlePhotoSelect(dateStr)} className="cursor-pointer">
-                {cell}
-              </div>
-            );
+            return <div key={day}>{cell}</div>;
           })}
         </div>
 
-        {/* 범례 */}
+        {/* 범례 — git 잔디 스타일 */}
         <div className="flex items-center gap-2 mt-4 justify-center text-xs text-[var(--muted)]">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-600" /> 0km</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 dark:bg-pink-800/50" /> ~3</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100 dark:bg-yellow-700/50" /> ~5</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 dark:bg-green-700/60" /> ~7</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 dark:bg-green-600/70" /> ~10</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-100 dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600" /> 0</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 dark:bg-green-900/40" /> ~3</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400 dark:bg-green-700/60" /> ~7</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600 dark:bg-green-500/80" /> 10+</span>
         </div>
       </div>
@@ -363,6 +347,86 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
+      {/* ========== 날짜 상세 모달 ========== */}
+      {showDetail && (() => {
+        const dayActivities = monthlyActivities.filter(a => a.activity_date === showDetail);
+        const dayKm = dayActivities.reduce((s, a) => s + Number(a.distance_km), 0);
+        const dayDuration = dayActivities.reduce((s, a) => s + (a.duration_seconds || 0), 0);
+        const dayPhoto = customPhotos.get(showDetail) || photos.get(showDetail);
+        const dateObj = new Date(showDetail + 'T00:00:00');
+        const dateLabel = dateObj.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowDetail(null)}>
+            <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
+              {/* 핸들 */}
+              <div className="w-10 h-1 rounded-full bg-[var(--card-border)] mx-auto" />
+
+              {/* 날짜 */}
+              <h3 className="text-lg font-bold text-[var(--foreground)] text-center">{dateLabel}</h3>
+
+              {/* 사진 미리보기 */}
+              {dayPhoto && (
+                <div className="rounded-2xl overflow-hidden h-40">
+                  <img src={dayPhoto} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              {/* 통계 */}
+              {dayActivities.length > 0 ? (
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="card p-3">
+                    <p className="text-2xl font-extrabold text-[var(--accent)]">{dayKm.toFixed(1)}</p>
+                    <p className="text-xs text-[var(--muted)]">km</p>
+                  </div>
+                  <div className="card p-3">
+                    <p className="text-2xl font-extrabold text-[var(--foreground)]">{dayActivities.length}</p>
+                    <p className="text-xs text-[var(--muted)]">러닝</p>
+                  </div>
+                  <div className="card p-3">
+                    <p className="text-2xl font-extrabold text-[var(--foreground)]">{dayDuration > 0 ? formatDuration(dayDuration) : '-'}</p>
+                    <p className="text-xs text-[var(--muted)]">시간</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-sm text-[var(--muted)]">이 날은 러닝 기록이 없습니다</p>
+              )}
+
+              {/* 활동 리스트 */}
+              {dayActivities.map(a => (
+                <Link
+                  key={a.id}
+                  href={`/activity?id=${a.id}`}
+                  className="flex items-center justify-between p-3 rounded-xl bg-[var(--card-border)]/30"
+                  onClick={() => setShowDetail(null)}
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{a.distance_km.toFixed(2)} km</p>
+                    <p className="text-xs text-[var(--muted)]">{a.duration_seconds ? formatDuration(a.duration_seconds) : ''}</p>
+                  </div>
+                  <ChevronRight size={14} className="text-[var(--muted)]" />
+                </Link>
+              ))}
+
+              {/* 사진으로 공유하기 버튼 */}
+              <button
+                onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm"
+              >
+                <Camera size={16} />
+                {dayPhoto ? '사진 변경하기' : '사진으로 꾸미기'}
+              </button>
+
+              <button
+                onClick={() => setShowDetail(null)}
+                className="w-full py-2.5 rounded-xl text-sm text-[var(--muted)] font-medium"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

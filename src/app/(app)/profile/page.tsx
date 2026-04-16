@@ -9,6 +9,7 @@ import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, ShoppingBag, Coins, Gift } from 'lucide-react';
+import AppLogo from '@/components/AppLogo';
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
@@ -56,7 +57,6 @@ export default function ProfilePage() {
       title: '러닝',
       items: [
         { href: '/stats', label: '내 통계 & 차트', Icon: BarChart3 },
-        { href: '/history', label: '클럽 히스토리', Icon: Users },
         { href: '/goals', label: '목표 설정', Icon: Target },
         { href: '/connect', label: '건강 앱 연동', Icon: Heart },
       ],
@@ -88,7 +88,7 @@ export default function ProfilePage() {
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl">🏃🏻</div>
+              <div className="w-full h-full flex items-center justify-center"><AppLogo size={36} /></div>
             )}
           </div>
           <div className="flex-1 min-w-0">

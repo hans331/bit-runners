@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Home, BarChart3, Map, Trophy, User } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
+import AppLogo from '@/components/AppLogo';
 
 const TABS = [
   { href: '/dashboard', label: '홈', Icon: Home },
@@ -83,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] gap-4">
-        <span className="text-5xl">🏃🏻</span>
+        <AppLogo size={56} />
         <h1 className="text-xl font-bold text-[var(--foreground)]">Routinist</h1>
         <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
       </div>
@@ -101,12 +102,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
           <div className="px-4 h-14 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Link href="/dashboard" className="text-lg">🏃🏻</Link>
+              <Link href="/dashboard"><AppLogo size={28} /></Link>
               <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
                 {PAGE_TITLES[pathname] || Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k + '/'))?.[1] || 'Routinist'}
               </h1>
             </div>
-            <span className="text-xs text-[var(--muted)] font-medium">Routinist</span>
           </div>
         </header>
       )}

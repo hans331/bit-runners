@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ThemeProvider, useTheme } from './ThemeProvider';
 import { DataProvider, useData, getTotalDistance, getMemberBadges } from './DataProvider';
 import Badges from './Badges';
+import AppLogo from '@/components/AppLogo';
 
 
 function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: boolean; onToggleSidebar: () => void; onMobileMenu: () => void }) {
@@ -44,7 +45,7 @@ function Header({ sidebarOpen, onToggleSidebar, onMobileMenu }: { sidebarOpen: b
 
         {/* 중앙: 로고 */}
         <Link href="/" className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
-          <span className="text-2xl">🏃🏻</span>
+          <AppLogo size={32} />
           <div className="leading-none">
             <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
             <p className="text-xs text-[var(--muted)] tracking-[0.2em] font-medium">RUN YOUR ROUTINE</p>
@@ -115,7 +116,7 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
       <aside className="absolute top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-[var(--background)] border-r border-[var(--card-border)] overflow-y-auto animate-slide-in">
         <div className="flex items-center justify-between p-5 border-b border-[var(--card-border)]">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🏃🏻</span>
+            <AppLogo size={28} />
             <h2 className="text-base font-bold text-[var(--foreground)]">Routinist</h2>
           </div>
           <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-[var(--card-border)] text-[var(--muted)] active:scale-95 transition-all">

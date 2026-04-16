@@ -23,6 +23,7 @@ import {
 import Link from 'next/link';
 import { Trophy, Flame, Clock, Calendar, ChevronRight, BarChart3, TrendingUp } from 'lucide-react';
 import { chartStyle } from '@/lib/chart-theme';
+import AppLogo from '@/components/AppLogo';
 
 type PeriodMode = 'weekly' | 'monthly' | 'quarterly' | 'half' | 'yearly';
 type ChartType = 'bar' | 'line';
@@ -43,11 +44,11 @@ function miniCalDistanceColor(km: number, dateStr: string): string {
     if (cellDate > today) return 'bg-white dark:bg-zinc-800';
     return 'bg-gray-100 dark:bg-zinc-700';
   }
-  if (km < 3) return 'bg-green-200 dark:bg-green-800/50';
-  if (km < 5) return 'bg-green-300 dark:bg-green-700/60';
-  if (km < 7) return 'bg-green-400 dark:bg-green-600/70';
-  if (km < 10) return 'bg-green-500 dark:bg-green-600/80';
-  return 'bg-green-600 dark:bg-green-500/90';
+  if (km < 3) return 'bg-green-200 dark:bg-green-900/40';
+  if (km < 5) return 'bg-green-300 dark:bg-green-800/50';
+  if (km < 7) return 'bg-green-400 dark:bg-green-700/60';
+  if (km < 10) return 'bg-green-500 dark:bg-green-600/70';
+  return 'bg-green-600 dark:bg-green-500/80';
 }
 
 export default function StatsPage() {
@@ -191,7 +192,7 @@ export default function StatsPage() {
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl">🏃🏻</div>
+              <div className="w-full h-full flex items-center justify-center"><AppLogo size={32} /></div>
             )}
           </div>
           <div>
