@@ -33,7 +33,7 @@ export async function connectHealthKit(): Promise<SyncResult> {
     }
 
     await Health.requestAuthorization({
-      read: ['workouts', 'distance'],
+      read: ['workouts', 'distance', 'heartRate', 'calories', 'exerciseTime'],
       write: [],
     });
 
@@ -55,30 +55,44 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
     const startDate = threeYearsAgo.toISOString();
     const endDate = new Date().toISOString();
 
-    const { workouts } = await Health.queryWorkouts({
-      workoutType: 'running',
-      startDate,
-      endDate,
-      limit: 5000,
-      ascending: false,
-    });
+    // 러닝 + 걷기 모두 동기화
+    const workoutTypes = ['running', 'walking'] as const;
+    let allWorkouts: any[] = [];
 
-    if (!workouts || workouts.length === 0) {
+    for (const wType of workoutTypes) {
+      try {
+        const { workouts } = await Health.queryWorkouts({
+          workoutType: wType,
+          startDate,
+          endDate,
+          limit: 3000,
+          ascending: false,
+        });
+        if (workouts?.length) {
+          allWorkouts.push(...workouts.map(w => ({ ...w, _type: wType })));
+        }
+      } catch {}
+    }
+
+    if (allWorkouts.length === 0) {
       return await syncViaDistance(userId, startDate, endDate);
     }
 
     let syncedCount = 0;
     const supabase = getSupabase();
 
-    for (const workout of workouts) {
+    for (const workout of allWorkouts) {
       const activityDate = workout.startDate.split('T')[0];
       const distanceKm = workout.totalDistance ? workout.totalDistance / 1000 : 0;
       const durationSeconds = workout.duration ? Math.round(workout.duration) : null;
       const paceAvg = durationSeconds && distanceKm > 0
         ? Math.round(durationSeconds / distanceKm)
         : null;
+      const activityType = workout._type === 'walking' ? 'walking' : 'running';
 
       if (distanceKm < 0.1) continue;
+      // 걷기는 최소 0.5km
+      if (activityType === 'walking' && distanceKm < 0.5) continue;
 
       // 중복 확인: 같은 날짜 + 유사한 거리
       const { data: existing } = await supabase
@@ -93,17 +107,59 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
       );
       if (isDuplicate) continue;
 
-      const { error } = await supabase.from('activities').insert({
+      // 심박수 데이터 가져오기 (해당 운동 시간 범위)
+      let heartRateAvg: number | null = null;
+      let heartRateMax: number | null = null;
+      try {
+        const { samples: hrSamples } = await Health.readSamples({
+          dataType: 'heartRate',
+          startDate: workout.startDate,
+          endDate: workout.endDate || endDate,
+          limit: 1000,
+        });
+        if (hrSamples?.length) {
+          const hrValues = hrSamples.map(s => s.value).filter(v => v > 0);
+          if (hrValues.length > 0) {
+            heartRateAvg = Math.round(hrValues.reduce((s, v) => s + v, 0) / hrValues.length);
+            heartRateMax = Math.round(Math.max(...hrValues));
+          }
+        }
+      } catch {}
+
+      // 활동 에너지 가져오기
+      let activeEnergy: number | null = null;
+      try {
+        const { samples: energySamples } = await Health.readSamples({
+          dataType: 'calories',
+          startDate: workout.startDate,
+          endDate: workout.endDate || endDate,
+          limit: 100,
+        });
+        if (energySamples?.length) {
+          activeEnergy = Math.round(energySamples.reduce((s, e) => s + e.value, 0));
+        }
+      } catch {}
+
+      const insertData: Record<string, any> = {
         user_id: userId,
         activity_date: activityDate,
         distance_km: Math.round(distanceKm * 100) / 100,
         duration_seconds: durationSeconds && durationSeconds > 0 ? durationSeconds : null,
         pace_avg_sec_per_km: paceAvg,
+        calories: activeEnergy || (workout.totalEnergyBurned ? Math.round(workout.totalEnergyBurned) : null),
         source: 'health_kit',
-        memo: 'Apple Health 자동 동기화',
+        memo: `Apple Health ${activityType === 'walking' ? '걷기' : '러닝'} 동기화`,
         started_at: workout.startDate,
         ended_at: workout.endDate || null,
-      });
+      };
+
+      // 새 컬럼이 있으면 추가 (DB에 없으면 무시됨)
+      if (heartRateAvg) insertData.heart_rate_avg = heartRateAvg;
+      if (heartRateMax) insertData.heart_rate_max = heartRateMax;
+      if (activeEnergy) insertData.active_energy_kcal = activeEnergy;
+      if (activityType === 'walking') insertData.activity_type = 'walking';
+
+      const { error } = await supabase.from('activities').insert(insertData);
 
       if (!error) {
         syncedCount++;

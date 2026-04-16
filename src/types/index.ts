@@ -107,6 +107,11 @@ export interface Activity {
   ended_at: string | null;
   visibility: ActivityVisibility;
   created_at: string;
+  // 확장 필드 (Apple Health 추가 데이터)
+  heart_rate_avg?: number | null;
+  heart_rate_max?: number | null;
+  active_energy_kcal?: number | null;
+  activity_type?: 'running' | 'walking' | null;
 }
 
 export interface UserMonthlyGoal {

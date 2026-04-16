@@ -91,15 +91,40 @@ function ActivityDetail() {
           </div>
           <div>
             <p className="text-2xl font-extrabold text-[var(--foreground)]">
-              {activity.calories ?? '-'}
+              {activity.calories ?? activity.active_energy_kcal ?? '-'}
             </p>
             <p className="text-xs text-[var(--muted)]">kcal</p>
           </div>
         </div>
+        {/* 심박수 (데이터 있을 때만) */}
+        {(activity.heart_rate_avg || activity.heart_rate_max) && (
+          <div className="grid grid-cols-2 gap-4 text-center mt-4 pt-4 border-t border-[var(--card-border)]">
+            {activity.heart_rate_avg && (
+              <div>
+                <p className="text-2xl font-extrabold text-red-500">{activity.heart_rate_avg}</p>
+                <p className="text-xs text-[var(--muted)]">평균 심박수</p>
+              </div>
+            )}
+            {activity.heart_rate_max && (
+              <div>
+                <p className="text-2xl font-extrabold text-red-400">{activity.heart_rate_max}</p>
+                <p className="text-xs text-[var(--muted)]">최대 심박수</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 상세 정보 */}
       <div className="card p-5 space-y-3">
+        {activity.activity_type && (
+          <div className="flex justify-between">
+            <span className="text-xs text-[var(--muted)]">운동 종류</span>
+            <span className="text-sm text-[var(--foreground)] font-semibold">
+              {activity.activity_type === 'walking' ? '걷기 🚶' : '러닝 🏃'}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-xs text-[var(--muted)]">날짜</span>
           <span className="text-sm text-[var(--foreground)]">
