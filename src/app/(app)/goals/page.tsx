@@ -51,7 +51,7 @@ export default function GoalsPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-6 pb-8">
-      <h2 className="text-xl font-extrabold text-[var(--foreground)]">{month}월 목표 설정</h2>
+      <h2 className="text-xl font-bold text-[var(--foreground)]">{month}월 목표 설정</h2>
 
       {/* 현재 진행률 */}
       {currentGoal && currentGoal.goal_km > 0 && (

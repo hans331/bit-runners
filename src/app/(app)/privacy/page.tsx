@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         <button onClick={() => router.back()} className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-extrabold text-[var(--foreground)]">개인정보처리방침</h1>
+        <h1 className="text-xl font-bold text-[var(--foreground)]">개인정보처리방침</h1>
       </div>
 
       <p className="text-xs text-[var(--muted)]">시행일: 2026년 4월 13일</p>

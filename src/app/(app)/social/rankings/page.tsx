@@ -41,7 +41,7 @@ export default function RankingsPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/social" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">지역 랭킹</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">지역 랭킹</h1>
       </div>
 
       {/* 기간 */}

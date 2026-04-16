@@ -25,7 +25,7 @@ export default function ClubsPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/social" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1">러닝 클럽</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)] flex-1">러닝 클럽</h1>
         <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-[var(--accent)] font-semibold">
           <Plus size={16} /> 만들기
         </Link>

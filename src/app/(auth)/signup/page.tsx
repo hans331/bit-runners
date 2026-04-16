@@ -79,7 +79,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] px-6">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">프로필 설정</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">프로필 설정</h1>
         <p className="text-xs text-[var(--muted)] mt-2">닉네임과 프로필 사진을 설정해주세요</p>
       </div>
 

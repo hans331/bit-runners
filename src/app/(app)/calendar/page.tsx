@@ -206,7 +206,7 @@ export default function CalendarPage() {
         onChange={handleFileChange}
       />
 
-      <h2 className="text-xl font-extrabold text-[var(--foreground)]">러닝 캘린더</h2>
+      <h2 className="text-xl font-bold text-[var(--foreground)]">러닝 캘린더</h2>
 
       {uploading && (
         <div className="card p-3 text-center">
@@ -220,7 +220,7 @@ export default function CalendarPage() {
         <button onClick={prevMonth} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] transition-colors">
           <ChevronLeft size={20} />
         </button>
-        <span className="text-2xl font-extrabold text-[var(--foreground)]">{year}년 {month}월</span>
+        <span className="text-2xl font-bold text-[var(--foreground)]">{year}년 {month}월</span>
         <button onClick={nextMonth} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] transition-colors">
           <ChevronRight size={20} />
         </button>

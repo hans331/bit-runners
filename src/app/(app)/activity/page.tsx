@@ -55,7 +55,7 @@ function ActivityDetail() {
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        <h2 className="text-lg font-extrabold text-[var(--foreground)] flex-1">활동 상세</h2>
+        <h2 className="text-lg font-bold text-[var(--foreground)] flex-1">활동 상세</h2>
         <button onClick={() => setShowShare(true)} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] text-[var(--accent)]">
           <Share2 size={20} />
         </button>

@@ -171,7 +171,7 @@ export default function StatsPage() {
   if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-6">
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)] mb-4">내 통계</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">내 통계</h1>
         <div className="flex justify-center py-20">
           <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
         </div>
@@ -182,7 +182,7 @@ export default function StatsPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
       {/* 헤더 */}
-      <h1 className="text-2xl font-extrabold text-[var(--foreground)]">내 통계</h1>
+      <h1 className="text-2xl font-bold text-[var(--foreground)]">내 통계</h1>
 
       {/* ========== 1. 프로필 요약 카드 ========== */}
       <div className="card p-6">
@@ -195,7 +195,7 @@ export default function StatsPage() {
             )}
           </div>
           <div>
-            <p className="text-2xl font-extrabold text-[var(--foreground)]">{profile?.display_name}</p>
+            <p className="text-2xl font-bold text-[var(--foreground)]">{profile?.display_name}</p>
             <p className="text-xs text-[var(--muted)]">통산 {Number(totalKm).toFixed(0)}km · {totalRuns}회 러닝</p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function StatsPage() {
       <Link href="/calendar" className="block">
         <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">{month}월 캘린더</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">{month}월 캘린더</h3>
             <div className="flex items-center gap-1 text-xs text-[var(--accent)] font-semibold">
               <span>{runDays}일 러닝</span>
               <ChevronRight size={14} />
@@ -265,7 +265,7 @@ export default function StatsPage() {
       {/* ========== 3. 월별 거리 차트 (작년 비교) ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-bold text-[var(--foreground)]">월별 거리 추이</h3>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">월별 거리 추이</h3>
           <span className="text-xs text-[var(--muted)]">
             {yearlyPrevTotal > 0 && (
               <span className={yearlyTotal >= yearlyPrevTotal ? 'text-green-500' : 'text-red-500'}>
@@ -359,7 +359,7 @@ export default function StatsPage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy size={16} className="text-yellow-500" />
-            <h3 className="text-base font-bold text-[var(--foreground)]">개인 베스트</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">개인 베스트</h3>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {personalBests.longestRun && (
@@ -399,7 +399,7 @@ export default function StatsPage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-3">
             <Calendar size={16} className="text-blue-500" />
-            <h3 className="text-base font-bold text-[var(--foreground)]">요일별 러닝 패턴</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">요일별 러닝 패턴</h3>
           </div>
           <p className="text-xs text-[var(--muted)] mb-3">
             주로 <span className="font-semibold text-[var(--accent)]">{maxDay.day}요일</span>에 달려요 ({maxDay.runCount}회)
@@ -428,7 +428,7 @@ export default function StatsPage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-3">
             <Clock size={16} className="text-orange-500" />
-            <h3 className="text-base font-bold text-[var(--foreground)]">시간대별 러닝 분포</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">시간대별 러닝 분포</h3>
           </div>
           <p className="text-xs text-[var(--muted)] mb-3">
             주로 <span className="font-semibold text-[var(--accent)]">{maxHourGroup.label}</span>에 달려요
@@ -459,7 +459,7 @@ export default function StatsPage() {
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-3">
           <Flame size={16} className="text-orange-500" />
-          <h3 className="text-base font-bold text-[var(--foreground)]">연속 달리기 스트릭</h3>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">연속 달리기 스트릭</h3>
         </div>
         <div className="flex items-center justify-center gap-6">
           <div className="text-center">
@@ -480,9 +480,9 @@ export default function StatsPage() {
 
         {/* 연도 선택 */}
         <div className="flex items-center justify-center gap-4 mb-3">
-          <button onClick={() => setDetailYear((y) => y - 1)} className="text-[var(--muted)] text-xl font-extrabold">&lt;</button>
-          <span className="text-lg font-extrabold text-[var(--foreground)]">{detailYear}</span>
-          <button onClick={() => setDetailYear((y) => y + 1)} className="text-[var(--muted)] text-xl font-extrabold">&gt;</button>
+          <button onClick={() => setDetailYear((y) => y - 1)} className="text-[var(--muted)] text-xl font-bold">&lt;</button>
+          <span className="text-lg font-bold text-[var(--foreground)]">{detailYear}</span>
+          <button onClick={() => setDetailYear((y) => y + 1)} className="text-[var(--muted)] text-xl font-bold">&gt;</button>
         </div>
 
         {/* 총 거리 */}

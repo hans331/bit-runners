@@ -177,7 +177,7 @@ function ClubDetail() {
       {/* 헤더 */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/social" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)] flex-1 truncate">{club.name}</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)] flex-1 truncate">{club.name}</h1>
         {isMember && (
           <button onClick={handleCopyInvite} className="text-[var(--accent)] p-2">
             {copied ? <Check size={20} /> : <Share2 size={20} />}
@@ -194,7 +194,7 @@ function ClubDetail() {
             <Users size={32} className="text-[var(--accent)]" />
           )}
         </div>
-        <h2 className="text-3xl font-extrabold text-[var(--foreground)]">{club.name}</h2>
+        <h2 className="text-3xl font-bold text-[var(--foreground)]">{club.name}</h2>
         {club.description && <p className="text-xs text-[var(--muted)] mt-1">{club.description}</p>}
         <p className="text-sm text-[var(--accent)] font-semibold mt-2">멤버 {club.member_count}명</p>
 

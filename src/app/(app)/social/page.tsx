@@ -82,17 +82,17 @@ export default function SocialPage() {
           {/* 내 클럽 */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-[var(--foreground)]">내 클럽</h2>
+              <h2 className="text-base font-semibold text-[var(--foreground)]">내 클럽</h2>
               <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-[var(--accent)] font-semibold">
                 <Plus size={14} /> 클럽 만들기
               </Link>
             </div>
             {myClubs.length === 0 ? (
-              <div className="card p-6 text-center">
-                <Users size={32} className="mx-auto mb-2 text-[var(--muted)]" />
-                <p className="text-xs text-[var(--muted)]">아직 가입한 클럽이 없습니다</p>
-                <Link href="/social/clubs" className="text-sm text-[var(--accent)] font-semibold mt-2 inline-block">
-                  클럽 둘러보기
+              <div className="card p-6 text-center space-y-2">
+                <p className="text-3xl">🏃🏻‍♂️</p>
+                <p className="text-sm font-medium text-[var(--foreground)]">아직 가입한 클럽이 없습니다</p>
+                <Link href="/social/clubs" className="text-sm text-[var(--accent)] font-semibold inline-block">
+                  클럽 둘러보기 →
                 </Link>
               </div>
             ) : (
@@ -160,12 +160,12 @@ export default function SocialPage() {
 
       {/* 랭킹 섹션 → 바로 이동 */}
       {activeSection === 'rankings' && (
-        <div className="text-center py-12">
-          <Trophy size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-          <h2 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">지역 랭킹</h2>
-          <p className="text-xs text-[var(--muted)] mb-4">내 동네에서 몇 등인지 확인해보세요</p>
-          <Link href="/social/rankings" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
-            <Trophy size={16} /> 랭킹 보기
+        <div className="text-center py-12 space-y-3">
+          <p className="text-5xl">🏅</p>
+          <h2 className="text-2xl font-bold text-[var(--foreground)]">지역 랭킹</h2>
+          <p className="text-sm text-[var(--muted)]">내 동네에서 몇 등인지 확인해보세요</p>
+          <Link href="/social/rankings" className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
+            🏆 랭킹 보기
           </Link>
         </div>
       )}

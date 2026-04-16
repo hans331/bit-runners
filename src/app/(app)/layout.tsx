@@ -16,6 +16,22 @@ const TABS = [
   { href: '/profile', label: '내 정보', Icon: User },
 ];
 
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': '홈',
+  '/stats': '내 통계',
+  '/map': '러닝 지도',
+  '/social': '소셜',
+  '/profile': '내 정보',
+  '/goals': '목표 설정',
+  '/history': '히스토리',
+  '/connect': '건강 앱 연동',
+  '/calendar': '캘린더',
+  '/shop': '쇼핑',
+  '/mileage': '마일리지',
+  '/support': '고객 지원',
+  '/privacy': '개인정보처리방침',
+};
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -68,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] gap-4">
         <span className="text-5xl">🏃🏻</span>
-        <h1 className="text-xl font-extrabold text-[var(--foreground)]">Routinist</h1>
+        <h1 className="text-xl font-bold text-[var(--foreground)]">Routinist</h1>
         <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
       </div>
     );
@@ -80,14 +96,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
-      {/* 헤더 */}
+      {/* 헤더 — 동적 타이틀 */}
       {!isTrackPage && (
         <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
-          <div className="px-4 h-14 flex items-center justify-center">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="text-xl">🏃🏻</span>
-              <h1 className="text-lg font-extrabold tracking-tight text-[var(--foreground)]">Routinist</h1>
-            </Link>
+          <div className="px-4 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard" className="text-lg">🏃🏻</Link>
+              <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
+                {PAGE_TITLES[pathname] || Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k + '/'))?.[1] || 'Routinist'}
+              </h1>
+            </div>
+            <span className="text-xs text-[var(--muted)] font-medium">Routinist</span>
           </div>
         </header>
       )}
@@ -97,22 +116,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <UserDataProvider>{children}</UserDataProvider>
       </main>
 
-      {/* 하단 5탭 네비게이션 */}
+      {/* 하단 5탭 네비게이션 — pill 활성 효과 */}
       {!isTrackPage && (
         <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-          <div className="flex justify-around items-center h-14">
+          <div className="flex justify-around items-center h-16">
             {TABS.map((tab) => {
               const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
               return (
                 <Link
                   key={tab.href}
                   href={tab.href}
-                  className={`flex flex-col items-center gap-0.5 px-2 py-1 transition-colors ${
-                    isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'
+                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-200 ${
+                    isActive
+                      ? 'text-[var(--accent)] bg-[var(--accent)]/10'
+                      : 'text-[var(--muted)]'
                   }`}
                 >
-                  <tab.Icon size={20} />
-                  <span className="text-xs font-medium">{tab.label}</span>
+                  <tab.Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.5} />
+                  <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
                 </Link>
               );
             })}

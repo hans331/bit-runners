@@ -119,14 +119,14 @@ export default function HistoryPage() {
       <div className="flex items-center gap-2">
         <Link href="/dashboard" className="text-xs text-[var(--muted)]">← 대시보드</Link>
       </div>
-      <h2 className="text-xl font-extrabold text-[var(--foreground)]">히스토리</h2>
+      <h2 className="text-xl font-bold text-[var(--foreground)]">히스토리</h2>
 
       {/* 월 선택 */}
       <div className="flex items-center justify-between">
         <button onClick={prevMonth} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] transition-colors">
           <ChevronLeft size={20} />
         </button>
-        <span className="text-2xl font-extrabold text-[var(--foreground)]">{year}년 {month}월</span>
+        <span className="text-2xl font-bold text-[var(--foreground)]">{year}년 {month}월</span>
         <button onClick={nextMonth} className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[var(--card-border)] transition-colors">
           <ChevronRight size={20} />
         </button>

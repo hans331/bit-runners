@@ -39,7 +39,7 @@ export default function AwardsPage() {
   return (
     <div className="max-w-5xl mx-auto px-3 md:px-6 py-4 md:py-6 space-y-5">
       <Link href="/" className="inline-flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--accent)]"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>대시보드</Link>
-      <h1 className="text-2xl font-extrabold text-[var(--foreground)]">명예의 전당</h1>
+      <h1 className="text-2xl font-bold text-[var(--foreground)]">명예의 전당</h1>
 
       {/* 명예의 전당 3종 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

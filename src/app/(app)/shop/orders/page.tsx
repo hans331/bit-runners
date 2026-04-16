@@ -28,7 +28,7 @@ export default function OrdersPage() {
     <div className="max-w-lg mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/shop" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
-        <h1 className="text-2xl font-extrabold text-[var(--foreground)]">주문 내역</h1>
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">주문 내역</h1>
       </div>
 
       {loading ? (

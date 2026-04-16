@@ -250,7 +250,7 @@ export default function MapPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 pb-8">
-      <h1 className="text-xl font-extrabold text-[var(--foreground)]">내 러닝 지도</h1>
+      <h1 className="text-xl font-bold text-[var(--foreground)]">내 러닝 지도</h1>
 
       {/* 오늘의 명언 */}
       <div className="card p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-0">

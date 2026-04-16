@@ -182,7 +182,7 @@ export default function DashboardPage() {
       {/* 헤더 — 닉네임 터치 시 내 통계 페이지 */}
       <div className="flex items-center justify-between pt-2">
         <div>
-          <Link href="/stats" className="text-xl font-extrabold text-[var(--foreground)] flex items-center gap-1">
+          <Link href="/stats" className="text-xl font-bold text-[var(--foreground)] flex items-center gap-1">
             {profile?.display_name ?? '러너'}님의 {month}월
             <ChevronRight size={16} className="text-[var(--accent)]" />
           </Link>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
       {/* ========== 월간 거리 순위 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-[var(--foreground)]">{month}월 거리 순위</h3>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">{month}월 거리 순위</h3>
           <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
             상세 보기 <ChevronRight size={14} />
           </Link>
@@ -272,7 +272,10 @@ export default function DashboardPage() {
             <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
           </div>
         ) : raceMembers.length === 0 ? (
-          <p className="text-xs text-[var(--muted)] text-center py-4">아직 활동 데이터가 없습니다</p>
+          <div className="text-center py-4 space-y-2">
+            <p className="text-3xl">📊</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">아직 활동 데이터가 없습니다</p>
+          </div>
         ) : (
           <DistanceRanking members={raceMembers} currentUserId={user?.id} />
         )}
@@ -281,7 +284,7 @@ export default function DashboardPage() {
       {/* ========== 내 목표 진행 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-bold text-[var(--foreground)]">내 {month}월 목표</h3>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">내 {month}월 목표</h3>
           <Link href="/goals" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
             설정 <ChevronRight size={14} />
           </Link>
@@ -325,9 +328,10 @@ export default function DashboardPage() {
             </div>
           </>
         ) : (
-          <div className="text-center py-4">
-            <p className="text-xs text-[var(--muted)]">아직 이번 달 목표가 없습니다</p>
-            <Link href="/goals" className="text-sm text-[var(--accent)] font-semibold mt-1 inline-block">
+          <div className="text-center py-4 space-y-2">
+            <p className="text-3xl">🎯</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">아직 이번 달 목표가 없습니다</p>
+            <Link href="/goals" className="text-sm text-[var(--accent)] font-semibold inline-block">
               목표 설정하기 →
             </Link>
           </div>
@@ -337,7 +341,7 @@ export default function DashboardPage() {
       {/* ========== 최근 활동 ========== */}
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-bold text-[var(--foreground)]">최근 활동</h3>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">최근 활동</h3>
           {activities.length > 0 && (
             <Link href="/history" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
               전체 기록 <ChevronRight size={14} />
@@ -350,9 +354,10 @@ export default function DashboardPage() {
             <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
           </div>
         ) : recentActivities.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-xs text-[var(--muted)]">아직 기록이 없습니다</p>
-            <Link href="/track" className="text-sm text-[var(--accent)] font-semibold mt-1 inline-block">
+          <div className="text-center py-6 space-y-2">
+            <p className="text-3xl">👟</p>
+            <p className="text-sm font-medium text-[var(--foreground)]">아직 기록이 없습니다</p>
+            <Link href="/track" className="text-sm text-[var(--accent)] font-semibold inline-block">
               첫 달리기 시작하기 →
             </Link>
           </div>
@@ -392,7 +397,7 @@ export default function DashboardPage() {
       {weeklyData.length > 0 && (
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">주간 거리 트렌드</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">주간 거리 트렌드</h3>
             <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
               상세 <ChevronRight size={14} />
             </Link>
@@ -423,7 +428,7 @@ export default function DashboardPage() {
       {paceTrendData.some(p => p.avgPace !== null) && (
         <div className="card p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">페이스 추이</h3>
+            <h3 className="text-base font-semibold text-[var(--foreground)]">페이스 추이</h3>
             <Link href="/stats" className="text-sm text-[var(--accent)] font-semibold flex items-center gap-0.5">
               상세 <ChevronRight size={14} />
             </Link>
