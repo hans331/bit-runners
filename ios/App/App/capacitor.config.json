@@ -16,6 +16,8 @@
 	"packageClassList": [
 		"AppPlugin",
 		"CAPBrowserPlugin",
+		"FilesystemPlugin",
+		"SharePlugin",
 		"HealthPlugin",
 		"WorkoutRoutePlugin"
 	]
