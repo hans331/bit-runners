@@ -5,15 +5,16 @@ import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Home, Map, Trophy, User } from 'lucide-react';
+import { Home, Map, Trophy, User, ShoppingBag } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 import AppLogo from '@/components/AppLogo';
 
-// 홈에 통계 흡수 → 4탭 구조 (심플/depth 최소화)
+// 5탭 구조: 통계는 홈에 흡수, 쇼핑은 수익 모델이라 최상위로 승격 (Cafe24 연동)
 const TABS = [
   { href: '/dashboard', label: '홈', Icon: Home },
   { href: '/map', label: '지도', Icon: Map },
   { href: '/social', label: '랭킹', Icon: Trophy },
+  { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
   { href: '/profile', label: '내 정보', Icon: User },
 ];
 
@@ -27,7 +28,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/history': '히스토리',
   '/connect': '건강 앱 연동',
   '/calendar': '캘린더',
-  '/shop': '쇼핑',
+  '/shop': 'Routinist Store',
   '/mileage': '마일리지',
   '/support': '고객 지원',
   '/privacy': '개인정보처리방침',

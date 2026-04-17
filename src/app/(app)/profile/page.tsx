@@ -8,7 +8,7 @@ import { getStreak, formatPace } from '@/lib/routinist-data';
 import { fetchMyRegionalRanks, type MyRegionalRank } from '@/lib/social-data';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, ShoppingBag, Coins, Gift, Sun, Moon, Monitor } from 'lucide-react';
+import { ChevronRight, Target, HelpCircle, Shield, BarChart3, Heart, Award, LogOut, MapPin, Users, MessageCircle, Coins, Gift, Sun, Moon, Monitor } from 'lucide-react';
 import AppLogo from '@/components/AppLogo';
 import { useTheme } from '@/components/ThemeProvider';
 
@@ -72,11 +72,10 @@ export default function ProfilePage() {
       ],
     },
     {
-      title: '혜택',
+      title: '마일리지',
       items: [
-        { href: '/mileage', label: '마일리지', Icon: Coins },
+        { href: '/mileage', label: '마일리지 내역', Icon: Coins },
         { href: '/mileage/gift', label: '마일리지 선물', Icon: Gift },
-        { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
       ],
     },
     {
