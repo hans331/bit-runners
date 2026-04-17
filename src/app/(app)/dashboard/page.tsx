@@ -176,7 +176,7 @@ export default function DashboardPage() {
   const goalRemaining = goalKm > 0 ? Math.max(goalKm - monthlyDistance, 0) : 0;
   const dailyNeeded = daysRemaining > 0 && goalRemaining > 0 ? goalRemaining / daysRemaining : 0;
 
-  const recentActivities = activities.slice(0, 3);
+  const recentActivities = activities.slice(0, 5);
 
   // 솔로 사용자(클럽 멤버 1명 이하)면 클럽 뷰 숨기고 개인 통계로 폴백
   const effectiveSummary = clubSummary && clubSummary.totalMembers >= 2 ? clubSummary : null;
@@ -201,6 +201,20 @@ export default function DashboardPage() {
           히스토리 <ChevronRight size={16} />
         </Link>
       </div>
+
+      {/* Apple Health 미연동 유도 배너 (네이티브 iOS + 활동 0건) */}
+      {activities.length === 0 && (
+        <Link href="/connect" className="block card p-3 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 border-0">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">❤️</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">Apple Health와 연결해보세요</p>
+              <p className="text-xs text-[var(--muted)]">러닝 기록을 자동으로 가져와 분석합니다</p>
+            </div>
+            <ChevronRight size={16} className="text-[var(--accent)]" />
+          </div>
+        </Link>
+      )}
 
       {/* 지역 미설정 유도 배너 */}
       {profile && !profile.region_gu && (

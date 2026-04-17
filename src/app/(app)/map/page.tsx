@@ -6,6 +6,7 @@ import { fetchRoutesForUser } from '@/lib/map-data';
 import { loadGoogleMaps, API_KEY } from '@/lib/google-maps';
 import Link from 'next/link';
 import type { Activity } from '@/types';
+import PullToRefresh from '@/components/PullToRefresh';
 
 type FilterMode = '1d' | '3d' | '7d' | '30d' | 'all';
 
@@ -134,14 +135,19 @@ export default function MapPage() {
     }).catch(() => {});
   }, []);
 
-  // 전체 경로 데이터 로드 (한 번만)
-  useEffect(() => {
+  // 전체 경로 데이터 로드
+  const loadRoutes = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    fetchRoutesForUser(user.id).then(data => {
+    try {
+      const data = await fetchRoutesForUser(user.id);
       setAllActivities(data);
-    }).catch(() => {}).finally(() => setLoading(false));
+    } catch {} finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => { loadRoutes(); }, [loadRoutes]);
 
   // 필터링된 활동
   const filteredActivities = useCallback(() => {
@@ -229,6 +235,7 @@ export default function MapPage() {
   }, []);
 
   return (
+    <PullToRefresh onRefresh={loadRoutes}>
     <div className="max-w-lg mx-auto px-4 py-4 space-y-4 pb-8">
 
       {/* 오늘의 명언 */}
@@ -312,18 +319,43 @@ export default function MapPage() {
       )}
 
       {!loading && routeCount === 0 && (
-        <div className="card p-6 text-center space-y-3">
+        <div className="card p-6 text-center space-y-4">
           <p className="text-4xl">🗺️</p>
           <p className="text-base font-semibold text-[var(--foreground)]">아직 GPS 러닝 기록이 없습니다</p>
-          <div className="text-xs text-[var(--muted)] space-y-1">
-            <p>Apple Health 연동으로 가져온 기록에는</p>
-            <p>GPS 경로가 포함되지 않습니다.</p>
-            <p className="mt-3 font-medium">GPS 경로를 보려면:</p>
-            <p>Strava, Nike Run Club 등에서 달리면</p>
-            <p>경로가 자동으로 지도에 표시됩니다.</p>
+          <p className="text-xs text-[var(--muted)]">
+            Apple Health만 연동하면 거리·시간은 보이지만 GPS 경로는 포함되지 않아요.<br />
+            아래 앱에서 달리면 자동으로 이 지도에 경로가 쌓입니다.
+          </p>
+
+          <div className="space-y-2 pt-2">
+            <Link
+              href="/connect"
+              className="block w-full py-3 rounded-xl bg-red-500 text-white font-semibold text-sm"
+            >
+              ❤️ Apple Health 연동하기
+            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href="https://apps.apple.com/kr/app/strava/id426826309"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-xs flex items-center justify-center gap-1.5"
+              >
+                🟠 Strava 받기
+              </a>
+              <a
+                href="https://apps.apple.com/kr/app/nike-run-club/id387771637"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-xs flex items-center justify-center gap-1.5"
+              >
+                👟 Nike Run Club
+              </a>
+            </div>
           </div>
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

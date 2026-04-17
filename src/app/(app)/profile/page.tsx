@@ -55,6 +55,7 @@ export default function ProfilePage() {
     router.replace('/login');
   };
 
+  // 그룹 정리: 러닝(핵심) · 커뮤니티 · 혜택 · 설정
   const menuSections = [
     {
       title: '러닝',
@@ -65,7 +66,13 @@ export default function ProfilePage() {
       ],
     },
     {
-      title: '마일리지 & 쇼핑',
+      title: '커뮤니티',
+      items: [
+        { href: '/social/messages', label: '쪽지함', Icon: MessageCircle },
+      ],
+    },
+    {
+      title: '혜택',
       items: [
         { href: '/mileage', label: '마일리지', Icon: Coins },
         { href: '/mileage/gift', label: '마일리지 선물', Icon: Gift },
@@ -73,9 +80,8 @@ export default function ProfilePage() {
       ],
     },
     {
-      title: '기타',
+      title: '설정 · 지원',
       items: [
-        { href: '/social/messages', label: '쪽지함', Icon: MessageCircle },
         { href: '/support', label: '고객 지원', Icon: HelpCircle },
         { href: '/privacy', label: '개인정보처리방침', Icon: Shield },
       ],
