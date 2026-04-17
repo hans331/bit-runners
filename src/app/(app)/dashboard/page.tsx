@@ -6,6 +6,7 @@ import { useUserData } from '@/components/UserDataProvider';
 import PullToRefresh from '@/components/PullToRefresh';
 import {
   getStreak,
+  getMaxStreak,
   getMonthlyDistance,
   getWeeklyActivities,
   formatPace,
@@ -205,6 +206,9 @@ export default function DashboardPage() {
   const totalKm = Number(profile?.total_distance_km ?? 0);
   const totalRuns = profile?.total_runs ?? 0;
   const streak = getStreak(activities);
+  const maxStreak = getMaxStreak(activities);
+  const isRecordBreaking = streak > 0 && streak === maxStreak;
+  const daysToRecord = streak > 0 && streak < maxStreak ? maxStreak - streak : 0;
 
   // 월별
   const yearlyTotal = monthlyData.reduce((s, d) => s + d.distance, 0);
@@ -332,13 +336,8 @@ export default function DashboardPage() {
           </div>
           {goalKm > 0 ? (
             <>
-              <div className="flex items-end gap-2 mb-3">
-                <p className={`text-4xl font-extrabold leading-none ${goalProgress >= 100 ? 'text-green-600' : 'text-[var(--foreground)]'}`}>
-                  {monthlyDistance.toFixed(1)}
-                </p>
-                <p className="text-xs text-[var(--muted)] font-bold mb-1">/ {goalKm}km</p>
-              </div>
-              <div className="bg-[var(--card-border)] rounded-full h-4 overflow-hidden relative">
+              {/* 큰 숫자 제거 — 4칩의 '이달 km'과 중복. 진행률에 집중 */}
+              <div className="bg-[var(--card-border)] rounded-full h-5 overflow-hidden relative mb-2">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ease-out relative ${
                     goalProgress >= 100
@@ -358,17 +357,17 @@ export default function DashboardPage() {
                 </div>
               </div>
               {goalProgress >= 100 ? (
-                <div className="mt-3 flex items-center justify-center gap-1 text-green-600 font-bold">
+                <div className="mt-2 flex items-center justify-center gap-1 text-green-600 font-bold">
                   <span className="confetti-emoji">🎉</span>
                   <span className="confetti-emoji">🏆</span>
-                  <span className="mx-2 text-base">목표 달성!</span>
+                  <span className="mx-2 text-base">{goalKm}km 목표 달성!</span>
                   <span className="confetti-emoji">✨</span>
                   <span className="confetti-emoji">🎊</span>
                 </div>
               ) : (
-                <div className="flex justify-between mt-2 text-xs text-[var(--muted)]">
-                  <span>남은 거리 {goalRemaining.toFixed(1)}km</span>
-                  <span>하루 {dailyNeeded.toFixed(1)}km 필요</span>
+                <div className="flex justify-between items-center text-xs text-[var(--muted)]">
+                  <span>/ <span className="font-semibold text-[var(--foreground)]">{goalKm}km</span> 목표</span>
+                  <span>남은 {goalRemaining.toFixed(1)}km · 하루 {dailyNeeded.toFixed(1)}km</span>
                 </div>
               )}
             </>
@@ -631,24 +630,39 @@ export default function DashboardPage() {
         </LazyMount>
       )}
 
-      {/* ========== ⑩ 연속 달리기 스트릭 ========== */}
-      <LazyMount minHeight={140}>
+      {/* ========== ⑩ 연속 달리기 스트릭 (Wordle 스타일 Current/Max) ========== */}
+      <LazyMount minHeight={160}>
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-3">
           <Flame size={16} className="text-orange-500" />
           <h3 className="text-base font-semibold text-[var(--foreground)]">연속 달리기 스트릭</h3>
         </div>
-        <div className="flex items-center justify-center gap-6">
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-orange-500">{streak}</p>
-            <p className="text-xs text-[var(--muted)]">현재 연속일</p>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p className="text-3xl font-extrabold text-orange-500">{streak}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">현재 연속일</p>
           </div>
-          <div className="w-px h-12 bg-[var(--card-border)]" />
-          <div className="text-center">
-            <p className="text-4xl font-extrabold text-[var(--foreground)]">{totalRuns}</p>
-            <p className="text-xs text-[var(--muted)]">총 러닝 횟수</p>
+          <div className="border-x border-[var(--card-border)]">
+            <p className="text-3xl font-extrabold text-purple-500">{maxStreak}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">최장 연속일</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-[var(--foreground)]">{totalRuns}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">총 러닝</p>
           </div>
         </div>
+
+        {/* 동기부여 문구 */}
+        {isRecordBreaking && maxStreak >= 2 && (
+          <p className="text-center text-xs font-bold text-orange-500 mt-3 achievement-shimmer rounded-lg py-1.5">
+            🔥 최장 기록 갱신 중!
+          </p>
+        )}
+        {daysToRecord > 0 && daysToRecord <= 3 && (
+          <p className="text-center text-xs font-semibold text-[var(--accent)] mt-3">
+            역대 최장 기록까지 {daysToRecord}일!
+          </p>
+        )}
       </div>
       </LazyMount>
 

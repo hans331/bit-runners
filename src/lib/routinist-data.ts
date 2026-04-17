@@ -157,6 +157,25 @@ export function getWeeklyActivities(activities: Activity[]): Activity[] {
   return activities.filter(a => new Date(a.activity_date) >= startOfWeek);
 }
 
+export function getMaxStreak(activities: Activity[]): number {
+  if (activities.length === 0) return 0;
+  const dates = [...new Set(activities.map(a => a.activity_date))].sort();
+  let maxStreak = 1;
+  let currentStreak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i - 1]);
+    const curr = new Date(dates[i]);
+    const diff = (curr.getTime() - prev.getTime()) / 86400000;
+    if (diff === 1) {
+      currentStreak++;
+      if (currentStreak > maxStreak) maxStreak = currentStreak;
+    } else {
+      currentStreak = 1;
+    }
+  }
+  return maxStreak;
+}
+
 export function getStreak(activities: Activity[]): number {
   if (activities.length === 0) return 0;
 
