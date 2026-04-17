@@ -20,7 +20,6 @@ const TABS = [
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': '홈',
-  '/stats': '내 통계',
   '/map': '러닝 지도',
   '/social': '소셜',
   '/profile': '내 정보',

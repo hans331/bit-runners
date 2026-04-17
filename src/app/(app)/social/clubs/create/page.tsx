@@ -19,16 +19,16 @@ export default function CreateClubPage() {
     setError('');
     try {
       const club = await createClub(name.trim(), description.trim());
-      router.replace(`/social/clubs/${club.id}`);
+      router.replace(`/social/clubs/detail?id=${club.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[클럽 생성 실패]', msg);
-      if (msg.includes('row-level security') || msg.includes('policy')) {
-        setError('권한 오류: 관리자에게 문의해주세요.');
+      if (msg.toLowerCase().includes('row-level security') || msg.toLowerCase().includes('policy') || msg.includes('permission')) {
+        setError(`DB 권한 정책 오류입니다.\n상세: ${msg}`);
       } else if (msg.includes('duplicate') || msg.includes('unique')) {
         setError('이미 같은 이름의 클럽이 있습니다.');
       } else {
-        setError(`클럽 생성에 실패했습니다: ${msg}`);
+        setError(`클럽 생성 실패: ${msg}`);
       }
     } finally {
       setCreating(false);

@@ -84,12 +84,9 @@ export default function SocialPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-semibold text-[var(--foreground)]">내 클럽</h2>
-              <div className="flex items-center gap-3">
-                <Link href="/history" className="text-sm text-[var(--muted)] font-semibold">히스토리</Link>
-                <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-[var(--accent)] font-semibold">
-                  <Plus size={14} /> 클럽 만들기
-                </Link>
-              </div>
+              <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-[var(--accent)] font-semibold">
+                <Plus size={14} /> 클럽 만들기
+              </Link>
             </div>
             {myClubs.length === 0 ? (
               <div className="card p-6 text-center space-y-2">
