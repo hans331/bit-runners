@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { signInWithProvider } from '@/lib/auth';
 import { useAuth } from '@/components/AuthProvider';
 import { useEffect } from 'react';
@@ -9,16 +8,15 @@ import type { Provider } from '@supabase/supabase-js';
 import AppLogo from '@/components/AppLogo';
 
 export default function LoginPage() {
-  const router = useRouter();
   const { user, loading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace('/dashboard');
+      window.location.replace('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 

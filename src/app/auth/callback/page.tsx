@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { getSupabase } from '@/lib/supabase';
 import { Suspense } from 'react';
 
 function CallbackHandler() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const handled = useRef(false);
 
@@ -18,22 +17,19 @@ function CallbackHandler() {
     const code = searchParams.get('code');
     const errorParam = searchParams.get('error');
 
+    const goToDashboard = () => {
+      window.location.replace('/dashboard');
+    };
+
+    const goToLogin = () => {
+      window.location.replace('/login');
+    };
+
     if (errorParam) {
       console.error('[Auth Callback] OAuth error:', errorParam);
-      router.replace('/login');
+      goToLogin();
       return;
     }
-
-    const goToDashboard = () => {
-      // 여러 번 호출 방지
-      try { router.replace('/dashboard'); } catch {}
-      // 폴백: router가 동작하지 않을 경우
-      setTimeout(() => {
-        if (window.location.pathname.includes('callback')) {
-          window.location.href = '/dashboard';
-        }
-      }, 2000);
-    };
 
     const handleAuth = async () => {
       try {
@@ -79,7 +75,7 @@ function CallbackHandler() {
 
         // 모든 시도 실패
         console.warn('[Auth Callback] 세션 확인 실패, 로그인 페이지로 이동');
-        router.replace('/login');
+        goToLogin();
       } catch (err) {
         console.error('[Auth Callback] 처리 실패:', err);
         // 에러 발생해도 세션이 이미 있을 수 있음
@@ -87,13 +83,13 @@ function CallbackHandler() {
         if (session) {
           goToDashboard();
         } else {
-          router.replace('/login');
+          goToLogin();
         }
       }
     };
 
     handleAuth();
-  }, [router, searchParams]);
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">

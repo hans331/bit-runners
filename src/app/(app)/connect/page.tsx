@@ -135,6 +135,11 @@ export default function ConnectPage() {
                 {lastSync && (
                   <p className="text-xs text-[var(--muted)]">마지막 동기화: {formatLastSync(lastSync)}</p>
                 )}
+                {message && (
+                  <p className={`text-sm ${message.includes('실패') || message.includes('없습니다') ? 'text-red-500' : 'text-green-600'}`}>
+                    {message}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="mt-3 flex items-start gap-2 text-xs text-[var(--muted)]">
@@ -182,17 +187,6 @@ export default function ConnectPage() {
           </div>
         </div>
       </div>
-
-      {/* 메시지 */}
-      {message && (
-        <div className={`card p-3 text-center text-sm ${
-          message.includes('실패') || message.includes('없습니다')
-            ? 'text-red-500'
-            : 'text-green-500'
-        }`}>
-          {message}
-        </div>
-      )}
 
       {/* 안내 */}
       <div className="mt-6 space-y-3">

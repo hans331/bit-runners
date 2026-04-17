@@ -40,14 +40,21 @@ const FILTERS: { id: FilterMode; label: string }[] = [
   { id: 'all', label: '전체' },
 ];
 
-// 좌표를 그리드 키로 변환 (경로 중복 감지용)
+// 좌표를 그리드 키로 변환 (~11m 단위 버킷)
 function coordKey(lat: number, lng: number, precision: number = 4): string {
   return `${lat.toFixed(precision)},${lng.toFixed(precision)}`;
 }
 
-// 경로 세그먼트별 방문 횟수 계산
-function buildHeatSegments(activities: Activity[]): Map<string, number> {
-  const segmentCount = new Map<string, number>();
+interface Segment {
+  count: number;
+  p1: { lat: number; lng: number };
+  p2: { lat: number; lng: number };
+}
+
+// 활동들의 경로를 세그먼트 단위로 분해 + 누적 횟수 집계
+// 동일 GPS 그리드(≈11m²)를 반복 통과하면 count 증가 → 크레파스 덧칠 효과
+function buildSegmentMap(activities: Activity[]): Map<string, Segment> {
+  const segments = new Map<string, Segment>();
 
   activities.forEach(activity => {
     if (!activity.route_data?.coordinates?.length) return;
@@ -56,16 +63,45 @@ function buildHeatSegments(activities: Activity[]): Map<string, number> {
     for (let i = 0; i < coords.length - 1; i++) {
       const [lng1, lat1] = coords[i];
       const [lng2, lat2] = coords[i + 1];
-      // 세그먼트 키: 두 점의 그리드 좌표 (방향 무관하게 정렬)
       const k1 = coordKey(lat1, lng1);
       const k2 = coordKey(lat2, lng2);
+      if (k1 === k2) continue; // 같은 버킷 내 미세 이동 스킵
       const key = k1 < k2 ? `${k1}-${k2}` : `${k2}-${k1}`;
-      segmentCount.set(key, (segmentCount.get(key) || 0) + 1);
+
+      const existing = segments.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        segments.set(key, {
+          count: 1,
+          p1: { lat: lat1, lng: lng1 },
+          p2: { lat: lat2, lng: lng2 },
+        });
+      }
     }
   });
 
-  return segmentCount;
+  return segments;
 }
+
+// 크레파스 색상 스케일: 덧칠할수록 진해지고, 30+는 검정 계열
+function chipStyle(visits: number): { color: string; weight: number; opacity: number } {
+  if (visits <= 1)  return { color: '#B8F5D8', weight: 2.0, opacity: 0.7 };
+  if (visits <= 3)  return { color: '#6EE7B7', weight: 2.5, opacity: 0.8 };
+  if (visits <= 7)  return { color: '#22C55E', weight: 3.0, opacity: 0.85 };
+  if (visits <= 15) return { color: '#15803D', weight: 3.5, opacity: 0.9 };
+  if (visits <= 30) return { color: '#14532D', weight: 4.0, opacity: 0.95 };
+  return              { color: '#0F172A', weight: 4.5, opacity: 1.0 }; // 30+ (1년 기준 많이 달린 곳)
+}
+
+const CHIP_LEGEND = [
+  { label: '1', color: '#B8F5D8' },
+  { label: '~3', color: '#6EE7B7' },
+  { label: '~7', color: '#22C55E' },
+  { label: '~15', color: '#15803D' },
+  { label: '~30', color: '#14532D' },
+  { label: '30+', color: '#0F172A' },
+];
 
 export default function MapPage() {
   const { user } = useAuth();
@@ -130,7 +166,7 @@ export default function MapPage() {
     let hasPoints = false;
 
     if (filterMode === '1d') {
-      // 1일 모드: 단순 경로 표시 (클릭 가능)
+      // 1일 모드: 단일 경로들 — 클릭 가능, 연한 민트색으로 가늘게
       filtered.forEach(activity => {
         if (!activity.route_data?.coordinates?.length) return;
         const path = activity.route_data.coordinates.map(([lng, lat]) => {
@@ -140,91 +176,38 @@ export default function MapPage() {
           return point;
         });
 
+        const style = chipStyle(1);
         const polyline = new google.maps.Polyline({
           path,
           geodesic: true,
-          strokeColor: '#FF4500',
-          strokeOpacity: 0.9,
-          strokeWeight: 5,
+          strokeColor: style.color,
+          strokeOpacity: style.opacity,
+          strokeWeight: style.weight,
           map: googleMapRef.current,
         });
-
         polyline.addListener('click', () => setSelectedActivity(activity));
         polylinesRef.current.push(polyline);
       });
     } else {
-      // 3일/7일/30일/전체 모드: 덧칠 히트맵
-      // 각 활동의 전체 경로를 하나의 폴리라인으로 렌더링
-      // 같은 경로를 여러 번 달리면 점점 진하고 굵어짐
+      // 3일/7일/30일/전체: 크레파스 덧칠 방식 (세그먼트 단위)
+      // 같은 GPS 그리드(≈11m)를 반복 통과할수록 진해지고 굵어짐
+      const segments = buildSegmentMap(filtered);
 
-      // 활동별 경로 횟수 카운트
-      const routeVisits = new Map<string, number>();
-      filtered.forEach(activity => {
-        if (!activity.route_data?.coordinates?.length) return;
-        // 경로의 시작/끝점으로 대략적인 경로 ID 생성
-        const coords = activity.route_data.coordinates;
-        const startKey = coordKey(coords[0][1], coords[0][0], 3);
-        const endKey = coordKey(coords[coords.length - 1][1], coords[coords.length - 1][0], 3);
-        const routeId = `${startKey}-${endKey}`;
-        routeVisits.set(routeId, (routeVisits.get(routeId) || 0) + 1);
-      });
-      const maxVisits = Math.max(...routeVisits.values(), 1);
+      // 방문 횟수가 적은 것부터 그려서 많이 달린 세그먼트가 위로 올라옴
+      const sorted = [...segments.values()].sort((a, b) => a.count - b.count);
 
-      // 방문 횟수가 적은 것부터 그려서 많이 달린 경로가 위에 올라옴
-      const sortedActivities = [...filtered]
-        .filter(a => a.route_data?.coordinates?.length)
-        .sort((a, b) => {
-          const getVisits = (act: typeof a) => {
-            const c = act.route_data!.coordinates;
-            const sk = coordKey(c[0][1], c[0][0], 3);
-            const ek = coordKey(c[c.length - 1][1], c[c.length - 1][0], 3);
-            return routeVisits.get(`${sk}-${ek}`) || 1;
-          };
-          return getVisits(a) - getVisits(b);
-        });
-
-      sortedActivities.forEach(activity => {
-        const coords = activity.route_data!.coordinates;
-        const startKey = coordKey(coords[0][1], coords[0][0], 3);
-        const endKey = coordKey(coords[coords.length - 1][1], coords[coords.length - 1][0], 3);
-        const visits = routeVisits.get(`${startKey}-${endKey}`) || 1;
-        const ratio = visits / maxVisits;
-
-        const path = coords.map(([lng, lat]) => {
-          const point = { lat, lng };
-          bounds.extend(point);
-          hasPoints = true;
-          return point;
-        });
-
-        // 두께: 2px(1회) → 10px(최다) — 1회는 가늘게
-        const weight = 2 + ratio * 8;
-        const opacity = 0.4 + ratio * 0.6;
-
-        // 색상: 연한 파랑 → 초록 → 노랑 → 주황 → 빨강 (잔디 그라데이션)
-        // 1회(ratio=0)일 때 연한 파랑, 최다일 때 진한 빨강
-        let r: number, g: number, b: number;
-        if (ratio < 0.25) {
-          const t = ratio / 0.25;
-          r = Math.round(130 + t * 0); g = Math.round(190 + t * 30); b = Math.round(255 - t * 100);
-        } else if (ratio < 0.5) {
-          const t = (ratio - 0.25) / 0.25;
-          r = Math.round(130 * (1 - t)); g = Math.round(220 - t * 20); b = Math.round(155 - t * 155);
-        } else if (ratio < 0.75) {
-          const t = (ratio - 0.5) / 0.25;
-          r = Math.round(t * 255); g = Math.round(200 - t * 80); b = 0;
-        } else {
-          const t = (ratio - 0.75) / 0.25;
-          r = Math.round(255 - t * 30); g = Math.round(120 - t * 120); b = 0;
-        }
-
+      sorted.forEach(seg => {
+        bounds.extend(seg.p1); bounds.extend(seg.p2);
+        hasPoints = true;
+        const style = chipStyle(seg.count);
         const polyline = new google.maps.Polyline({
-          path,
+          path: [seg.p1, seg.p2],
           geodesic: true,
-          strokeColor: `rgb(${r},${g},${b})`,
-          strokeOpacity: opacity,
-          strokeWeight: weight,
+          strokeColor: style.color,
+          strokeOpacity: style.opacity,
+          strokeWeight: style.weight,
           map: googleMapRef.current,
+          clickable: false,
         });
         polylinesRef.current.push(polyline);
       });
@@ -253,31 +236,46 @@ export default function MapPage() {
         <p className="text-sm text-center italic text-[var(--foreground)]">"{todayQuote}"</p>
       </div>
 
-      {/* 기간 필터 */}
-      <div className="flex gap-1.5">
-        {FILTERS.map(f => (
-          <button
-            key={f.id}
-            onClick={() => { setFilterMode(f.id); setSelectedActivity(null); }}
-            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-              filterMode === f.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      {/* 기간 필터 + 잔디 칩 범례 (스크롤 없이 바로 보임) */}
+      <div className="space-y-2">
+        <div className="flex gap-1.5">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => { setFilterMode(f.id); setSelectedActivity(null); }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                filterMode === f.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card)] text-[var(--muted)]'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        {filterMode !== '1d' && (
+          <div className="card px-3 py-2">
+            <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted)]">
+              <span className="mr-1">덧칠 횟수</span>
+              {CHIP_LEGEND.map(c => (
+                <div key={c.label} className="flex items-center gap-0.5">
+                  <span className="w-3.5 h-3.5 rounded-sm" style={{ background: c.color }} />
+                  <span className="text-[10px]">{c.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 통계 요약 */}
-      <div className="card p-4">
+      {/* 통계 요약 (작게) */}
+      <div className="card p-3">
         <div className="grid grid-cols-2 text-center">
           <div>
-            <p className="text-3xl font-extrabold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
+            <p className="text-xl font-extrabold text-[var(--foreground)]">{totalKm.toFixed(1)} km</p>
             <p className="text-xs text-[var(--muted)]">총 거리</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-[var(--foreground)]">{routeCount}</p>
-            <p className="text-xs text-[var(--muted)]">GPS 기록 수</p>
+            <p className="text-xl font-extrabold text-[var(--foreground)]">{routeCount}</p>
+            <p className="text-xs text-[var(--muted)]">GPS 기록</p>
           </div>
         </div>
       </div>
@@ -292,22 +290,6 @@ export default function MapPage() {
           </div>
         )}
       </div>
-
-      {/* 히트맵 범례 — 잔디 블록 스타일 */}
-      {filterMode !== '1d' && routeCount > 0 && (
-        <div className="card p-4">
-          <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--muted)]">
-            <span>1회</span>
-            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(130,190,255)' }} />
-            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(80,210,155)' }} />
-            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(180,180,0)' }} />
-            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(255,120,0)' }} />
-            <span className="w-5 h-5 rounded-sm" style={{ background: 'rgb(225,0,0)' }} />
-            <span>최다</span>
-          </div>
-          <p className="text-center text-xs text-[var(--muted)] mt-2">달릴수록 굵고 진하게</p>
-        </div>
-      )}
 
       {loading && (
         <div className="flex justify-center py-4">

@@ -178,6 +178,9 @@ export default function DashboardPage() {
 
   const recentActivities = activities.slice(0, 3);
 
+  // 솔로 사용자(클럽 멤버 1명 이하)면 클럽 뷰 숨기고 개인 통계로 폴백
+  const effectiveSummary = clubSummary && clubSummary.totalMembers >= 2 ? clubSummary : null;
+
   const handleRefresh = useCallback(async () => {
     await Promise.all([loadClubData(), refresh()]);
   }, [loadClubData, refresh]);
@@ -220,13 +223,13 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-[var(--accent)] opacity-30">
             <TrendingUp size={28} />
           </div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 거리' : '내 총 거리'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '클럽 총 거리' : '내 총 거리'}</p>
           <p className="text-3xl font-extrabold text-[var(--accent)] italic">
-            {clubSummary ? clubSummary.totalDistance.toFixed(0) : (profile?.total_distance_km ? Number(profile.total_distance_km).toFixed(0) : '0')}
+            {effectiveSummary ? effectiveSummary.totalDistance.toFixed(0) : (profile?.total_distance_km ? Number(profile.total_distance_km).toFixed(0) : '0')}
             <span className="text-base font-bold not-italic ml-1">km</span>
           </p>
           <p className="text-xs text-[var(--muted)] mt-1">
-            {clubSummary ? `${clubSummary.activeMembers}명 활동` : '통산 기록'}
+            {effectiveSummary ? `${effectiveSummary.activeMembers}명 활동` : '통산 기록'}
           </p>
         </div>
 
@@ -235,12 +238,12 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-green-500 opacity-30">
             <Activity size={28} />
           </div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '인당 평균' : '이달 거리'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '인당 평균' : '이달 거리'}</p>
           <p className="text-3xl font-extrabold text-green-600 italic">
-            {clubSummary ? clubSummary.avgDistance.toFixed(1) : monthlyDistance.toFixed(1)}
+            {effectiveSummary ? effectiveSummary.avgDistance.toFixed(1) : monthlyDistance.toFixed(1)}
             <span className="text-base font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? '활동 멤버 기준' : `${month}월 누적`}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{effectiveSummary ? '활동 멤버 기준' : `${month}월 누적`}</p>
         </div>
 
         {/* 총 러닝 */}
@@ -248,14 +251,14 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-purple-500 opacity-30">
             <Zap size={28} />
           </div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 러닝' : '내 총 러닝'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '클럽 총 러닝' : '내 총 러닝'}</p>
           <p className="text-3xl font-extrabold text-purple-600 italic">
-            {clubSummary ? clubSummary.totalRuns : (profile?.total_runs ?? 0)}
+            {effectiveSummary ? effectiveSummary.totalRuns : (profile?.total_runs ?? 0)}
             <span className="text-base font-bold not-italic ml-1">회</span>
           </p>
           <p className="text-xs text-[var(--muted)] mt-1">
-            {clubSummary
-              ? (clubSummary.daysRemaining > 0 ? `D-${clubSummary.daysRemaining}` : '이달 완료')
+            {effectiveSummary
+              ? (effectiveSummary.daysRemaining > 0 ? `D-${effectiveSummary.daysRemaining}` : '이달 완료')
               : '통산 기록'}
           </p>
         </div>
@@ -265,16 +268,16 @@ export default function DashboardPage() {
           <div className="absolute top-2 right-3 text-orange-500 opacity-30">
             <Users size={28} />
           </div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '활동 멤버' : '이달 활동'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '활동 멤버' : '이달 활동'}</p>
           <p className="text-3xl font-extrabold text-orange-600 italic">
-            {clubSummary ? clubSummary.activeMembers : activities.filter(a => {
+            {effectiveSummary ? effectiveSummary.activeMembers : activities.filter(a => {
               const d = new Date(a.activity_date);
               return d.getFullYear() === year && d.getMonth() + 1 === month;
             }).length}
-            <span className="text-base font-bold not-italic ml-1">{clubSummary ? '명' : '회'}</span>
+            <span className="text-base font-bold not-italic ml-1">{effectiveSummary ? '명' : '회'}</span>
           </p>
           <p className="text-xs text-[var(--muted)] mt-1">
-            {clubSummary ? `전체 ${clubSummary.totalMembers}명` : `${month}월 러닝 횟수`}
+            {effectiveSummary ? `전체 ${effectiveSummary.totalMembers}명` : `${month}월 러닝 횟수`}
           </p>
         </div>
       </div>

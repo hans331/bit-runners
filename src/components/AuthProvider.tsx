@@ -88,25 +88,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // routinist://auth/callback#access_token=... 또는 ?code=...
         if (url.includes('auth/callback') || url.includes('access_token') || url.includes('code=')) {
           // 최대 3번 시도
+          let resolvedSession: Session | null = null;
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
               const session = await handleOAuthCallback(url);
               if (session) {
                 console.log('[Auth] OAuth 콜백 성공 (시도 ' + (attempt + 1) + ')');
-                return;
+                resolvedSession = session;
+                break;
               }
-              // 세션이 null이면 잠시 대기 후 재시도
               await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
             } catch (e) {
               console.error(`[Auth] OAuth callback 시도 ${attempt + 1} 실패:`, e);
               await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
             }
           }
-          // 모든 시도 실패해도 세션이 이미 설정됐을 수 있음
-          const supabase = getSupabase();
-          const { data: { session: existingSession } } = await supabase.auth.getSession();
-          if (existingSession) {
-            console.log('[Auth] 기존 세션 발견, 로그인 성공');
+          if (!resolvedSession) {
+            const supabase = getSupabase();
+            const { data: { session: existingSession } } = await supabase.auth.getSession();
+            resolvedSession = existingSession;
+          }
+          if (resolvedSession) {
+            // 세션 설정 후 state 반영 대기 + 대시보드로 강제 이동
+            await new Promise(r => setTimeout(r, 300));
+            if (!window.location.pathname.startsWith('/dashboard')) {
+              window.location.replace('/dashboard');
+            }
           } else {
             console.warn('[Auth] 모든 OAuth 시도 실패');
           }

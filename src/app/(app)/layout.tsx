@@ -5,13 +5,13 @@ import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Home, BarChart3, Map, Trophy, User } from 'lucide-react';
+import { Home, Map, Trophy, User } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 import AppLogo from '@/components/AppLogo';
 
+// 홈에 통계 흡수 → 4탭 구조 (심플/depth 최소화)
 const TABS = [
   { href: '/dashboard', label: '홈', Icon: Home },
-  { href: '/stats', label: '통계', Icon: BarChart3 },
   { href: '/map', label: '지도', Icon: Map },
   { href: '/social', label: '랭킹', Icon: Trophy },
   { href: '/profile', label: '내 정보', Icon: User },
@@ -45,16 +45,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router]);
 
-  // 앱 열 때 + 포그라운드 복귀 + 30분 주기 자동 동기화
+  // Apple Health 동기화 전략:
+  // 1) 앱 열 때 (foreground 진입) 자동 pull
+  // 2) 백그라운드에서 포그라운드 복귀 시 자동 pull
+  // 3) 수동 새로고침 버튼 (connect 페이지)
+  // 폴링 인터벌은 배터리 낭비라 제거. 진정한 백그라운드 push는 HKObserverQuery + enableBackgroundDelivery 필요
+  // (현재 @capgo/capacitor-health 미지원 → 커스텀 네이티브 플러그인 TODO)
   useEffect(() => {
     if (!user) return;
 
-    const SYNC_INTERVAL_MS = 30 * 60 * 1000; // 30분
-
     const doSync = async () => {
       const now = Date.now();
-      // 마지막 동기화 후 5분 이내면 스킵
-      if (now - lastSyncRef.current < 5 * 60 * 1000) return;
+      if (now - lastSyncRef.current < 2 * 60 * 1000) return; // 2분 내 중복 실행 방지
       lastSyncRef.current = now;
 
       if (isNativeApp()) {
@@ -64,15 +66,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // 앱 로드 시 한 번 실행
-    doSync();
+    doSync(); // 앱 로드 시 한 번
 
-    // 30분 주기 자동 동기화 (앱이 열려있을 때)
-    const intervalId = setInterval(doSync, SYNC_INTERVAL_MS);
-
-    // Capacitor 앱 포그라운드 복귀 감지
     let removeListener: (() => void) | null = null;
-
     if (isNativeApp()) {
       import('@capacitor/app').then(({ App }) => {
         App.addListener('appStateChange', ({ isActive }) => {
@@ -83,10 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }).catch(() => {});
     }
 
-    return () => {
-      clearInterval(intervalId);
-      removeListener?.();
-    };
+    return () => { removeListener?.(); };
   }, [user]);
 
   if (loading) {

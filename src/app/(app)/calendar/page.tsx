@@ -6,8 +6,9 @@ import { useUserData } from '@/components/UserDataProvider';
 import { getMonthlyDistance, formatDuration } from '@/lib/routinist-data';
 import { getSupabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Camera, Share2 } from 'lucide-react';
 import type { ActivityPhoto } from '@/types';
+import ShareCard from '@/components/activity/ShareCard';
 
 // Git 잔디 스타일 — 초록 단일 그라데이션
 function distanceColor(km: number, dateStr: string): string {
@@ -46,6 +47,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null); // 날짜 상세 모달
+  const [shareActivityId, setShareActivityId] = useState<string | null>(null); // 사진 꾸미기 공유 카드
 
   // 월간 활동 데이터
   const monthlyActivities = useMemo(() =>
@@ -411,34 +413,25 @@ export default function CalendarPage() {
                 </Link>
               ))}
 
-              {/* 사진 추가/변경 */}
-              <button
-                onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm"
-              >
-                <Camera size={16} />
-                {dayPhoto ? '사진 변경하기' : '사진으로 꾸미기'}
-              </button>
-
-              {/* 공유 기능: 러닝 데이터 오버레이 이미지 공유 */}
+              {/* 사진으로 꾸미기: ShareCard 모달 (사진 배경 + 지도 + 거리 공유) */}
               {dayActivities.length > 0 && (
                 <button
-                  onClick={async () => {
-                    try {
-                      const shareText = `${dateLabel}\n🏃 ${dayKm.toFixed(1)}km${dayDuration > 0 ? ` · ${formatDuration(dayDuration)}` : ''}\n\n#Routinist #러닝`;
-                      if (navigator.share) {
-                        await navigator.share({ title: 'Routinist 러닝 기록', text: shareText });
-                      } else {
-                        await navigator.clipboard.writeText(shareText);
-                        alert('러닝 기록이 클립보드에 복사되었습니다!');
-                      }
-                    } catch {}
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-sm"
+                  onClick={() => { setShareActivityId(dayActivities[0].id); setShowDetail(null); }}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm"
                 >
-                  📤 러닝 기록 공유하기
+                  <Share2 size={16} />
+                  사진으로 꾸미기
                 </button>
               )}
+
+              {/* 날짜 셀 배경 이미지 (선택): 캘린더 장식용 */}
+              <button
+                onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--muted)] text-xs"
+              >
+                <Camera size={14} />
+                {dayPhoto ? '날짜 배경 변경' : '날짜 배경 사진'}
+              </button>
 
               <button
                 onClick={() => setShowDetail(null)}
@@ -448,6 +441,19 @@ export default function CalendarPage() {
               </button>
             </div>
           </div>
+        );
+      })()}
+
+      {/* 사진 꾸미기 공유 카드 */}
+      {shareActivityId && (() => {
+        const shareAct = activities.find(a => a.id === shareActivityId);
+        if (!shareAct) return null;
+        return (
+          <ShareCard
+            activity={shareAct}
+            displayName={user?.user_metadata?.name || '러너'}
+            onClose={() => setShareActivityId(null)}
+          />
         );
       })()}
     </div>

@@ -89,11 +89,14 @@ export default function HistoryPage() {
   const monthlyDistance = getMonthlyDistance(activities, year, month);
   const totalDuration = monthlyActivities.reduce((s, a) => s + (a.duration_seconds || 0), 0);
 
+  // 실제 클럽 데이터가 있는 경우만 클럽 뷰 사용 (멤버 2명 이상)
+  const effectiveSummary = clubSummary && clubSummary.totalMembers >= 2 ? clubSummary : null;
+
   // 캘린더
   const runDates = new Set(monthlyActivities.map(a => a.activity_date));
   const firstDay = new Date(year, month - 1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
-  const totalMembers = clubSummary?.totalMembers || 1;
+  const totalMembers = effectiveSummary?.totalMembers || 1;
 
   const prevMonth = () => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
@@ -138,35 +141,35 @@ export default function HistoryPage() {
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-[var(--accent)] opacity-30"><TrendingUp size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 거리' : '이달 거리'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '클럽 총 거리' : '이달 거리'}</p>
           <p className="text-3xl font-extrabold text-[var(--accent)] italic">
-            {clubSummary ? clubSummary.totalDistance.toFixed(0) : monthlyDistance.toFixed(1)}<span className="text-base font-bold not-italic ml-1">km</span>
+            {effectiveSummary ? effectiveSummary.totalDistance.toFixed(0) : monthlyDistance.toFixed(1)}<span className="text-base font-bold not-italic ml-1">km</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `${clubSummary.activeMembers}명 활동` : `${month}월 누적`}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{effectiveSummary ? `${effectiveSummary.activeMembers}명 활동` : `${month}월 누적`}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-green-500 opacity-30"><Activity size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '인당 평균' : '이달 러닝'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '인당 평균' : '이달 러닝'}</p>
           <p className="text-3xl font-extrabold text-green-600 italic">
-            {clubSummary ? clubSummary.avgDistance.toFixed(1) : monthlyActivities.length}<span className="text-base font-bold not-italic ml-1">{clubSummary ? 'km' : '회'}</span>
+            {effectiveSummary ? effectiveSummary.avgDistance.toFixed(1) : monthlyActivities.length}<span className="text-base font-bold not-italic ml-1">{effectiveSummary ? 'km' : '회'}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? '활동 멤버 기준' : `${month}월 활동`}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{effectiveSummary ? '활동 멤버 기준' : `${month}월 활동`}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-purple-500 opacity-30"><Zap size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '클럽 총 러닝' : '이달 시간'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '클럽 총 러닝' : '이달 시간'}</p>
           <p className="text-3xl font-extrabold text-purple-600 italic">
-            {clubSummary ? clubSummary.totalRuns : (totalDuration > 0 ? formatDuration(totalDuration) : '0')}<span className="text-base font-bold not-italic ml-1">{clubSummary ? '회' : ''}</span>
+            {effectiveSummary ? effectiveSummary.totalRuns : (totalDuration > 0 ? formatDuration(totalDuration) : '0')}<span className="text-base font-bold not-italic ml-1">{effectiveSummary ? '회' : ''}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `D-${clubSummary.daysRemaining}` : '운동 시간'}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{effectiveSummary ? `D-${effectiveSummary.daysRemaining}` : '운동 시간'}</p>
         </div>
         <div className="card p-4 relative overflow-hidden">
           <div className="absolute top-2 right-3 text-orange-500 opacity-30"><Users size={24} /></div>
-          <p className="text-xs text-[var(--muted)] mb-1">{clubSummary ? '활동 멤버' : '러닝 일수'}</p>
+          <p className="text-xs text-[var(--muted)] mb-1">{effectiveSummary ? '활동 멤버' : '러닝 일수'}</p>
           <p className="text-3xl font-extrabold text-orange-600 italic">
-            {clubSummary ? clubSummary.activeMembers : new Set(monthlyActivities.map(a => a.activity_date)).size}<span className="text-base font-bold not-italic ml-1">{clubSummary ? '명' : '일'}</span>
+            {effectiveSummary ? effectiveSummary.activeMembers : new Set(monthlyActivities.map(a => a.activity_date)).size}<span className="text-base font-bold not-italic ml-1">{effectiveSummary ? '명' : '일'}</span>
           </p>
-          <p className="text-xs text-[var(--muted)] mt-1">{clubSummary ? `전체 ${clubSummary.totalMembers}명` : `${month}월 중`}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">{effectiveSummary ? `전체 ${effectiveSummary.totalMembers}명` : `${month}월 중`}</p>
         </div>
       </div>
 

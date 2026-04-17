@@ -22,8 +22,10 @@ export default function AppLogo({ size = 28, className = '' }: { size?: number; 
     3: '#16a34a', // green-600
   };
 
-  const gap = 1;
-  const blockSize = (size - gap * 4) / 5;
+  // 5개 블록 + 6개 gap (양 끝 + 사이 4개) = size
+  const gapRatio = 0.04; // size 대비 gap 비율
+  const gap = size * gapRatio;
+  const blockSize = (size - gap * 6) / 5;
 
   return (
     <svg

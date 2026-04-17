@@ -144,21 +144,46 @@ export async function createClub(name: string, description?: string): Promise<Cl
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('로그인이 필요합니다');
 
+  // 프로필이 없으면 먼저 생성 (auth 트리거 누락 대비)
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!existingProfile) {
+    const displayName =
+      (user.user_metadata?.name as string | undefined) ||
+      (user.user_metadata?.full_name as string | undefined) ||
+      (user.email?.split('@')[0]) ||
+      '러너';
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({ id: user.id, display_name: displayName });
+    if (profileError) {
+      console.error('[프로필 자동 생성 실패]', profileError);
+      throw new Error(`프로필 생성 실패: ${profileError.message}`);
+    }
+  }
+
   const { data, error } = await supabase
     .from('clubs')
     .insert({ name, description: description || null, created_by: user.id })
     .select()
     .single();
-  if (error) throw error;
+  if (error) {
+    console.error('[클럽 insert 실패]', error);
+    throw new Error(error.message || '알 수 없는 오류');
+  }
 
-  // 생성자를 owner로 추가 (실패해도 클럽 자체는 반환)
   const { error: memberError } = await supabase.from('club_members').insert({
     club_id: data.id,
     user_id: user.id,
     role: 'owner',
   });
   if (memberError) {
-    console.warn('[클럽 멤버 추가 실패]', memberError.message);
+    console.error('[클럽 멤버 추가 실패]', memberError);
+    throw new Error(`클럽은 생성되었으나 멤버 등록 실패: ${memberError.message}`);
   }
 
   return data as Club;

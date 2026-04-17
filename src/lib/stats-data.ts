@@ -9,11 +9,10 @@ export interface MemberProgress {
   progress: number; // 0-100
 }
 
-// 클럽 멤버들의 이번 달 목표 진행률
+// 클럽 멤버들의 이번 달 목표 진행률 (배치 쿼리)
 export async function fetchClubMemberProgress(clubId: string, year: number, month: number): Promise<MemberProgress[]> {
   const supabase = getSupabase();
 
-  // 클럽 멤버 조회
   const { data: members } = await supabase
     .from('club_members')
     .select('user_id, profiles(display_name, avatar_url)')
@@ -26,44 +25,47 @@ export async function fetchClubMemberProgress(clubId: string, year: number, mont
   const endYear = month === 12 ? year + 1 : year;
   const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`;
 
-  const results: MemberProgress[] = [];
+  const userIds = members.map(m => m.user_id);
 
-  for (const m of members) {
-    const profile = m.profiles as unknown as { display_name: string; avatar_url: string | null };
-
-    // 이번 달 거리
-    const { data: activities } = await supabase
+  // 전 멤버의 활동/목표를 한 번에 조회
+  const [{ data: activities }, { data: goals }] = await Promise.all([
+    supabase
       .from('activities')
-      .select('distance_km')
-      .eq('user_id', m.user_id)
+      .select('user_id, distance_km')
+      .in('user_id', userIds)
       .gte('activity_date', startDate)
-      .lt('activity_date', endDate);
-
-    const distance = (activities || []).reduce((sum, a) => sum + Number(a.distance_km), 0);
-
-    // 목표
-    const { data: goal } = await supabase
+      .lt('activity_date', endDate),
+    supabase
       .from('monthly_goals')
-      .select('goal_km')
-      .eq('user_id', m.user_id)
+      .select('user_id, goal_km')
+      .in('user_id', userIds)
       .eq('year', year)
-      .eq('month', month)
-      .maybeSingle();
+      .eq('month', month),
+  ]);
 
-    const goalKm = goal?.goal_km || 0;
+  const distanceMap = new Map<string, number>();
+  (activities || []).forEach(a => {
+    distanceMap.set(a.user_id, (distanceMap.get(a.user_id) || 0) + Number(a.distance_km));
+  });
+
+  const goalMap = new Map<string, number>();
+  (goals || []).forEach(g => goalMap.set(g.user_id, Number(g.goal_km)));
+
+  const results: MemberProgress[] = members.map(m => {
+    const profile = m.profiles as unknown as { display_name: string; avatar_url: string | null };
+    const distance = distanceMap.get(m.user_id) || 0;
+    const goalKm = goalMap.get(m.user_id) || 0;
     const progress = goalKm > 0 ? Math.min((distance / goalKm) * 100, 100) : 0;
-
-    results.push({
+    return {
       user_id: m.user_id,
       display_name: profile?.display_name || '러너',
       avatar_url: profile?.avatar_url || null,
       distance_km: Math.round(distance * 100) / 100,
       goal_km: goalKm,
       progress,
-    });
-  }
+    };
+  });
 
-  // 진행률 높은 순 정렬
   return results.sort((a, b) => b.progress - a.progress);
 }
 
@@ -228,8 +230,10 @@ export async function fetchCumulativeRanking(clubId: string): Promise<Cumulative
 
 // 명예의 전당 (특정 월)
 export async function fetchHallOfFame(clubId: string, year: number, month: number): Promise<HallOfFameEntry[]> {
-  const members = await fetchClubMemberProgress(clubId, year, month);
-  const runCounts = await fetchMemberRunCounts(clubId, year, month);
+  const [members, runCounts] = await Promise.all([
+    fetchClubMemberProgress(clubId, year, month),
+    fetchMemberRunCounts(clubId, year, month),
+  ]);
 
   const entries: HallOfFameEntry[] = [];
 
