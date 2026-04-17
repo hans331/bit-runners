@@ -67,7 +67,8 @@ async function write(filePath, size, opts = {}) {
 async function writeSplash(filePath, size) {
   const abs = path.join(ROOT, filePath);
   // 스플래시: 흰 배경(Capacitor SplashScreen backgroundColor와 일치), 중앙에 아이콘 크게
-  const iconSize = Math.round(size * 0.4);
+  // scaleAspectFill로 화면에 맞춰 크롭되므로 60% 정도가 적당
+  const iconSize = Math.round(size * 0.6);
   const iconSvg = buildSvg(iconSize, { padRatio: 0 });
   const iconBuf = await sharp(Buffer.from(iconSvg)).png().toBuffer();
 

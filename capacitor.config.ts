@@ -11,6 +11,8 @@ const config: CapacitorConfig = {
     allowNavigation: [
       '*.cafe24.com',
       'routinist.cafe24.com',
+      'routinist.kr',
+      '*.routinist.kr',
       '*.inicis.com',
       '*.nicepay.co.kr',
       '*.kakaopay.com',

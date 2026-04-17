@@ -44,7 +44,7 @@ export default function ProfilePage() {
   // 액션 그리드 2×2 — 자주 쓰는 기능만
   const actions: { href: string; label: string; Icon: typeof Heart; color: string }[] = [
     { href: '/connect', label: '건강 앱 연동', Icon: Heart, color: 'text-red-500' },
-    { href: '/social/messages', label: '쪽지함', Icon: MessageCircle, color: 'text-blue-500' },
+    { href: '/messages', label: '쪽지함', Icon: MessageCircle, color: 'text-blue-500' },
     { href: '/mileage', label: '마일리지 내역', Icon: Coins, color: 'text-amber-500' },
     { href: '/mileage/gift', label: '마일리지 선물', Icon: Gift, color: 'text-pink-500' },
   ];

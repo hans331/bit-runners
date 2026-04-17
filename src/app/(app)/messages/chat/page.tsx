@@ -108,7 +108,7 @@ function ChatView() {
     <div className="flex flex-col h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-w-lg mx-auto">
       {/* 헤더 */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--card-border)] flex-shrink-0">
-        <Link href="/social/messages" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
+        <Link href="/messages" className="text-[var(--muted)]"><ArrowLeft size={24} /></Link>
         <Link href={otherUser ? `/profile/view?id=${otherUser.id}` : '#'} className="flex items-center gap-2 flex-1 min-w-0">
           <div className="w-8 h-8 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
             {otherUser?.avatar_url ? (

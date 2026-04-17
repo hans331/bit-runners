@@ -27,9 +27,11 @@ export async function signInWithProvider(provider: Provider) {
   if (error) throw error;
 
   // 네이티브 앱에서는 인앱 브라우저로 OAuth URL 열기
+  // windowName: '_self' 는 Capacitor Browser 에서 의미가 불명확하고
+  // 일부 환경에서 딥링크 복귀를 막아 무한 로딩의 원인이 됨 — 제거
   if (isNativeApp() && data.url) {
     const { Browser } = await import('@capacitor/browser');
-    await Browser.open({ url: data.url, windowName: '_self' });
+    await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
   }
 
   return data;

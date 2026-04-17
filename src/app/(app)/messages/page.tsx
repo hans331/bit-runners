@@ -51,7 +51,7 @@ export default function MessagesPage() {
           {conversations.map((conv) => (
             <Link
               key={conv.id}
-              href={`/social/messages/chat?id=${conv.id}`}
+              href={`/messages/chat?id=${conv.id}`}
               className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card-border)]/30"
             >
               <div className="w-10 h-10 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">

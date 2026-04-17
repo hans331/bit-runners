@@ -8,14 +8,26 @@ import Link from 'next/link';
 import { Home, Map, Trophy, User, ShoppingBag } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
 import AppLogo from '@/components/AppLogo';
+import SwipeNav from '@/components/SwipeNav';
 
 // 5탭 구조: 통계는 홈에 흡수, 쇼핑은 수익 모델이라 최상위로 승격 (Cafe24 연동)
-const TABS = [
+// activeFor: 해당 경로에서도 이 탭이 활성화된 것으로 표시 (내 정보 하위 페이지들)
+const TABS: {
+  href: string;
+  label: string;
+  Icon: typeof Home;
+  activeFor?: string[];
+}[] = [
   { href: '/dashboard', label: '홈', Icon: Home },
   { href: '/map', label: '지도', Icon: Map },
   { href: '/social', label: '랭킹', Icon: Trophy },
   { href: '/shop', label: '쇼핑', Icon: ShoppingBag },
-  { href: '/profile', label: '내 정보', Icon: User },
+  {
+    href: '/profile',
+    label: '내 정보',
+    Icon: User,
+    activeFor: ['/messages', '/mileage', '/goals', '/connect', '/awards', '/support', '/privacy'],
+  },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -28,6 +40,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/connect': '건강 앱 연동',
   '/calendar': '캘린더',
   '/shop': 'Routinist Store',
+  '/messages': '쪽지함',
   '/mileage': '마일리지',
   '/support': '고객 지원',
   '/privacy': '개인정보처리방침',
@@ -83,11 +96,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   if (loading) {
+    // 로그인 화면 AppLogo size=80 과 동일한 크기로 통일 — 화면 전환 시 아이콘이 커졌다 작아졌다 하지 않도록
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] gap-4">
-        <AppLogo size={56} />
-        <h1 className="text-xl font-bold text-[var(--foreground)]">Routinist</h1>
-        <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+        <AppLogo size={80} />
+        <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Routinist</h1>
+        <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full mt-2" />
       </div>
     );
   }
@@ -96,6 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
+      <SwipeNav />
       {/* 헤더 — 동적 타이틀 */}
       <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
         <div className="px-4 h-14 flex items-center justify-between">
@@ -116,8 +131,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* 하단 5탭 네비게이션 */}
       <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center h-16">
-          {TABS.map((tab, i) => {
-            const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
+          {TABS.map((tab) => {
+            const isActive =
+              pathname === tab.href ||
+              pathname.startsWith(tab.href + '/') ||
+              (tab.activeFor?.some(p => pathname === p || pathname.startsWith(p + '/')) ?? false);
             return (
               <Link
                 key={tab.href}

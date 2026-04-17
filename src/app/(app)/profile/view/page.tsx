@@ -93,7 +93,7 @@ function UserProfile() {
             onClick={async () => {
               if (!userId) return;
               const conv = await getOrCreateConversation(userId);
-              router.push(`/social/messages/chat?id=${conv.id}`);
+              router.push(`/messages/chat?id=${conv.id}`);
             }}
             className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-[var(--card)] border border-[var(--card-border)] text-[var(--muted)] inline-flex items-center gap-1"
           >
