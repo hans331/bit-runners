@@ -86,7 +86,7 @@ export default function ConnectPage() {
       </div>
 
       <p className="text-xs text-[var(--muted)] mb-6">
-        건강 앱에서 러닝 데이터를 자동으로 가져옵니다. 다른 앱(Nike Run Club, Strava 등)으로 기록한 데이터도 건강 앱을 통해 동기화됩니다.
+        건강 앱에서 러닝 데이터를 자동으로 가져옵니다. 다른 앱(Nike Run Club, 런데이, Garmin 등)으로 기록한 데이터도 건강 앱을 통해 동기화됩니다.
       </p>
 
       {/* Apple Health */}
@@ -194,7 +194,7 @@ export default function ConnectPage() {
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-[var(--foreground)] mb-1">데이터는 어떻게 동기화되나요?</p>
-            <p>건강 앱에 저장된 러닝 기록(워크아웃)을 가져옵니다. Nike Run Club, Strava, Garmin 등으로 기록하더라도 건강 앱과 연동되어 있다면 Routinist에서 자동으로 가져올 수 있습니다.</p>
+            <p>건강 앱에 저장된 러닝 기록(워크아웃)을 가져옵니다. Nike Run Club, 런데이, Garmin 등으로 기록하더라도 건강 앱과 연동되어 있다면 Routinist에서 자동으로 가져올 수 있습니다.</p>
           </div>
         </div>
         <div className="flex items-start gap-3 text-xs text-[var(--muted)]">

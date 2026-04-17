@@ -336,20 +336,20 @@ export default function MapPage() {
             </Link>
             <div className="grid grid-cols-2 gap-2">
               <a
-                href="https://apps.apple.com/kr/app/strava/id426826309"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-xs flex items-center justify-center gap-1.5"
-              >
-                🟠 Strava 받기
-              </a>
-              <a
                 href="https://apps.apple.com/kr/app/nike-run-club/id387771637"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-xs flex items-center justify-center gap-1.5"
               >
                 👟 Nike Run Club
+              </a>
+              <a
+                href="https://apps.apple.com/kr/app/%EB%9F%B0%EB%8D%B0%EC%9D%B4-%EC%B4%88%EB%B3%B4-%EB%8B%AC%EB%A6%AC%EA%B8%B0-%EC%95%B1/id1061944231"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-xs flex items-center justify-center gap-1.5"
+              >
+                🏃 런데이
               </a>
             </div>
           </div>
