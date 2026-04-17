@@ -4,7 +4,17 @@
 	"webDir": "out",
 	"server": {
 		"androidScheme": "https",
-		"iosScheme": "https"
+		"iosScheme": "https",
+		"allowNavigation": [
+			"*.cafe24.com",
+			"routinist.cafe24.com",
+			"*.inicis.com",
+			"*.nicepay.co.kr",
+			"*.kakaopay.com",
+			"*.tosspayments.com",
+			"*.naverpay.com",
+			"*.kftc-bokr.org"
+		]
 	},
 	"plugins": {
 		"SplashScreen": {

@@ -7,6 +7,17 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
     iosScheme: 'https',
+    // Cafe24 쇼핑몰 iframe + 한국 PG 결제 팝업 허용
+    allowNavigation: [
+      '*.cafe24.com',
+      'routinist.cafe24.com',
+      '*.inicis.com',
+      '*.nicepay.co.kr',
+      '*.kakaopay.com',
+      '*.tosspayments.com',
+      '*.naverpay.com',
+      '*.kftc-bokr.org',
+    ],
   },
   plugins: {
     SplashScreen: {
