@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { getSupabase } from '@/lib/supabase';
 import { getProfile, handleOAuthCallback } from '@/lib/auth';
-// getSupabase is also used in deep link fallback
 import type { Profile } from '@/types';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -27,6 +26,20 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// 로그인 진단 로그 — 사용자가 실기기에서 /login?debug=1 을 열면 화면에서 확인 가능
+function authLog(msg: string, extra?: unknown) {
+  try {
+    const line = `[${new Date().toISOString()}] ${msg}${extra ? ' ' + JSON.stringify(extra) : ''}`;
+    console.log('[Auth]', msg, extra ?? '');
+    if (typeof window !== 'undefined') {
+      const key = 'routinist_auth_log';
+      const prev = window.localStorage.getItem(key) || '';
+      const next = (prev + '\n' + line).split('\n').slice(-50).join('\n');
+      window.localStorage.setItem(key, next);
+    }
+  } catch {}
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -47,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = getSupabase();
 
-    // 초기 세션 로드
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
@@ -58,9 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // 인증 상태 변경 구독
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, s) => {
+      async (event, s) => {
+        authLog('onAuthStateChange', { event, hasSession: !!s });
         setSession(s);
         setUser(s?.user ?? null);
         if (s?.user) {
@@ -80,50 +92,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (window as any).Capacitor !== undefined;
     if (!isNative) return;
 
-    let removeListener: (() => void) | null = null;
+    let removeUrlListener: (() => void) | null = null;
+
+    const processCallbackUrl = async (url: string) => {
+      authLog('딥링크 수신', { url: url.slice(0, 200) });
+      if (!(url.includes('auth/callback') || url.includes('access_token') || url.includes('code='))) {
+        authLog('auth 관련 URL 아님 — 스킵');
+        return;
+      }
+      let resolvedSession: Session | null = null;
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const s = await handleOAuthCallback(url);
+          if (s) {
+            authLog('OAuth 콜백 성공', { attempt: attempt + 1 });
+            resolvedSession = s;
+            break;
+          }
+        } catch (e) {
+          lastError = e;
+          authLog('OAuth 콜백 에러', { attempt: attempt + 1, error: String(e) });
+        }
+        await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+      }
+      if (!resolvedSession) {
+        const supabase = getSupabase();
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        resolvedSession = existingSession;
+        if (resolvedSession) authLog('폴백: 기존 세션 발견');
+      }
+      if (resolvedSession) {
+        await new Promise(r => setTimeout(r, 300));
+        if (!window.location.pathname.startsWith('/dashboard')) {
+          window.location.replace('/dashboard');
+        }
+      } else {
+        authLog('모든 OAuth 시도 실패', { lastError: String(lastError) });
+      }
+    };
 
     import('@capacitor/app').then(({ App }) => {
+      // 1) 앱이 이미 열린 상태에서 딥링크가 들어오는 경우
       App.addListener('appUrlOpen', async ({ url }) => {
-        console.log('[Auth] 딥링크 수신:', url);
-        // routinist://auth/callback#access_token=... 또는 ?code=...
-        if (url.includes('auth/callback') || url.includes('access_token') || url.includes('code=')) {
-          // 최대 3번 시도
-          let resolvedSession: Session | null = null;
-          for (let attempt = 0; attempt < 3; attempt++) {
-            try {
-              const session = await handleOAuthCallback(url);
-              if (session) {
-                console.log('[Auth] OAuth 콜백 성공 (시도 ' + (attempt + 1) + ')');
-                resolvedSession = session;
-                break;
-              }
-              await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-            } catch (e) {
-              console.error(`[Auth] OAuth callback 시도 ${attempt + 1} 실패:`, e);
-              await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-            }
-          }
-          if (!resolvedSession) {
-            const supabase = getSupabase();
-            const { data: { session: existingSession } } = await supabase.auth.getSession();
-            resolvedSession = existingSession;
-          }
-          if (resolvedSession) {
-            // 세션 설정 후 state 반영 대기 + 대시보드로 강제 이동
-            await new Promise(r => setTimeout(r, 300));
-            if (!window.location.pathname.startsWith('/dashboard')) {
-              window.location.replace('/dashboard');
-            }
-          } else {
-            console.warn('[Auth] 모든 OAuth 시도 실패');
-          }
-        }
+        await processCallbackUrl(url);
       }).then(handle => {
-        removeListener = () => handle.remove();
+        removeUrlListener = () => handle.remove();
       });
+
+      // 2) 콜드 스타트: 앱이 완전히 종료됐다가 딥링크로 되살아난 경우
+      //    appUrlOpen 이벤트가 리스너 등록 전에 발생해 유실될 수 있음 → getLaunchUrl로 회수
+      App.getLaunchUrl().then(result => {
+        if (result?.url) {
+          authLog('콜드 스타트 launchUrl', { url: result.url.slice(0, 200) });
+          processCallbackUrl(result.url);
+        }
+      }).catch(() => {});
     }).catch(() => {});
 
-    return () => { removeListener?.(); };
+    return () => { removeUrlListener?.(); };
   }, []);
 
   return (

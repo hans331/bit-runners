@@ -4,10 +4,14 @@ import { useState, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { updateProfile, uploadAvatar } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Camera } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import AppLogo from '@/components/AppLogo';
 import { COUNTRIES, KR_REGIONS, KR_SIDO_LIST } from '@/lib/regions';
+import { detectRegion } from '@/lib/geo';
+
+const CURRENT_YEAR = new Date().getFullYear();
+const BIRTH_YEARS = Array.from({ length: 80 }, (_, i) => CURRENT_YEAR - 14 - i);
 
 export default function ProfileEditPage() {
   const { user, profile, refreshProfile } = useAuth();
@@ -17,16 +21,19 @@ export default function ProfileEditPage() {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
 
-  // 지역 3단계
-  // region_si 필드에 시도명이 들어있으면 기본 한국으로 가정 (기존 호환성)
-  const [country, setCountry] = useState<string>(profile?.region_si ? 'KR' : 'KR');
+  const [country, setCountry] = useState<string>(profile?.country_code || 'KR');
   const [sido, setSido] = useState<string>(profile?.region_si ?? '');
   const [gu, setGu] = useState(profile?.region_gu ?? '');
+
+  const [birthYear, setBirthYear] = useState<string>(profile?.birth_year?.toString() ?? '');
+  const [gender, setGender] = useState<string>(profile?.gender ?? '');
+  const [runningSince, setRunningSince] = useState<string>(profile?.running_since ?? '');
 
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url ?? '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [detecting, setDetecting] = useState(false);
 
   const isKorea = country === 'KR';
   const guList = isKorea && sido ? KR_REGIONS[sido] ?? [] : [];
@@ -38,6 +45,24 @@ export default function ProfileEditPage() {
     setAvatarPreview(URL.createObjectURL(file));
   };
 
+  const handleDetectRegion = async () => {
+    setDetecting(true);
+    setMessage('');
+    try {
+      const r = await detectRegion();
+      setCountry(r.country_code);
+      if (r.country_code === 'KR') {
+        if (r.si) setSido(r.si);
+        if (r.gu) setGu(r.gu);
+      }
+      setMessage(`현재 위치: ${r.display}`);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : '위치 감지 실패');
+    } finally {
+      setDetecting(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user || !displayName.trim()) return;
     setSaving(true);
@@ -45,7 +70,6 @@ export default function ProfileEditPage() {
 
     try {
       let avatarUrl = profile?.avatar_url ?? null;
-
       if (avatarFile) {
         avatarUrl = await uploadAvatar(user.id, avatarFile);
       }
@@ -55,15 +79,17 @@ export default function ProfileEditPage() {
         avatar_url: avatarUrl,
       });
 
-      // bio + 지역 업데이트
       const { getSupabase } = await import('@/lib/supabase');
       await getSupabase()
         .from('profiles')
         .update({
           bio: bio.trim() || null,
-          // 한국만 시도/구 저장. 해외는 시도 필드에 국가 native 이름 (랭킹 참여 불가)
+          country_code: country || null,
           region_si: isKorea ? (sido || null) : (COUNTRIES.find(c => c.code === country)?.native ?? null),
           region_gu: isKorea ? (gu || null) : null,
+          birth_year: birthYear ? parseInt(birthYear, 10) : null,
+          gender: gender || null,
+          running_since: runningSince || null,
         })
         .eq('id', user.id);
 
@@ -79,7 +105,6 @@ export default function ProfileEditPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 pb-32">
-      {/* 헤더 */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/profile" className="text-[var(--muted)]">
           <ArrowLeft size={24} />
@@ -87,7 +112,6 @@ export default function ProfileEditPage() {
         <h1 className="text-2xl font-bold text-[var(--foreground)]">프로필 편집</h1>
       </div>
 
-      {/* 아바타 */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => fileInputRef.current?.click()}
@@ -112,7 +136,6 @@ export default function ProfileEditPage() {
         />
       </div>
 
-      {/* 이름 / 소개 / 지역 */}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)] mb-1">닉네임</label>
@@ -139,11 +162,19 @@ export default function ProfileEditPage() {
           <p className="text-xs text-[var(--muted)] mt-1">{bio.length}/100</p>
         </div>
 
-        {/* 지역 3단계 */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-[var(--foreground)]">지역</label>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-[var(--foreground)]">지역</label>
+            <button
+              onClick={handleDetectRegion}
+              disabled={detecting}
+              className="flex items-center gap-1 text-xs text-[var(--accent)] font-medium disabled:opacity-50"
+            >
+              <MapPin size={14} />
+              {detecting ? '감지 중...' : '현재 위치로 자동 선택'}
+            </button>
+          </div>
 
-          {/* ① 국가 */}
           <div>
             <p className="text-xs text-[var(--muted)] mb-1">국가</p>
             <select
@@ -161,7 +192,6 @@ export default function ProfileEditPage() {
             </select>
           </div>
 
-          {/* ② 시도 */}
           <div>
             <p className="text-xs text-[var(--muted)] mb-1">시/도</p>
             <select
@@ -180,7 +210,6 @@ export default function ProfileEditPage() {
             </select>
           </div>
 
-          {/* ③ 구/군 */}
           <div>
             <p className="text-xs text-[var(--muted)] mb-1">구/군</p>
             <select
@@ -195,16 +224,69 @@ export default function ProfileEditPage() {
               ))}
             </select>
           </div>
+        </div>
 
-          <p className="text-xs text-[var(--muted)]">
-            {isKorea
-              ? '시/도/구를 모두 선택하면 지역 랭킹에 참여할 수 있어요'
-              : '해외 지역 랭킹은 지원 예정입니다'}
-          </p>
+        {/* 추가 프로필 — 매칭 랭킹에 사용. 모두 선택 항목. */}
+        <div className="border-t border-[var(--card-border)] pt-4 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
+              랭킹 매칭 정보 <span className="text-xs text-[var(--muted)]">(선택)</span>
+            </label>
+            <p className="text-xs text-[var(--muted)] mb-3">
+              비슷한 조건의 러너와 나를 비교해서 재미있는 순위를 보여드려요. 언제든 수정·삭제 가능합니다.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-[var(--muted)] mb-1">출생 연도</p>
+            <select
+              value={birthYear}
+              onChange={(e) => setBirthYear(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-sm"
+            >
+              <option value="">선택 안함</option>
+              {BIRTH_YEARS.map(y => (
+                <option key={y} value={y}>{y}년</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <p className="text-xs text-[var(--muted)] mb-1">성별</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { v: 'male', label: '남성' },
+                { v: 'female', label: '여성' },
+                { v: 'other', label: '기타' },
+              ].map(opt => (
+                <button
+                  key={opt.v}
+                  onClick={() => setGender(gender === opt.v ? '' : opt.v)}
+                  type="button"
+                  className={`py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                    gender === opt.v
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                      : 'bg-[var(--card)] text-[var(--foreground)] border-[var(--card-border)]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-[var(--muted)] mb-1">러닝 시작 시점</p>
+            <input
+              type="month"
+              value={runningSince ? runningSince.slice(0, 7) : ''}
+              onChange={(e) => setRunningSince(e.target.value ? `${e.target.value}-01` : '')}
+              className="w-full px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] text-sm"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 저장 버튼 — sticky bottom으로 드롭다운/키보드와 겹치지 않음 */}
       <div className="fixed bottom-16 left-0 right-0 px-4 py-3 bg-[var(--background)]/95 backdrop-blur-xl border-t border-[var(--card-border)] pb-[calc(env(safe-area-inset-bottom)+12px)]">
         <div className="max-w-lg mx-auto">
           <button
@@ -215,7 +297,7 @@ export default function ProfileEditPage() {
             {saving ? '저장 중...' : '저장'}
           </button>
           {message && (
-            <p className={`text-center text-sm mt-2 ${message.includes('오류') ? 'text-red-500' : 'text-green-500'}`}>
+            <p className={`text-center text-sm mt-2 ${message.includes('오류') || message.includes('실패') || message.includes('거부') ? 'text-red-500' : 'text-green-500'}`}>
               {message}
             </p>
           )}

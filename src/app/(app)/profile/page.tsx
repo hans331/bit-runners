@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import AppLogo from '@/components/AppLogo';
 import { useTheme } from '@/components/ThemeProvider';
+import { useI18n, SUPPORTED_LOCALES } from '@/lib/i18n';
 
 export default function ProfilePage() {
   const { profile } = useAuth();
@@ -35,6 +36,7 @@ export default function ProfilePage() {
   if (streak >= 30) badges.push({ icon: '🌟', label: '30일 연속', gradient: 'from-indigo-100 to-violet-100 dark:from-indigo-900/30 dark:to-violet-900/30' });
 
   const { mode, setMode } = useTheme();
+  const { locale, setLocale, t } = useI18n();
 
   const handleSignOut = async () => {
     await signOut();
@@ -151,6 +153,26 @@ export default function ProfilePage() {
             <ChevronRight size={16} className="text-[var(--muted)]" />
           </Link>
         ))}
+
+        {/* 언어 */}
+        <div className="px-4 py-4 border-t border-[var(--card-border)]">
+          <p className="text-xs text-[var(--muted)] font-semibold mb-2.5">{t('settings.language')}</p>
+          <div className="grid grid-cols-4 gap-2">
+            {SUPPORTED_LOCALES.map(l => (
+              <button
+                key={l.code}
+                onClick={() => setLocale(l.code)}
+                className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  locale === l.code
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'bg-[var(--card-border)]/30 text-[var(--muted)]'
+                }`}
+              >
+                {l.native}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* 화면 모드 */}
         <div className="px-4 py-4">

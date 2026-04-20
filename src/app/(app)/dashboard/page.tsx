@@ -30,6 +30,10 @@ import {
 } from 'recharts';
 import Onboarding from '@/components/Onboarding';
 import LazyMount from '@/components/LazyMount';
+import MatchedRankBanner from '@/components/home/MatchedRankBanner';
+import TodayLocalTop from '@/components/home/TodayLocalTop';
+import RoutinistGallery from '@/components/home/RoutinistGallery';
+import FriendsLeaderboard from '@/components/home/FriendsLeaderboard';
 import Link from 'next/link';
 import {
   ChevronRight, Flag, MapPin, Zap, Trophy, Flame, Clock, Calendar,
@@ -249,7 +253,13 @@ export default function DashboardPage() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+    <div className="max-w-lg mx-auto pb-8">
+      {/* ========== 상단 매칭 랭킹 + 오늘의 동네 TOP + 친구 비교 — 소셜 엔트리 포인트 ========== */}
+      <MatchedRankBanner />
+      <TodayLocalTop />
+      <FriendsLeaderboard />
+
+      <div className="p-4 space-y-4">
       {/* ========== 헤더 ========== */}
       <div className="flex items-center justify-between pt-2">
         <div>
@@ -869,6 +879,12 @@ export default function DashboardPage() {
       {statsLoading && monthlyData.length === 0 && (
         <p className="text-center text-xs text-[var(--muted)]">통계 로딩 중...</p>
       )}
+      </div>
+
+      {/* ========== 하단 루티니스트 갤러리 ========== */}
+      <LazyMount rootMargin="400px" minHeight={160}>
+        <RoutinistGallery />
+      </LazyMount>
     </div>
     </PullToRefresh>
   );

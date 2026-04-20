@@ -79,6 +79,10 @@ export interface Profile {
   region_si: string | null;
   region_gu: string | null;
   region_dong: string | null;
+  country_code: string | null;
+  birth_year: number | null;
+  gender: 'male' | 'female' | 'other' | null;
+  running_since: string | null;
   is_public: boolean;
   total_distance_km: number;
   total_runs: number;

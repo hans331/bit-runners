@@ -41,9 +41,7 @@ export async function signInWithProvider(provider: Provider) {
 export async function handleOAuthCallback(url: string): Promise<Session | null> {
   const supabase = getSupabase();
 
-  // URL에서 hash fragment 추출: ...#access_token=xxx&refresh_token=yyy
   const hashPart = url.includes('#') ? url.split('#')[1] : '';
-  // query params도 확인 (일부 프로바이더는 ?로 보냄)
   const queryPart = url.includes('?') ? url.split('?')[1]?.split('#')[0] : '';
 
   const hashParams = new URLSearchParams(hashPart);
@@ -51,8 +49,9 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
 
   const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
   const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+  const code = hashParams.get('code') || queryParams.get('code');
+  const oauthError = queryParams.get('error') || hashParams.get('error');
 
-  // 인앱 브라우저 닫기 (토큰 유무와 관계없이)
   if (isNativeApp()) {
     try {
       const { Browser } = await import('@capacitor/browser');
@@ -60,6 +59,22 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
     } catch {}
   }
 
+  if (oauthError) {
+    const desc = queryParams.get('error_description') || hashParams.get('error_description') || '';
+    throw new Error(`OAuth 프로바이더 에러: ${oauthError} ${desc}`);
+  }
+
+  // PKCE 우선: code 가 있으면 exchangeCodeForSession (Supabase 기본 흐름)
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error('[Auth] exchangeCode 실패:', error.message);
+      throw new Error(`exchangeCode 실패: ${error.message}`);
+    }
+    return data.session;
+  }
+
+  // 레거시 implicit flow 폴백
   if (accessToken && refreshToken) {
     const { data, error } = await supabase.auth.setSession({
       access_token: accessToken,
@@ -67,29 +82,50 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
     });
     if (error) {
       console.error('[Auth] setSession 실패:', error.message);
-      throw error;
+      throw new Error(`setSession 실패: ${error.message}`);
     }
     return data.session;
   }
 
-  // 토큰이 없으면 code 기반 교환 시도 (PKCE flow)
-  const code = hashParams.get('code') || queryParams.get('code');
-  if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      console.error('[Auth] exchangeCode 실패:', error.message);
-      throw error;
-    }
-    return data.session;
-  }
-
-  // 마지막 폴백: 기존 세션 확인 (리다이렉트 후 이미 세션이 설정됐을 수 있음)
-  await new Promise(r => setTimeout(r, 1000));
+  // 폴백: 이미 세션이 붙어 있는지 확인
+  await new Promise(r => setTimeout(r, 800));
   const { data: { session } } = await supabase.auth.getSession();
   if (session) return session;
 
   console.warn('[Auth] OAuth callback에서 토큰/코드를 찾을 수 없음:', url);
   return null;
+}
+
+// 이메일/비밀번호 회원가입
+export async function signUpWithEmail(email: string, password: string, displayName?: string) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: displayName ? { display_name: displayName } : undefined,
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+// 이메일/비밀번호 로그인
+export async function signInWithEmail(email: string, password: string) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+// 비밀번호 재설정 메일
+export async function sendPasswordResetEmail(email: string) {
+  const supabase = getSupabase();
+  const redirectTo = isNativeApp()
+    ? 'routinist://auth/callback'
+    : `${window.location.origin}/auth/callback`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
 }
 
 // 로그아웃

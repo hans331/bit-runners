@@ -1,0 +1,225 @@
+'use client';
+
+// 가벼운 자체 i18n. 페이지 대부분이 한국어로 하드코딩되어 있어 점진적 이관을 위한 기반만 제공.
+// 언어 결정 우선순위: (1) 유저 설정(localStorage) → (2) navigator.language → (3) 기본 'ko'.
+
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode, createElement } from 'react';
+
+export type Locale = 'ko' | 'en' | 'ja' | 'zh';
+
+export const SUPPORTED_LOCALES: { code: Locale; native: string }[] = [
+  { code: 'ko', native: '한국어' },
+  { code: 'en', native: 'English' },
+  { code: 'ja', native: '日本語' },
+  { code: 'zh', native: '中文' },
+];
+
+export type TranslationKey =
+  | 'common.loading'
+  | 'common.save'
+  | 'common.cancel'
+  | 'common.retry'
+  | 'common.back'
+  | 'nav.home'
+  | 'nav.map'
+  | 'nav.ranking'
+  | 'nav.shop'
+  | 'nav.profile'
+  | 'home.matchedRank.cta'
+  | 'home.matchedRank.ctaSub'
+  | 'home.todayTop'
+  | 'home.friendsWeek'
+  | 'home.gallery'
+  | 'home.gallery.empty'
+  | 'profile.editTitle'
+  | 'profile.nickname'
+  | 'profile.region'
+  | 'profile.detectRegion'
+  | 'profile.detecting'
+  | 'profile.birthYear'
+  | 'profile.gender'
+  | 'profile.male'
+  | 'profile.female'
+  | 'profile.other'
+  | 'profile.runningSince'
+  | 'profile.rankingInfoNote'
+  | 'settings.language';
+
+const DICT: Record<Locale, Record<TranslationKey, string>> = {
+  ko: {
+    'common.loading': '로딩 중...',
+    'common.save': '저장',
+    'common.cancel': '취소',
+    'common.retry': '다시 시도',
+    'common.back': '뒤로',
+    'nav.home': '홈',
+    'nav.map': '지도',
+    'nav.ranking': '랭킹',
+    'nav.shop': '쇼핑',
+    'nav.profile': '내 정보',
+    'home.matchedRank.cta': '내 랭킹 보기',
+    'home.matchedRank.ctaSub': '지역·나이·성별을 입력하면 비슷한 러너들 사이 내 순위를 보여드려요',
+    'home.todayTop': '오늘의 TOP',
+    'home.friendsWeek': '이번 주 친구 비교',
+    'home.gallery': '루티니스트 갤러리',
+    'home.gallery.empty': '러닝 사진을 공유하면 이곳에 표시돼요',
+    'profile.editTitle': '프로필 편집',
+    'profile.nickname': '닉네임',
+    'profile.region': '지역',
+    'profile.detectRegion': '현재 위치로 자동 선택',
+    'profile.detecting': '감지 중...',
+    'profile.birthYear': '출생 연도',
+    'profile.gender': '성별',
+    'profile.male': '남성',
+    'profile.female': '여성',
+    'profile.other': '기타',
+    'profile.runningSince': '러닝 시작 시점',
+    'profile.rankingInfoNote': '비슷한 조건의 러너와 나를 비교해 재미있는 순위를 보여드려요',
+    'settings.language': '언어',
+  },
+  en: {
+    'common.loading': 'Loading...',
+    'common.save': 'Save',
+    'common.cancel': 'Cancel',
+    'common.retry': 'Retry',
+    'common.back': 'Back',
+    'nav.home': 'Home',
+    'nav.map': 'Map',
+    'nav.ranking': 'Ranking',
+    'nav.shop': 'Shop',
+    'nav.profile': 'Profile',
+    'home.matchedRank.cta': 'See your ranking',
+    'home.matchedRank.ctaSub': 'Add your region, age, and gender to see how you rank among similar runners',
+    'home.todayTop': "Today's TOP",
+    'home.friendsWeek': "This week's friends",
+    'home.gallery': 'Routinist Gallery',
+    'home.gallery.empty': 'Share your running photos to see them here',
+    'profile.editTitle': 'Edit profile',
+    'profile.nickname': 'Nickname',
+    'profile.region': 'Region',
+    'profile.detectRegion': 'Auto-detect from current location',
+    'profile.detecting': 'Detecting...',
+    'profile.birthYear': 'Birth year',
+    'profile.gender': 'Gender',
+    'profile.male': 'Male',
+    'profile.female': 'Female',
+    'profile.other': 'Other',
+    'profile.runningSince': 'Running since',
+    'profile.rankingInfoNote': 'We rank you against runners with similar profiles for fun comparisons',
+    'settings.language': 'Language',
+  },
+  ja: {
+    'common.loading': '読み込み中...',
+    'common.save': '保存',
+    'common.cancel': 'キャンセル',
+    'common.retry': '再試行',
+    'common.back': '戻る',
+    'nav.home': 'ホーム',
+    'nav.map': 'マップ',
+    'nav.ranking': 'ランキング',
+    'nav.shop': 'ショップ',
+    'nav.profile': 'プロフィール',
+    'home.matchedRank.cta': 'ランキングを見る',
+    'home.matchedRank.ctaSub': '地域・年齢・性別を入力すると似たランナーとの順位が表示されます',
+    'home.todayTop': '本日のTOP',
+    'home.friendsWeek': '今週の友達比較',
+    'home.gallery': 'Routinist ギャラリー',
+    'home.gallery.empty': 'ランニング写真を共有するとここに表示されます',
+    'profile.editTitle': 'プロフィール編集',
+    'profile.nickname': 'ニックネーム',
+    'profile.region': '地域',
+    'profile.detectRegion': '現在地から自動選択',
+    'profile.detecting': '検出中...',
+    'profile.birthYear': '生年',
+    'profile.gender': '性別',
+    'profile.male': '男性',
+    'profile.female': '女性',
+    'profile.other': 'その他',
+    'profile.runningSince': 'ランニング開始時期',
+    'profile.rankingInfoNote': '似た条件のランナーと比較して順位を表示します',
+    'settings.language': '言語',
+  },
+  zh: {
+    'common.loading': '加载中...',
+    'common.save': '保存',
+    'common.cancel': '取消',
+    'common.retry': '重试',
+    'common.back': '返回',
+    'nav.home': '主页',
+    'nav.map': '地图',
+    'nav.ranking': '排行',
+    'nav.shop': '商店',
+    'nav.profile': '我的',
+    'home.matchedRank.cta': '查看我的排名',
+    'home.matchedRank.ctaSub': '输入地区、年龄、性别即可看到与相似跑者的排名对比',
+    'home.todayTop': '今日TOP',
+    'home.friendsWeek': '本周好友对比',
+    'home.gallery': 'Routinist 画廊',
+    'home.gallery.empty': '分享跑步照片,它们会显示在这里',
+    'profile.editTitle': '编辑资料',
+    'profile.nickname': '昵称',
+    'profile.region': '地区',
+    'profile.detectRegion': '根据当前位置自动选择',
+    'profile.detecting': '检测中...',
+    'profile.birthYear': '出生年份',
+    'profile.gender': '性别',
+    'profile.male': '男',
+    'profile.female': '女',
+    'profile.other': '其他',
+    'profile.runningSince': '开始跑步时间',
+    'profile.rankingInfoNote': '我们会把你和条件相似的跑者对比',
+    'settings.language': '语言',
+  },
+};
+
+const STORAGE_KEY = 'routinist_locale';
+
+function detectInitialLocale(): Locale {
+  if (typeof window === 'undefined') return 'ko';
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY) as Locale | null;
+    if (stored && DICT[stored]) return stored;
+  } catch {}
+  const nav = (typeof navigator !== 'undefined' ? navigator.language : '').toLowerCase();
+  if (nav.startsWith('en')) return 'en';
+  if (nav.startsWith('ja')) return 'ja';
+  if (nav.startsWith('zh')) return 'zh';
+  return 'ko';
+}
+
+interface I18nState {
+  locale: Locale;
+  setLocale: (l: Locale) => void;
+  t: (key: TranslationKey) => string;
+}
+
+const I18nContext = createContext<I18nState>({
+  locale: 'ko',
+  setLocale: () => {},
+  t: (k) => k,
+});
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>('ko');
+
+  useEffect(() => {
+    setLocaleState(detectInitialLocale());
+  }, []);
+
+  const value = useMemo<I18nState>(() => {
+    return {
+      locale,
+      setLocale: (l) => {
+        setLocaleState(l);
+        try { window.localStorage.setItem(STORAGE_KEY, l); } catch {}
+      },
+      t: (key) => DICT[locale]?.[key] ?? DICT.ko[key] ?? key,
+    };
+  }, [locale]);
+
+  return createElement(I18nContext.Provider, { value }, children);
+}
+
+export function useI18n() {
+  return useContext(I18nContext);
+}

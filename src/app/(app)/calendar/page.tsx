@@ -48,6 +48,9 @@ export default function CalendarPage() {
   const [uploading, setUploading] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null); // 날짜 상세 모달
   const [shareActivityId, setShareActivityId] = useState<string | null>(null); // 사진 꾸미기 공유 카드
+  // 업로드 후 루티니스트 갤러리 공유 유도 프롬프트
+  const [galleryPrompt, setGalleryPrompt] = useState<{ date: string; photoUrl: string; activityId: string } | null>(null);
+  const [gallerySharing, setGallerySharing] = useState(false);
 
   // 월간 활동 데이터
   const monthlyActivities = useMemo(() =>
@@ -163,12 +166,38 @@ export default function CalendarPage() {
         next.set(selectedDate, photoUrl);
         return next;
       });
+
+      // 업로드한 날짜에 활동이 있으면 "루티니스트 갤러리에도 공유" 프롬프트
+      const activityIds = dateActivityMap.get(selectedDate) ?? [];
+      if (activityIds.length > 0) {
+        setGalleryPrompt({ date: selectedDate, photoUrl, activityId: activityIds[0] });
+      }
     } catch (err) {
       console.warn('사진 업로드 실패:', err);
     } finally {
       setUploading(false);
       setSelectedDate(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleShareToGallery = async () => {
+    if (!galleryPrompt || !user) return;
+    setGallerySharing(true);
+    try {
+      const supabase = getSupabase();
+      await supabase.from('activity_photos').insert({
+        activity_id: galleryPrompt.activityId,
+        user_id: user.id,
+        photo_url: galleryPrompt.photoUrl,
+        share_in_gallery: true,
+        sort_order: 0,
+      });
+      setGalleryPrompt(null);
+    } catch (err) {
+      console.warn('갤러리 공유 실패:', err);
+    } finally {
+      setGallerySharing(false);
     }
   };
 
@@ -203,6 +232,35 @@ export default function CalendarPage() {
         <div className="card p-3 text-center">
           <div className="animate-spin w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full mx-auto" />
           <p className="text-xs text-[var(--muted)] mt-1">사진 업로드 중...</p>
+        </div>
+      )}
+
+      {galleryPrompt && (
+        <div className="card p-4 bg-gradient-to-r from-[var(--accent)]/10 to-emerald-500/10 border-[var(--accent)]/30">
+          <div className="flex items-center gap-3 mb-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={galleryPrompt.photoUrl} alt="" className="w-14 h-14 rounded-lg object-cover" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[var(--foreground)]">루티니스트 갤러리에 공유할까요?</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">다른 러너들에게도 노출돼요</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setGalleryPrompt(null)}
+              disabled={gallerySharing}
+              className="flex-1 py-2 rounded-lg bg-[var(--card)] text-[var(--muted)] text-sm font-medium disabled:opacity-50"
+            >
+              나중에
+            </button>
+            <button
+              onClick={handleShareToGallery}
+              disabled={gallerySharing}
+              className="flex-1 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-semibold disabled:opacity-50"
+            >
+              {gallerySharing ? '공유 중...' : '공유하기'}
+            </button>
+          </div>
         </div>
       )}
 
