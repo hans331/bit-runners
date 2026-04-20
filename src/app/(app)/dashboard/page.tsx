@@ -214,9 +214,32 @@ export default function DashboardPage() {
   const isRecordBreaking = streak > 0 && streak === maxStreak;
   const daysToRecord = streak > 0 && streak < maxStreak ? maxStreak - streak : 0;
 
-  // 월별
-  const yearlyTotal = monthlyData.reduce((s, d) => s + d.distance, 0);
-  const yearlyPrevTotal = monthlyData.reduce((s, d) => s + (d.prevDistance || 0), 0);
+  // 월별 (전년 대비 YTD: 같은 월까지만 비교해야 "전년 대비 -676km" 같은 오해가 없음)
+  const ytdMonth = new Date().getMonth(); // 0-11
+  const yearlyTotal = monthlyData.slice(0, ytdMonth + 1).reduce((s, d) => s + d.distance, 0);
+  const yearlyPrevTotal = monthlyData.slice(0, ytdMonth + 1).reduce((s, d) => s + (d.prevDistance || 0), 0);
+
+  // 일별 거리 (최근 30일) — 월별 차트 대신 홈 첫 차트로 사용
+  const dailyData = useMemo(() => {
+    const map = new Map<string, number>();
+    activities.forEach(a => {
+      map.set(a.activity_date, (map.get(a.activity_date) || 0) + Number(a.distance_km));
+    });
+    const result: { label: string; distance: number; dateStr: string }[] = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      result.push({
+        label: `${d.getMonth() + 1}/${d.getDate()}`,
+        distance: Math.round((map.get(key) || 0) * 10) / 10,
+        dateStr: key,
+      });
+    }
+    return result;
+  }, [activities]);
+  const daily30Total = dailyData.reduce((s, d) => s + d.distance, 0);
 
   // 요일/시간대
   const hourGroups = [
@@ -433,39 +456,36 @@ export default function DashboardPage() {
         </div>
       </Link>
 
-      {/* ========== ④ 월별 거리 추이 ========== */}
-      <LazyMount minHeight={280}>
+      {/* ========== ④ 일별 거리 추이 (최근 30일) ========== */}
+      <LazyMount minHeight={260}>
       <div className="card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-[var(--foreground)]">월별 거리 추이</h3>
-          <span className="text-xs text-[var(--muted)]">
-            {yearlyPrevTotal > 0 && (
-              <span className={yearlyTotal >= yearlyPrevTotal ? 'text-green-500' : 'text-red-500'}>
-                전년 대비 {yearlyTotal >= yearlyPrevTotal ? '+' : ''}{(yearlyTotal - yearlyPrevTotal).toFixed(0)}km
-              </span>
-            )}
-          </span>
+          <h3 className="text-base font-semibold text-[var(--foreground)]">일별 거리 추이</h3>
+          <span className="text-xs text-[var(--muted)]">최근 30일 · 총 {daily30Total.toFixed(1)}km</span>
         </div>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <BarChart data={dailyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="homeMonthlyGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#60A5FA" />
-                <stop offset="100%" stopColor="#3B82F6" />
+              <linearGradient id="homeDailyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#34D399" />
+                <stop offset="100%" stopColor="#10B981" />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray={chartStyle.gridDash} stroke="var(--card-border)" vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: 'var(--muted)' }}
+              axisLine={false}
+              tickLine={false}
+              interval={4}
+            />
             <YAxis tick={{ fontSize: chartStyle.tickFontSize, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ background: 'var(--card)', border: '1px solid var(--card-border)', borderRadius: 14, fontSize: 13 }}
               formatter={(value) => [`${value}km`]}
               cursor={{ fill: 'var(--card-border)', opacity: 0.3 }}
             />
-            {yearlyPrevTotal > 0 && (
-              <Bar dataKey="prevDistance" name={`${year - 1}년`} fill="#CBD5E1" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
-            )}
-            <Bar dataKey="distance" name={`${year}년`} fill="url(#homeMonthlyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
+            <Bar dataKey="distance" fill="url(#homeDailyGrad)" radius={chartStyle.barRadius} animationDuration={chartStyle.animationDuration} />
           </BarChart>
         </ResponsiveContainer>
       </div>

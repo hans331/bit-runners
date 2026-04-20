@@ -123,7 +123,7 @@ export default function LoginPage() {
           <AppLogo size={80} />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Routinist</h1>
-        <p className="text-sm text-gray-500 mt-2">달리기로 만드는 나만의 루틴</p>
+        <p className="text-sm text-gray-500 mt-2">Run your routine!</p>
       </div>
 
       <div className="w-full max-w-sm relative z-10">

@@ -147,11 +147,18 @@ export default function CalendarPage() {
     try {
       const supabase = getSupabase();
       const ext = file.name.split('.').pop() || 'jpg';
-      const path = `calendar/${user.id}/${selectedDate}.${ext}`;
+      // RLS 정책이 첫 폴더명 = auth.uid() 를 요구하므로 경로 최상단을 userId 로
+      const path = `${user.id}/calendar/${selectedDate}.${ext}`;
 
-      await supabase.storage.from('photos').upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from('activity-photos')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) {
+        console.error('[Calendar] 업로드 실패:', uploadError);
+        throw uploadError;
+      }
 
-      const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from('activity-photos').getPublicUrl(path);
       const photoUrl = urlData.publicUrl + '?t=' + Date.now();
 
       // calendar_photos 테이블에 저장 (upsert)
