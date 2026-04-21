@@ -225,20 +225,61 @@ $$;
 
 -- ============================================================================
 -- 3. 활동 응원 이모지 (activity_cheers)
+-- ----------------------------------------------------------------------------
+-- 기존 migration-phase1.sql 에서 (activity_id, user_id) PK의 "하트 1회 응원"
+-- 테이블이 이미 존재. 새 스키마(emoji 멀티)로 안전하게 확장.
 -- ============================================================================
+
+-- 테이블 자체는 이미 있으면 스킵, 없을 때만 새로 생성 (신규 프로젝트 대비)
 CREATE TABLE IF NOT EXISTS public.activity_cheers (
   activity_id UUID NOT NULL REFERENCES public.activities(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  emoji TEXT NOT NULL CHECK (emoji IN ('👏', '🔥', '💪', '❤️', '🎉')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (activity_id, user_id, emoji)
+  PRIMARY KEY (activity_id, user_id)
 );
+
+-- emoji 컬럼 확장 — 기존 row 는 기본값 '👏' (하트 응원 호환)
+ALTER TABLE public.activity_cheers
+  ADD COLUMN IF NOT EXISTS emoji TEXT NOT NULL DEFAULT '👏';
+
+-- CHECK 제약 (멱등)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'activity_cheers_emoji_check'
+  ) THEN
+    ALTER TABLE public.activity_cheers
+      ADD CONSTRAINT activity_cheers_emoji_check
+      CHECK (emoji IN ('👏', '🔥', '💪', '❤️', '🎉'));
+  END IF;
+END $$;
+
+-- PK 를 (activity_id, user_id, emoji) 로 재구성 — 사용자당 여러 이모지 가능
+DO $$
+DECLARE pk_col_count INT;
+BEGIN
+  SELECT COUNT(*) INTO pk_col_count
+  FROM pg_constraint c
+  JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+  WHERE c.conrelid = 'public.activity_cheers'::regclass AND c.contype = 'p';
+
+  IF pk_col_count = 2 THEN
+    ALTER TABLE public.activity_cheers DROP CONSTRAINT IF EXISTS activity_cheers_pkey;
+    ALTER TABLE public.activity_cheers
+      ADD CONSTRAINT activity_cheers_pkey PRIMARY KEY (activity_id, user_id, emoji);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS activity_cheers_activity_idx
   ON public.activity_cheers (activity_id);
 
 ALTER TABLE public.activity_cheers ENABLE ROW LEVEL SECURITY;
 
+-- 기존 phase1 에서 만든 cheers_* 정책과 신규 activity_cheers_* 정책 충돌 방지 —
+-- 전부 다시 깨끗하게 세팅
+DROP POLICY IF EXISTS "cheers_select" ON public.activity_cheers;
+DROP POLICY IF EXISTS "cheers_insert" ON public.activity_cheers;
+DROP POLICY IF EXISTS "cheers_delete" ON public.activity_cheers;
 DROP POLICY IF EXISTS "activity_cheers_select" ON public.activity_cheers;
 CREATE POLICY "activity_cheers_select" ON public.activity_cheers FOR SELECT USING (true);
 
