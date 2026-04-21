@@ -8,11 +8,13 @@
   --sidebar-bg: #ffffff;
   --header-bg: rgba(248, 250, 252, 0.92);
   --muted: #64748b;
-  --accent: #2563eb;
+  --accent: #059669;
+  --accent-soft: #d1fae5;
   --accent-green: #059669;
   --accent-yellow: #d97706;
   --accent-red: #dc2626;
   --accent-purple: #7c3aed;
+  --accent-coral: #f97316;
 }
 
 .dark {
@@ -23,11 +25,13 @@
   --sidebar-bg: #111827;
   --header-bg: rgba(10, 15, 26, 0.92);
   --muted: #94a3b8;
-  --accent: #3b82f6;
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.15);
   --accent-green: #10b981;
   --accent-yellow: #f59e0b;
   --accent-red: #ef4444;
   --accent-purple: #8b5cf6;
+  --accent-coral: #fb923c;
 }
 
 @theme inline {
@@ -38,7 +42,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 17px;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -50,6 +54,10 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 640px) {
+  html { font-size: 16px; }
 }
 
 /* 스크롤바 */

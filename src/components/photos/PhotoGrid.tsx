@@ -31,10 +31,10 @@ export default function PhotoGrid({ photos, loading, emptyText }: Props) {
   if (photos.length === 0) {
     return (
       <div className="card p-8 text-center space-y-3">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
-          <Camera size={26} className="text-pink-500" />
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+          <Camera size={28} className="text-emerald-600" />
         </div>
-        <p className="text-sm font-semibold text-[var(--foreground)]">
+        <p className="text-base font-semibold text-[var(--foreground)]">
           {emptyText ?? '아직 사진이 없어요'}
         </p>
       </div>

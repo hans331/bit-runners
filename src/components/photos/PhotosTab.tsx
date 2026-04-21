@@ -1,11 +1,12 @@
 'use client';
 
 // 소셜 > 포토 탭 — 5개 sub: 인기 / 친구 / 동네 / 최신 / 좋아요함
-// Pinterest 2컬럼 그리드
+// Pinterest 2컬럼 그리드 + 상단 "사진 올리기" CTA (그린 잔디블록 테마).
 
-import { useEffect, useState } from 'react';
-import { Flame, Users, MapPin, Clock, Heart } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Flame, Users, MapPin, Clock, Heart, Camera } from 'lucide-react';
 import PhotoGrid from './PhotoGrid';
+import PhotoUploader from './PhotoUploader';
 import {
   fetchTrendingPhotos,
   fetchRecentPhotos,
@@ -32,60 +33,72 @@ export default function PhotosTab() {
   const [sub, setSub] = useState<Sub>('trending');
   const [photos, setPhotos] = useState<RoutinePhoto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    let result: RoutinePhoto[] = [];
+    try {
+      if (sub === 'trending') {
+        result = await fetchTrendingPhotos(50);
+      } else if (sub === 'friends') {
+        const following = await fetchFollowing(user.id);
+        result = await fetchFriendPhotos(following.map(f => f.id), 50);
+      } else if (sub === 'region') {
+        if (profile?.region_gu) {
+          result = await fetchRegionPhotos(profile.region_gu, 50);
+        }
+      } else if (sub === 'recent') {
+        result = await fetchRecentPhotos(50);
+      } else if (sub === 'liked') {
+        result = await fetchMyLikedPhotos(50);
+      }
+    } catch (e) {
+      console.warn('[PhotosTab] load 실패', e);
+    }
+    setPhotos(result);
+    setLoading(false);
+  }, [sub, user, profile?.region_gu]);
 
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
-    setLoading(true);
     (async () => {
-      let result: RoutinePhoto[] = [];
-      try {
-        if (sub === 'trending') {
-          result = await fetchTrendingPhotos(50);
-        } else if (sub === 'friends') {
-          const following = await fetchFollowing(user.id);
-          result = await fetchFriendPhotos(following.map(f => f.id), 50);
-        } else if (sub === 'region') {
-          if (profile?.region_gu) {
-            result = await fetchRegionPhotos(profile.region_gu, 50);
-          }
-        } else if (sub === 'recent') {
-          result = await fetchRecentPhotos(50);
-        } else if (sub === 'liked') {
-          result = await fetchMyLikedPhotos(50);
-        }
-      } catch (e) {
-        console.warn('[PhotosTab] load 실패', e);
-      }
-      if (!cancelled) {
-        setPhotos(result);
-        setLoading(false);
-      }
+      await load();
+      if (cancelled) return;
     })();
     return () => { cancelled = true; };
-  }, [sub, user, profile?.region_gu]);
+  }, [load, reloadKey]);
 
   return (
     <div className="space-y-4">
+      {/* 업로드 CTA — 상단 고정 (그린) */}
+      <PhotoUploader
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-base shadow-md active:scale-[0.99] transition"
+        onUploaded={() => setReloadKey(k => k + 1)}
+      >
+        <Camera size={20} />
+        <span>오늘 러닝 사진 올리기</span>
+      </PhotoUploader>
+
       {/* Sub 탭 — 가로 스크롤 pill */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
         {SUBS.map(s => (
           <button
             key={s.id}
             onClick={() => setSub(s.id)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
               sub === s.id
-                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
-                : 'bg-[var(--card)] text-[var(--muted)] border border-[var(--card-border)]'
+                ? 'bg-emerald-500 text-white shadow-sm'
+                : 'bg-[var(--card-bg)] text-[var(--muted)] border border-[var(--card-border)]'
             }`}
           >
-            <s.Icon size={14} />
+            <s.Icon size={15} />
             {s.label}
           </button>
         ))}
       </div>
 
-      {/* 빈 상태 메시지 커스터마이징 */}
       <PhotoGrid
         photos={photos}
         loading={loading}
@@ -98,7 +111,7 @@ export default function PhotosTab() {
             ? `${profile?.region_gu} 에서 올린 사진이 아직 없어요`
             : sub === 'liked'
             ? '아직 좋아요한 사진이 없어요'
-            : '아직 사진이 없어요. 첫 번째가 되어보세요!'
+            : '아직 사진이 없어요. 위의 "사진 올리기" 버튼으로 첫 번째가 되어보세요!'
         }
       />
     </div>

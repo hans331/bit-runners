@@ -3,7 +3,7 @@
 import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider } from '@/components/UserDataProvider';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Home, Map, Trophy, User, ShoppingBag } from 'lucide-react';
 import { syncHealthData, isNativeApp } from '@/lib/health-sync';
@@ -51,12 +51,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const lastSyncRef = useRef<number>(0);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (!loading) { setLoadingTimeout(false); return; }
+    const t = setTimeout(() => setLoadingTimeout(true), 8000);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   // Apple Health 동기화 전략:
   // 1) 앱 열 때 (foreground 진입) 자동 pull
@@ -96,17 +103,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   if (loading) {
-    // 로그인 화면과 로고 사이즈 통일. 슬로건 포함 — 스플래시 공백 축소 + 브랜드 강화
+    // 단일 로딩 화면 — iOS LaunchScreen 과 배경 톤 통일(밝은 민트/화이트).
+    // 8초 이상 멈추면 "다시 시도" 버튼 제공 → OAuth 실패 시 무한 대기 방지.
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-white to-pink-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-orange-950/20 gap-3 px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 gap-3 px-6">
         <div className="animate-[fadeInUp_0.4s_ease-out]">
-          <AppLogo size={80} />
+          <AppLogo size={84} />
         </div>
-        <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">Routinist</h1>
-        <p className="text-sm font-semibold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-          Run Your Routine!
-        </p>
-        <div className="animate-spin w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full mt-1" />
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Routinist</h1>
+        <p className="text-base font-semibold text-emerald-600">Run Your Routine!</p>
+        {!loadingTimeout ? (
+          <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full mt-2" />
+        ) : (
+          <div className="mt-3 flex flex-col items-center gap-2">
+            <p className="text-sm text-slate-600">로그인이 지연되고 있어요</p>
+            <button
+              onClick={() => window.location.replace('/login')}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 text-white text-base font-semibold shadow-sm"
+            >
+              다시 로그인하기
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -121,7 +139,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/dashboard"><AppLogo size={28} /></Link>
-            <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
+            <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">
               {PAGE_TITLES[pathname] || Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k + '/'))?.[1] || 'Routinist'}
             </h1>
           </div>
@@ -151,8 +169,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     : 'text-[var(--muted)]'
                 }`}
               >
-                <tab.Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.5} />
-                <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
+                <tab.Icon size={isActive ? 24 : 22} strokeWidth={isActive ? 2.5 : 1.75} />
+                <span className={`text-[13px] ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
               </Link>
             );
           })}

@@ -85,42 +85,36 @@ function buildSegmentMap(activities: Activity[]): Map<string, Segment> {
   return segments;
 }
 
-// 지도 크레파스 팔레트 — 주황/코랄 계열로 통일 (달력은 초록이므로 의도적으로 다른 색조).
-// '전체' 모드는 저밀도 경로도 한눈에 보이도록 더 진한 톤부터 시작 + 최종 블랙.
+// 지도 크레파스 팔레트 — 코랄/레드 계열 (달력은 초록이라 명확히 구분).
+// 하루 달려도 뚜렷하게 보이도록 최저 색상을 생동감 있게, 많이 달린 곳은 더 두껍게.
 function chipStyle(visits: number, mode: FilterMode = '7d'): { color: string; weight: number; opacity: number } {
   if (mode === 'all') {
-    if (visits <= 1)  return { color: '#FB923C', weight: 2.5, opacity: 0.85 };
-    if (visits <= 3)  return { color: '#F97316', weight: 3.0, opacity: 0.9 };
-    if (visits <= 7)  return { color: '#EA580C', weight: 3.5, opacity: 0.95 };
-    if (visits <= 15) return { color: '#C2410C', weight: 4.0, opacity: 1.0 };
-    if (visits <= 30) return { color: '#9A3412', weight: 4.5, opacity: 1.0 };
-    return              { color: '#1F2937', weight: 5.0, opacity: 1.0 };
+    if (visits <= 1)  return { color: '#F97316', weight: 4.0, opacity: 1.0 };
+    if (visits <= 3)  return { color: '#EA580C', weight: 4.5, opacity: 1.0 };
+    if (visits <= 7)  return { color: '#DC2626', weight: 5.0, opacity: 1.0 };
+    if (visits <= 15) return { color: '#B91C1C', weight: 5.5, opacity: 1.0 };
+    if (visits <= 30) return { color: '#991B1B', weight: 6.0, opacity: 1.0 };
+    return              { color: '#7F1D1D', weight: 7.0, opacity: 1.0 };
   }
-  if (visits <= 1)  return { color: '#FED7AA', weight: 2.0, opacity: 0.75 };
-  if (visits <= 3)  return { color: '#FDBA74', weight: 2.5, opacity: 0.85 };
-  if (visits <= 7)  return { color: '#FB923C', weight: 3.0, opacity: 0.9 };
-  if (visits <= 15) return { color: '#F97316', weight: 3.5, opacity: 0.95 };
-  if (visits <= 30) return { color: '#C2410C', weight: 4.0, opacity: 1.0 };
-  return              { color: '#7C2D12', weight: 4.5, opacity: 1.0 };
+  // 1일/3일/7일/30일 모드: 기본 두께·진하기 상향. 최저도 뚜렷하게.
+  if (visits <= 1)  return { color: '#F97316', weight: 4.0, opacity: 1.0 };
+  if (visits <= 3)  return { color: '#EA580C', weight: 4.5, opacity: 1.0 };
+  if (visits <= 7)  return { color: '#DC2626', weight: 5.0, opacity: 1.0 };
+  if (visits <= 15) return { color: '#B91C1C', weight: 5.5, opacity: 1.0 };
+  if (visits <= 30) return { color: '#991B1B', weight: 6.0, opacity: 1.0 };
+  return              { color: '#7F1D1D', weight: 7.0, opacity: 1.0 };
 }
 
 const CHIP_LEGEND = [
-  { label: '1', color: '#FED7AA' },
-  { label: '~3', color: '#FDBA74' },
-  { label: '~7', color: '#FB923C' },
-  { label: '~15', color: '#F97316' },
-  { label: '~30', color: '#C2410C' },
-  { label: '30+', color: '#7C2D12' },
+  { label: '1', color: '#F97316' },
+  { label: '~3', color: '#EA580C' },
+  { label: '~7', color: '#DC2626' },
+  { label: '~15', color: '#B91C1C' },
+  { label: '~30', color: '#991B1B' },
+  { label: '30+', color: '#7F1D1D' },
 ];
 
-const CHIP_LEGEND_ALL = [
-  { label: '1', color: '#FB923C' },
-  { label: '~3', color: '#F97316' },
-  { label: '~7', color: '#EA580C' },
-  { label: '~15', color: '#C2410C' },
-  { label: '~30', color: '#9A3412' },
-  { label: '30+', color: '#1F2937' },
-];
+const CHIP_LEGEND_ALL = CHIP_LEGEND;
 
 export default function MapPage() {
   const { user } = useAuth();

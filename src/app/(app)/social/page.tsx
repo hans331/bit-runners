@@ -135,25 +135,25 @@ function SocialPageInner() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
-      {/* 세그먼트 컨트롤 — 4탭 */}
-      <div className="flex bg-[var(--card)] rounded-2xl p-1 mb-5 shadow-sm">
+      {/* 세그먼트 컨트롤 — 4탭 (그린 잔디블록 테마) */}
+      <div className="flex bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-1 mb-5 shadow-sm">
         {SECTIONS.map((section) => (
           <button
             key={section.id}
             onClick={() => setActiveSection(section.id)}
-            className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
               activeSection === section.id
-                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md'
+                ? 'bg-emerald-500 text-white shadow-sm'
                 : 'text-[var(--muted)]'
             }`}
           >
-            <section.Icon size={14} />
+            <section.Icon size={16} />
             {section.label}
           </button>
         ))}
       </div>
 
-      {/* 내 랭킹 — 히어로 상세 + 시간축 + 진행형 메시지 */}
+      {/* 내 랭킹 — 히어로 상세 + 시간축 + 진행형 메시지 (그린 테마) */}
       {activeSection === 'me' && (
         <div className="space-y-5">
           {/* 시간축 */}
@@ -162,10 +162,10 @@ function SocialPageInner() {
               <button
                 key={a}
                 onClick={() => setAxis(a)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   axis === a
-                    ? 'bg-[var(--foreground)] text-[var(--background)]'
-                    : 'bg-[var(--card)] text-[var(--muted)]'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'bg-[var(--card-bg)] text-[var(--muted)] border border-[var(--card-border)]'
                 }`}
               >
                 {a === 'today' ? '🔥 오늘' : a === 'month' ? '📅 이달' : '🏆 올해'}
@@ -175,57 +175,57 @@ function SocialPageInner() {
 
           {/* 내 순위 카드 */}
           {heroRank ? (
-            <div className="rounded-3xl bg-gradient-to-br from-orange-100 via-pink-50 to-orange-50 dark:from-orange-950/40 dark:to-pink-950/20 p-6 shadow-sm border border-orange-100 dark:border-orange-900/30">
-              <p className="text-xs text-[var(--muted)]">
-                <span className="font-bold text-orange-600">{name}</span>님은 <span className="font-semibold">{heroRank.scope_label}</span>에서
+            <div className="rounded-3xl bg-gradient-to-br from-emerald-100/80 via-white to-emerald-50/40 dark:from-emerald-950/40 dark:via-zinc-900 dark:to-emerald-950/10 p-6 shadow-sm border border-emerald-200/60 dark:border-emerald-900/30">
+              <p className="text-sm text-[var(--muted)]">
+                <span className="font-bold text-emerald-700 dark:text-emerald-400">{name}</span>님은 <span className="font-semibold">{heroRank.scope_label}</span>에서
               </p>
-              <div className="flex items-baseline gap-1 mt-1">
-                <span className={`text-6xl font-extrabold ${
-                  heroRank.rank_position <= 3 ? 'text-amber-500'
-                  : heroRank.rank_position <= 10 ? 'text-orange-500'
+              <div className="flex items-baseline gap-1 mt-1.5">
+                <span className={`text-7xl font-extrabold leading-none ${
+                  heroRank.rank_position <= 3 ? 'text-emerald-600'
+                  : heroRank.rank_position <= 10 ? 'text-emerald-500'
                   : 'text-[var(--foreground)]'
                 }`}>
                   {heroRank.rank_position}
                 </span>
-                <span className="text-2xl font-bold text-[var(--foreground)]">위</span>
-                <span className="text-sm text-[var(--muted)] ml-2">/ {heroRank.total_in_scope}명</span>
+                <span className="text-3xl font-bold text-[var(--foreground)]">위</span>
+                <span className="text-base text-[var(--muted)] ml-2">/ {heroRank.total_in_scope}명</span>
               </div>
-              <p className="text-sm text-[var(--muted)] mt-1">
-                {axis === 'today' ? '오늘' : axis === 'month' ? '이달' : '올해'} {Number(heroRank.my_km).toFixed(1)}km
+              <p className="text-base text-[var(--muted)] mt-2">
+                {axis === 'today' ? '오늘' : axis === 'month' ? '이달' : '올해'} <span className="font-bold text-[var(--foreground)]">{Number(heroRank.my_km).toFixed(1)}km</span>
               </p>
 
               {heroRank.rank_position === 1 ? (
-                <div className="mt-4 rounded-2xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur px-4 py-3">
-                  <p className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <Sparkles size={16} /> {axis === 'today' ? '오늘의' : axis === 'month' ? '이달의' : '올해의'} 1위! 🎉
+                <div className="mt-4 rounded-2xl bg-white/80 dark:bg-zinc-900/70 backdrop-blur px-4 py-3.5">
+                  <p className="text-base font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                    <Sparkles size={18} /> {axis === 'today' ? '오늘의' : axis === 'month' ? '이달의' : '올해의'} 1위! 🎉
                   </p>
                 </div>
               ) : heroRank.km_to_next > 0 && (
-                <div className="mt-4 rounded-2xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur px-4 py-3 flex items-center gap-2">
-                  <TrendingUp size={16} className="text-orange-500" />
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    <span className="text-orange-600 font-extrabold">{Number(heroRank.km_to_next).toFixed(1)}km</span> 더 달리면{' '}
-                    <span className="text-orange-600 font-extrabold">{heroRank.target_rank}위</span>로 올라가요!
+                <div className="mt-4 rounded-2xl bg-white/80 dark:bg-zinc-900/70 backdrop-blur px-4 py-3.5 flex items-center gap-2">
+                  <TrendingUp size={18} className="text-emerald-600" />
+                  <p className="text-base font-semibold text-[var(--foreground)]">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{Number(heroRank.km_to_next).toFixed(1)}km</span> 더 달리면{' '}
+                    <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{heroRank.target_rank}위</span>로 올라가요!
                   </p>
                 </div>
               )}
             </div>
           ) : (
-            <Link href="/profile/edit" className="block rounded-3xl bg-gradient-to-br from-orange-100 to-pink-50 p-6 shadow-sm border border-orange-200/50">
-              <p className="text-base font-bold text-[var(--foreground)]">내 조건 입력하고 랭킹 보기 →</p>
-              <p className="text-xs text-[var(--muted)] mt-1">지역·출생년도·성별을 설정하면 비슷한 러너 중 내 위치가 보여요</p>
+            <Link href="/profile/edit" className="block rounded-3xl bg-gradient-to-br from-emerald-100/80 to-emerald-50/40 p-6 shadow-sm border border-emerald-200/60">
+              <p className="text-lg font-bold text-[var(--foreground)]">내 조건 입력하고 랭킹 보기 →</p>
+              <p className="text-sm text-[var(--muted)] mt-1">지역·출생년도·성별을 설정하면 비슷한 러너 중 내 위치가 보여요</p>
             </Link>
           )}
 
           {/* 지역 랭킹 상세 이동 */}
           <Link href="/social/rankings" className="card p-4 flex items-center justify-between active:scale-[0.99]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                <MapPin size={18} className="text-emerald-600 dark:text-emerald-400" />
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <MapPin size={20} className="text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">지역 랭킹 상세</p>
-                <p className="text-xs text-[var(--muted)]">국가 · 시 · 구 세분화</p>
+                <p className="text-base font-semibold text-[var(--foreground)]">지역 랭킹 상세</p>
+                <p className="text-sm text-[var(--muted)]">국가 · 시 · 구 세분화</p>
               </div>
             </div>
             <span className="text-[var(--muted)]">→</span>
@@ -264,14 +264,14 @@ function SocialPageInner() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between">
-                          <span className={`text-sm truncate ${r.isMe ? 'font-bold text-orange-600' : 'font-medium text-[var(--foreground)]'}`}>
+                          <span className={`text-sm truncate ${r.isMe ? 'font-bold text-emerald-600' : 'font-medium text-[var(--foreground)]'}`}>
                             {r.name}{r.isMe ? ' (나)' : ''}
                           </span>
                           <span className="text-xs text-[var(--muted)] ml-2">{r.km.toFixed(1)}km</span>
                         </div>
                         <div className="mt-1 h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${r.isMe ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-emerald-400/70'}`}
+                            className={`h-full rounded-full ${r.isMe ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-emerald-400/70'}`}
                             style={{ width: `${(r.km / maxKm) * 100}%` }}
                           />
                         </div>
@@ -299,12 +299,12 @@ function SocialPageInner() {
                 placeholder="닉네임으로 검색"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
               />
             </div>
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full" />
+                <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
               </div>
             ) : users.length === 0 ? (
               <div className="card p-5 text-center">
@@ -344,7 +344,7 @@ function SocialPageInner() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-semibold text-[var(--foreground)]">내 클럽</h2>
-              <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-orange-600 font-semibold">
+              <Link href="/social/clubs/create" className="flex items-center gap-1 text-sm text-emerald-600 font-semibold">
                 <Plus size={14} /> 클럽 만들기
               </Link>
             </div>
@@ -352,7 +352,7 @@ function SocialPageInner() {
               <div className="card p-6 text-center space-y-2">
                 <div><AppLogo size={40} /></div>
                 <p className="text-sm font-medium text-[var(--foreground)]">아직 가입한 클럽이 없습니다</p>
-                <Link href="/social/clubs" className="text-sm text-orange-600 font-semibold inline-block">
+                <Link href="/social/clubs" className="text-sm text-emerald-600 font-semibold inline-block">
                   클럽 둘러보기 →
                 </Link>
               </div>
@@ -360,12 +360,12 @@ function SocialPageInner() {
               <div className="space-y-2">
                 {myClubs.map((club) => (
                   <Link key={club.id} href={`/social/clubs/detail?id=${club.id}`} className="card p-4 flex items-center gap-3 block">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
                       {club.logo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={club.logo_url} alt="" className="w-full h-full rounded-xl object-cover" />
                       ) : (
-                        <Users size={20} className="text-orange-500" />
+                        <Users size={20} className="text-emerald-500" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -380,8 +380,8 @@ function SocialPageInner() {
 
           <Link href="/social/clubs" className="card p-4 flex items-center justify-between block">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                <Trophy size={18} className="text-orange-500" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                <Trophy size={18} className="text-emerald-500" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--foreground)]">모든 클럽 둘러보기</p>
@@ -401,7 +401,7 @@ function SocialPageInner() {
 
 export default function SocialPage() {
   return (
-    <Suspense fallback={<div className="p-8 flex justify-center"><div className="animate-spin w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full" /></div>}>
+    <Suspense fallback={<div className="p-8 flex justify-center"><div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" /></div>}>
       <SocialPageInner />
     </Suspense>
   );

@@ -62,11 +62,11 @@ export default function RankNeighbors() {
   const kmFromChaser = chaser ? me.weekly_km - chaser.weekly_km : 0;
 
   return (
-    <div className="mx-4 mt-4 rounded-3xl bg-gradient-to-br from-sky-50 via-white to-cyan-50 dark:from-sky-950/30 dark:via-zinc-900 dark:to-cyan-950/20 border border-sky-200/50 dark:border-sky-900/30 p-4 shadow-sm">
+    <div className="mx-4 mt-4 rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-emerald-50/30 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-emerald-950/10 border border-emerald-200/60 dark:border-emerald-900/30 p-4 shadow-sm">
       <div className="flex items-center gap-1.5 mb-3">
-        <Zap size={16} className="text-sky-500" />
-        <h3 className="text-sm font-bold text-[var(--foreground)]">이번 주 내 주변 러너</h3>
-        <span className="text-[10px] text-[var(--muted)] ml-auto">월요일 기준</span>
+        <Zap size={18} className="text-emerald-600" />
+        <h3 className="text-base font-bold text-[var(--foreground)]">이번 주 내 주변 러너</h3>
+        <span className="text-xs text-[var(--muted)] ml-auto">월요일 기준</span>
       </div>
 
       {/* 따라잡기 타겟 (바로 앞) */}
@@ -86,7 +86,7 @@ export default function RankNeighbors() {
             key={r.user_id}
             href={r.is_me ? '/profile' : `/social/user?id=${r.user_id}`}
             className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${
-              r.is_me ? 'bg-gradient-to-r from-orange-100 to-pink-100 dark:from-orange-950/40 dark:to-pink-950/30 ring-2 ring-orange-300 dark:ring-orange-700' : ''
+              r.is_me ? 'bg-gradient-to-r from-emerald-100 to-emerald-200/70 dark:from-emerald-950/40 dark:to-emerald-900/40 ring-2 ring-emerald-300 dark:ring-emerald-700' : ''
             }`}
           >
             <span className={`w-6 text-center text-xs font-bold ${r.rank_position <= 3 ? 'text-amber-500' : 'text-[var(--muted)]'}`}>
@@ -102,7 +102,7 @@ export default function RankNeighbors() {
                 </div>
               )}
             </div>
-            <span className={`flex-1 text-xs truncate ${r.is_me ? 'font-extrabold text-orange-600' : 'font-medium text-[var(--foreground)]'}`}>
+            <span className={`flex-1 text-xs truncate ${r.is_me ? 'font-extrabold text-emerald-700 dark:text-emerald-400' : 'font-medium text-[var(--foreground)]'}`}>
               {r.display_name}{r.is_me ? ' (나)' : ''}
             </span>
             <span className="text-xs text-[var(--muted)] font-semibold">
@@ -125,7 +125,7 @@ export default function RankNeighbors() {
 
       <Link
         href="/social?tab=friends"
-        className="mt-3 flex items-center justify-center gap-0.5 text-xs font-semibold text-sky-600"
+        className="mt-3 flex items-center justify-center gap-0.5 text-xs font-semibold text-emerald-600"
       >
         전체 랭킹 보기 <ChevronRight size={14} />
       </Link>
