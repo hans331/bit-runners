@@ -12,12 +12,16 @@ import {
   type MemberProgress, type ClubSummary, type MemberRunCount, type CumulativeRanking, type HallOfFameEntry,
 } from '@/lib/stats-data';
 import { formatPace, formatDuration } from '@/lib/routinist-data';
-import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight, Trash2, MessageSquare, Heart, Image as ImageIcon, Pin, X, Send } from 'lucide-react';
+import {
+  fetchClubFeed, createClubPost, deleteClubPost, toggleClubPostNotice, toggleClubPostLike,
+  fetchClubPostComments, createClubPostComment, uploadClubPostPhoto, type ClubPost, type ClubPostComment,
+} from '@/lib/club-posts';
 import Link from 'next/link';
 import type { Club, ClubMember } from '@/types';
 import AppLogo from '@/components/AppLogo';
 
-type TabId = 'dashboard' | 'members' | 'activity' | 'settings';
+type TabId = 'dashboard' | 'feed' | 'members' | 'activity' | 'settings';
 
 function ClubDetail() {
   const searchParams = useSearchParams();
@@ -48,6 +52,17 @@ function ClubDetail() {
   const [editDesc, setEditDesc] = useState('');
   const [editPublic, setEditPublic] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // 피드 상태
+  const [feedPosts, setFeedPosts] = useState<ClubPost[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [composeBody, setComposeBody] = useState('');
+  const [composeIsNotice, setComposeIsNotice] = useState(false);
+  const [composePhoto, setComposePhoto] = useState<File | null>(null);
+  const [composing, setComposing] = useState(false);
+  const [openComments, setOpenComments] = useState<Record<string, ClubPostComment[] | null>>({});
+  const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
 
   const loadData = useCallback(async () => {
     if (!clubId) return;
@@ -170,10 +185,112 @@ function ClubDetail() {
   const canDelete = myRole === 'owner' || isAppAdmin;
   const tabs: { id: TabId; label: string; show: boolean }[] = [
     { id: 'dashboard', label: '대시보드', show: isMember },
+    { id: 'feed', label: '피드', show: isMember },
     { id: 'members', label: `멤버 (${members.length})`, show: true },
     { id: 'activity', label: '활동', show: isMember },
     { id: 'settings', label: '설정', show: isAdmin || isAppAdmin },
   ];
+
+  // 피드 로드
+  const loadFeed = useCallback(async () => {
+    if (!clubId) return;
+    setFeedLoading(true);
+    try {
+      const posts = await fetchClubFeed(clubId);
+      setFeedPosts(posts);
+    } catch (e) {
+      console.warn('[ClubFeed] load 실패', e);
+    } finally {
+      setFeedLoading(false);
+    }
+  }, [clubId]);
+
+  useEffect(() => {
+    if (activeTab === 'feed') loadFeed();
+  }, [activeTab, loadFeed]);
+
+  const handleCompose = async () => {
+    if (!clubId || !user || !composeBody.trim()) return;
+    setComposing(true);
+    try {
+      let photoUrl: string | null = null;
+      if (composePhoto) {
+        photoUrl = await uploadClubPostPhoto(user.id, composePhoto);
+      }
+      await createClubPost({
+        clubId, authorId: user.id, body: composeBody.trim(),
+        photoUrl, isNotice: composeIsNotice && isAdmin,
+      });
+      setComposeBody(''); setComposePhoto(null); setComposeIsNotice(false); setComposeOpen(false);
+      await loadFeed();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '게시글 등록 실패');
+    } finally {
+      setComposing(false);
+    }
+  };
+
+  const handleLike = async (post: ClubPost) => {
+    if (!user) return;
+    // optimistic
+    setFeedPosts(prev => prev.map(p => p.id === post.id ? {
+      ...p,
+      liked_by_me: !p.liked_by_me,
+      like_count: p.like_count + (p.liked_by_me ? -1 : 1),
+    } : p));
+    try {
+      await toggleClubPostLike(post.id, user.id, post.liked_by_me);
+    } catch {
+      await loadFeed();
+    }
+  };
+
+  const handleToggleNotice = async (post: ClubPost) => {
+    try {
+      await toggleClubPostNotice(post.id, !post.is_notice);
+      await loadFeed();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '공지 전환 실패');
+    }
+  };
+
+  const handleDeletePost = async (post: ClubPost) => {
+    if (!confirm('게시글을 삭제할까요?')) return;
+    try {
+      await deleteClubPost(post.id);
+      setFeedPosts(prev => prev.filter(p => p.id !== post.id));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '삭제 실패');
+    }
+  };
+
+  const handleOpenComments = async (postId: string) => {
+    if (openComments[postId]) {
+      setOpenComments(prev => ({ ...prev, [postId]: null }));
+      return;
+    }
+    try {
+      const list = await fetchClubPostComments(postId);
+      setOpenComments(prev => ({ ...prev, [postId]: list }));
+    } catch (e) {
+      console.warn('댓글 로드 실패', e);
+    }
+  };
+
+  const handleSubmitComment = async (postId: string) => {
+    if (!user) return;
+    const body = (commentDraft[postId] ?? '').trim();
+    if (!body) return;
+    try {
+      await createClubPostComment(postId, user.id, body);
+      setCommentDraft(prev => ({ ...prev, [postId]: '' }));
+      const list = await fetchClubPostComments(postId);
+      setOpenComments(prev => ({ ...prev, [postId]: list }));
+      setFeedPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: p.comment_count + 1 } : p));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '댓글 등록 실패');
+    }
+  };
 
   const handleDeleteClub = async () => {
     if (!clubId || !club) return;
@@ -427,6 +544,180 @@ function ClubDetail() {
                 <ChevronRight size={16} className="text-[var(--accent)]" />
               </Link>
             </>
+          )}
+        </div>
+      )}
+
+      {/* 피드 탭 — 트위터 스타일 짧은 게시글 + 공지 핀 + 좋아요/댓글 */}
+      {activeTab === 'feed' && (
+        <div className="space-y-3">
+          {/* 작성 버튼 */}
+          <button
+            onClick={() => setComposeOpen(true)}
+            className="w-full flex items-center gap-3 p-4 rounded-2xl bg-white border border-emerald-200 text-[var(--muted)] shadow-sm active:scale-[0.99] transition"
+          >
+            <MessageSquare size={18} className="text-emerald-600" />
+            <span className="text-sm font-semibold">클럽에 글을 남겨보세요...</span>
+          </button>
+
+          {feedLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
+            </div>
+          ) : feedPosts.length === 0 ? (
+            <div className="card p-8 text-center">
+              <p className="text-base font-semibold text-[var(--foreground)]">아직 게시글이 없어요</p>
+              <p className="text-sm text-[var(--muted)] mt-1">첫 글을 남겨보세요!</p>
+            </div>
+          ) : (
+            feedPosts.map(post => {
+              const canEdit = post.author_id === user?.id || isAdmin || isAppAdmin;
+              const commentsList = openComments[post.id];
+              return (
+                <div key={post.id} className={`card p-4 ${post.is_notice ? 'border-emerald-300 bg-emerald-50/40' : ''}`}>
+                  {post.is_notice && (
+                    <div className="flex items-center gap-1 text-xs font-bold text-emerald-700 mb-2">
+                      <Pin size={12} /> 공지
+                    </div>
+                  )}
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
+                      {post.author_avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--muted)]">
+                          {post.author_name.slice(0, 1)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <span className="font-bold text-[var(--foreground)]">{post.author_name}</span>
+                        {post.author_role === 'owner' && <Crown size={12} className="text-amber-500" />}
+                        {post.author_role === 'admin' && <Shield size={12} className="text-emerald-600" />}
+                        <span className="text-xs text-[var(--muted)]">· {new Date(post.created_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="mt-1 text-base leading-relaxed text-[var(--foreground)] whitespace-pre-wrap break-words">{post.body}</p>
+                      {post.photo_url && (
+                        <div className="mt-2 rounded-xl overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={post.photo_url} alt="" className="w-full max-h-96 object-cover" />
+                        </div>
+                      )}
+                      <div className="mt-3 flex items-center gap-5 text-sm">
+                        <button onClick={() => handleLike(post)} className={`flex items-center gap-1 ${post.liked_by_me ? 'text-rose-500 font-semibold' : 'text-[var(--muted)]'}`}>
+                          <Heart size={16} fill={post.liked_by_me ? 'currentColor' : 'none'} />
+                          {post.like_count}
+                        </button>
+                        <button onClick={() => handleOpenComments(post.id)} className="flex items-center gap-1 text-[var(--muted)]">
+                          <MessageSquare size={16} /> {post.comment_count}
+                        </button>
+                        {isAdmin && (
+                          <button onClick={() => handleToggleNotice(post)} className={`flex items-center gap-1 ${post.is_notice ? 'text-emerald-600 font-semibold' : 'text-[var(--muted)]'}`}>
+                            <Pin size={16} /> {post.is_notice ? '공지 해제' : '공지로'}
+                          </button>
+                        )}
+                        {canEdit && (
+                          <button onClick={() => handleDeletePost(post)} className="ml-auto text-[var(--muted)] hover:text-rose-500">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 댓글 */}
+                      {commentsList && (
+                        <div className="mt-3 pt-3 border-t border-[var(--card-border)] space-y-2">
+                          {commentsList.length === 0 ? (
+                            <p className="text-sm text-[var(--muted)]">첫 댓글을 남겨보세요</p>
+                          ) : commentsList.map(c => (
+                            <div key={c.id} className="flex items-start gap-2">
+                              <div className="w-6 h-6 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
+                                {c.profiles?.avatar_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-[var(--muted)]">
+                                    {(c.profiles?.display_name ?? '?').slice(0, 1)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm">
+                                  <span className="font-semibold text-[var(--foreground)]">{c.profiles?.display_name ?? '러너'}</span>
+                                  <span className="text-[var(--foreground)] ml-2">{c.body}</span>
+                                </p>
+                                <p className="text-xs text-[var(--muted)] mt-0.5">{new Date(c.created_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="flex gap-2 pt-1">
+                            <input
+                              type="text"
+                              value={commentDraft[post.id] ?? ''}
+                              onChange={e => setCommentDraft(prev => ({ ...prev, [post.id]: e.target.value }))}
+                              onKeyDown={e => { if (e.key === 'Enter') handleSubmitComment(post.id); }}
+                              placeholder="댓글 남기기..."
+                              className="flex-1 px-3 py-2 rounded-lg bg-[var(--background)] border border-[var(--card-border)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                            />
+                            <button onClick={() => handleSubmitComment(post.id)} className="px-3 py-2 rounded-lg bg-emerald-500 text-white">
+                              <Send size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+
+          {/* 작성 모달 */}
+          {composeOpen && (
+            <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setComposeOpen(false)}>
+              <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-3 animate-slide-up" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-[var(--foreground)]">새 게시글</h3>
+                  <button onClick={() => setComposeOpen(false)} className="text-[var(--muted)]"><X size={20} /></button>
+                </div>
+                <textarea
+                  value={composeBody}
+                  onChange={e => setComposeBody(e.target.value.slice(0, 500))}
+                  placeholder="클럽에 공유할 이야기를 적어보세요..."
+                  rows={5}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none"
+                />
+                <p className="text-xs text-[var(--muted)] text-right">{composeBody.length} / 500</p>
+                {composePhoto && (
+                  <div className="relative rounded-xl overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={URL.createObjectURL(composePhoto)} alt="" className="w-full max-h-48 object-cover" />
+                    <button onClick={() => setComposePhoto(null)} className="absolute top-2 right-2 bg-black/60 rounded-full p-1"><X size={14} className="text-white" /></button>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-sm text-emerald-600 font-semibold cursor-pointer">
+                    <ImageIcon size={18} />
+                    사진
+                    <input type="file" accept="image/*" hidden onChange={e => setComposePhoto(e.target.files?.[0] ?? null)} />
+                  </label>
+                  {isAdmin && (
+                    <label className="flex items-center gap-1.5 text-sm text-[var(--foreground)] cursor-pointer ml-auto">
+                      <input type="checkbox" checked={composeIsNotice} onChange={e => setComposeIsNotice(e.target.checked)} className="accent-emerald-500" />
+                      <Pin size={14} /> 공지로 등록
+                    </label>
+                  )}
+                </div>
+                <button
+                  onClick={handleCompose}
+                  disabled={composing || !composeBody.trim()}
+                  className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-base disabled:opacity-50"
+                >
+                  {composing ? '올리는 중...' : '게시하기'}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
