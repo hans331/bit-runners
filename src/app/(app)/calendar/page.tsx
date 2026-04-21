@@ -483,11 +483,11 @@ export default function CalendarPage() {
           <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4 animate-slide-up">
             <div className="w-10 h-1 rounded-full bg-[var(--card-border)] mx-auto" />
             <div className="text-center space-y-1">
-              <div className="inline-flex w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-pink-500 items-center justify-center shadow-md">
-                <Sparkles size={22} className="text-white" />
+              <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 items-center justify-center shadow-md">
+                <Sparkles size={24} className="text-white" />
               </div>
-              <h3 className="text-lg font-bold text-[var(--foreground)]">사진을 어떻게 사용할까요?</h3>
-              <p className="text-xs text-[var(--muted)]">원하는 옵션을 선택하세요</p>
+              <h3 className="text-xl font-bold text-[var(--foreground)]">사진을 어떻게 사용할까요?</h3>
+              <p className="text-sm text-[var(--muted)]">원하는 옵션을 선택하세요</p>
             </div>
 
             {/* 사진 미리보기 */}
@@ -497,31 +497,31 @@ export default function CalendarPage() {
             </div>
 
             {/* 체크박스 1: 캘린더 배경 */}
-            <label className="flex items-start gap-3 p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 cursor-pointer active:scale-[0.99] transition">
+            <label className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-50 cursor-pointer active:scale-[0.99] transition">
               <input
                 type="checkbox"
                 checked={pendingUpload.applyToCalendar}
                 onChange={e => setPendingUpload(p => p ? { ...p, applyToCalendar: e.target.checked } : p)}
-                className="mt-0.5 w-5 h-5 rounded accent-orange-500"
+                className="mt-0.5 w-5 h-5 rounded accent-emerald-500"
               />
               <div className="flex-1">
-                <p className="text-sm font-bold text-[var(--foreground)]">📅 내 캘린더 배경에 반영</p>
-                <p className="text-[11px] text-[var(--muted)] mt-0.5">이 날짜 셀의 배경으로 표시됩니다</p>
+                <p className="text-base font-bold text-[var(--foreground)]">📅 내 캘린더 배경에 반영</p>
+                <p className="text-sm text-[var(--muted)] mt-0.5">이 날짜 셀의 배경으로 표시됩니다</p>
               </div>
             </label>
 
             {/* 체크박스 2: 루틴포토 등록 (러닝 있는 날만 활성) */}
-            <label className={`flex items-start gap-3 p-4 rounded-2xl bg-pink-50 dark:bg-pink-950/20 cursor-pointer active:scale-[0.99] transition ${!pendingUpload.activityId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <label className={`flex items-start gap-3 p-4 rounded-2xl bg-emerald-50 cursor-pointer active:scale-[0.99] transition ${!pendingUpload.activityId ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input
                 type="checkbox"
                 checked={pendingUpload.shareToRoutinePhotos}
                 disabled={!pendingUpload.activityId}
                 onChange={e => setPendingUpload(p => p ? { ...p, shareToRoutinePhotos: e.target.checked } : p)}
-                className="mt-0.5 w-5 h-5 rounded accent-pink-500"
+                className="mt-0.5 w-5 h-5 rounded accent-emerald-500"
               />
               <div className="flex-1">
-                <p className="text-sm font-bold text-[var(--foreground)]">📸 루틴포토에 등록하기</p>
-                <p className="text-[11px] text-[var(--muted)] mt-0.5">
+                <p className="text-base font-bold text-[var(--foreground)]">📸 루틴포토에 등록하기</p>
+                <p className="text-sm text-[var(--muted)] mt-0.5">
                   {pendingUpload.activityId
                     ? '다른 러너들과 공유되고 좋아요 받을 수 있어요'
                     : '러닝 기록이 있는 날만 공유할 수 있어요'}
@@ -540,7 +540,7 @@ export default function CalendarPage() {
               <button
                 onClick={applyPendingUpload}
                 disabled={applying || (!pendingUpload.applyToCalendar && !pendingUpload.shareToRoutinePhotos)}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm shadow-md disabled:opacity-50"
+                className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-base shadow-md disabled:opacity-50"
               >
                 {applying ? '적용 중...' : '확인'}
               </button>

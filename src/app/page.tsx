@@ -26,11 +26,13 @@ export default function LandingPage() {
   }, [user, loading, timedOut, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)]">
-      <div className="mb-4"><AppLogo size={72} /></div>
-      <h1 className="text-3xl font-bold text-[var(--foreground)]">Routinist</h1>
-      <p className="text-xs text-[var(--muted)] mt-2">나만의 러닝 루틴</p>
-      <div className="mt-8 animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 gap-3 px-6">
+      <div className="animate-[fadeInUp_0.4s_ease-out]">
+        <AppLogo size={84} />
+      </div>
+      <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Routinist</h1>
+      <p className="text-base font-semibold text-emerald-600">Run Your Routine!</p>
+      <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full mt-2" />
     </div>
   );
 }

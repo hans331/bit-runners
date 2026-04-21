@@ -5,6 +5,7 @@ import { signInWithProvider, signInWithEmail, signUpWithEmail, sendPasswordReset
 import { useAuth } from '@/components/AuthProvider';
 import type { Provider } from '@supabase/supabase-js';
 import AppLogo from '@/components/AppLogo';
+import Link from 'next/link';
 
 // 로그인 화면은 브랜드 톤(라이트) 고정 — 다크모드 시스템 설정과 무관하게 일관된 온보딩 경험
 type Mode = 'social' | 'email-login' | 'email-signup';
@@ -271,8 +272,12 @@ export default function LoginPage() {
         </div>
       )}
 
-      <p className="mt-8 text-xs text-gray-500 text-center max-w-xs relative z-10">
-        시작하면 <a href="/privacy" className="underline">개인정보처리방침</a>에 동의하는 것으로 간주합니다.
+      <p className="mt-8 text-sm text-gray-500 text-center max-w-xs relative z-10">
+        시작하면{' '}
+        <Link href="/privacy" className="underline font-semibold text-emerald-700">
+          개인정보처리방침
+        </Link>
+        에 동의하는 것으로 간주합니다.
       </p>
     </div>
   );

@@ -17,9 +17,9 @@ import AppLogo from '@/components/AppLogo';
 
 const SECTIONS = [
   { id: 'me', label: '내 랭킹', Icon: Trophy },
-  { id: 'friends', label: '친구', Icon: UserIcon },
-  { id: 'clubs', label: '클럽', Icon: Users },
-  { id: 'photos', label: '포토', Icon: Camera },
+  { id: 'friends', label: '친구 랭킹', Icon: UserIcon },
+  { id: 'clubs', label: '클럽 랭킹', Icon: Users },
+  { id: 'photos', label: '포토 랭킹', Icon: Camera },
 ] as const;
 
 type SectionId = typeof SECTIONS[number]['id'];

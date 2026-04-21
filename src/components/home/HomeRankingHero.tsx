@@ -150,13 +150,13 @@ export default function HomeRankingHero() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-[var(--muted)] leading-tight">
-              <span className="font-bold text-emerald-700 dark:text-emerald-400">{name}</span>님은{' '}
+            <p className="text-base text-[var(--muted)] leading-tight">
+              <span className="font-bold text-emerald-700">{name}</span>님은{' '}
               <span className="font-semibold">{rank.scope_label}</span>에서
             </p>
             <div className="flex items-baseline gap-1 mt-1">
               <span
-                className={`text-5xl font-extrabold ${
+                className={`text-[64px] leading-none font-extrabold ${
                   isTop3
                     ? 'text-emerald-600'
                     : isTop10
@@ -166,29 +166,29 @@ export default function HomeRankingHero() {
               >
                 {rank.rank_position}
               </span>
-              <span className="text-2xl font-bold text-[var(--foreground)]">위</span>
-              <span className="text-sm text-[var(--muted)] ml-1">
+              <span className="text-3xl font-bold text-[var(--foreground)]">위</span>
+              <span className="text-base text-[var(--muted)] ml-1">
                 / {rank.total_in_scope}명
               </span>
             </div>
-            <p className="text-sm text-[var(--muted)] mt-0.5">
+            <p className="text-base text-[var(--muted)] mt-1 font-semibold">
               {axis === 'today' ? '오늘' : axis === 'month' ? '이달' : '올해'} {Number(rank.my_km).toFixed(1)}km
             </p>
           </div>
         </div>
 
         {isTopRank ? (
-          <div className="mt-4 rounded-2xl bg-white/80 dark:bg-zinc-900/70 backdrop-blur px-4 py-3">
-            <p className="text-base font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+          <div className="mt-4 rounded-2xl bg-white/80 backdrop-blur px-4 py-3.5">
+            <p className="text-lg font-bold text-emerald-700 flex items-center gap-1.5">
               👑 {axis === 'today' ? '오늘의' : axis === 'month' ? '이달의' : '올해의'} 1위! 계속 달려 자리를 지켜보세요.
             </p>
           </div>
         ) : hasProgressHint ? (
-          <div className="mt-4 rounded-2xl bg-white/80 dark:bg-zinc-900/70 backdrop-blur px-4 py-3 flex items-center gap-2">
-            <TrendingUp size={18} className="text-emerald-600 flex-shrink-0" />
-            <p className="text-base font-semibold text-[var(--foreground)] leading-tight">
-              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{kmToNext.toFixed(1)}km</span> 더 달리면{' '}
-              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{rank.target_rank}위</span>로 올라가요!
+          <div className="mt-4 rounded-2xl bg-white/80 backdrop-blur px-4 py-3.5 flex items-center gap-2">
+            <TrendingUp size={20} className="text-emerald-600 flex-shrink-0" />
+            <p className="text-lg font-semibold text-[var(--foreground)] leading-snug">
+              <span className="text-emerald-700 font-extrabold">{kmToNext.toFixed(1)}km</span> 더 달리면{' '}
+              <span className="text-emerald-700 font-extrabold">{rank.target_rank}위</span>로 올라가요!
             </p>
           </div>
         ) : null}

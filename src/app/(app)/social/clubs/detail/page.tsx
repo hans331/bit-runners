@@ -5,14 +5,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import {
   fetchClub, fetchClubMembers, joinClub, leaveClub, isClubMember,
-  getMyClubRole, updateMemberRole, removeMember, updateClub, fetchClubActivities,
+  getMyClubRole, updateMemberRole, removeMember, updateClub, deleteClub, fetchClubActivities,
 } from '@/lib/social-data';
 import {
   fetchClubMemberProgress, fetchClubSummary, fetchMemberRunCounts, fetchCumulativeRanking, fetchHallOfFame,
   type MemberProgress, type ClubSummary, type MemberRunCount, type CumulativeRanking, type HallOfFameEntry,
 } from '@/lib/stats-data';
 import { formatPace, formatDuration } from '@/lib/routinist-data';
-import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Users, LogIn, LogOut, Share2, Shield, ShieldOff, UserMinus, Settings, Activity, Crown, Copy, Check, TrendingUp, Zap, Trophy, Flame, ChevronRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Club, ClubMember } from '@/types';
 import AppLogo from '@/components/AppLogo';
@@ -166,12 +166,30 @@ function ClubDetail() {
   }
 
   const isAdmin = myRole === 'owner' || myRole === 'admin';
+  const isAppAdmin = user?.email === 'hans@openhan.kr';
+  const canDelete = myRole === 'owner' || isAppAdmin;
   const tabs: { id: TabId; label: string; show: boolean }[] = [
     { id: 'dashboard', label: '대시보드', show: isMember },
     { id: 'members', label: `멤버 (${members.length})`, show: true },
     { id: 'activity', label: '활동', show: isMember },
-    { id: 'settings', label: '설정', show: isAdmin },
+    { id: 'settings', label: '설정', show: isAdmin || isAppAdmin },
   ];
+
+  const handleDeleteClub = async () => {
+    if (!clubId || !club) return;
+    const label = isAppAdmin && myRole !== 'owner' ? '[관리자] ' : '';
+    if (!confirm(`${label}"${club.name}" 클럽을 삭제할까요? 멤버 기록과 함께 영구 삭제됩니다.`)) return;
+    setSaving(true);
+    try {
+      await deleteClub(clubId);
+      alert('클럽이 삭제되었습니다.');
+      router.replace('/social?tab=clubs');
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '삭제 실패');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
@@ -498,8 +516,10 @@ function ClubDetail() {
       )}
 
       {/* 설정 탭 */}
-      {activeTab === 'settings' && isAdmin && (
+      {activeTab === 'settings' && (isAdmin || isAppAdmin) && (
         <div className="card p-5 space-y-4">
+          {isAdmin && (<>
+
           <div>
             <label className="text-sm font-semibold text-[var(--muted)] mb-1 block">클럽 이름</label>
             <input
@@ -539,6 +559,24 @@ function ClubDetail() {
           >
             {saving ? '저장 중...' : '저장'}
           </button>
+          </>)}
+
+          {/* 삭제 영역 — 방장 또는 앱 관리자만 표시 */}
+          {canDelete && (
+            <div className="pt-4 border-t border-[var(--card-border)]">
+              <p className="text-xs text-[var(--muted)] mb-2">
+                {myRole === 'owner' ? '이 클럽을 삭제합니다.' : '앱 관리자 권한으로 이 클럽을 삭제합니다.'} 되돌릴 수 없습니다.
+              </p>
+              <button
+                onClick={handleDeleteClub}
+                disabled={saving}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white font-bold text-sm disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+                {saving ? '삭제 중...' : isAppAdmin && myRole !== 'owner' ? '[관리자] 이 클럽 삭제' : '이 클럽 삭제'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

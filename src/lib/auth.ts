@@ -8,30 +8,60 @@ function isNativeApp(): boolean {
     (window as any).Capacitor !== undefined;
 }
 
+// 진단 로그 기록 — /login?debug=1 에서 확인 가능
+function logAuth(message: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const prev = window.localStorage.getItem('routinist_auth_log') || '';
+    const ts = new Date().toISOString().slice(11, 19);
+    const next = `${prev}\n[${ts}] ${message}`.trim().split('\n').slice(-40).join('\n');
+    window.localStorage.setItem('routinist_auth_log', next);
+  } catch {}
+}
+
 // 소셜 로그인
 export async function signInWithProvider(provider: Provider) {
   const supabase = getSupabase();
 
-  const redirectTo = isNativeApp()
+  const native = isNativeApp();
+  const redirectTo = native
     ? 'routinist://auth/callback'
     : `${window.location.origin}/auth/callback`;
+
+  logAuth(`signInWithProvider(${provider}) native=${native} redirectTo=${redirectTo}`);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo,
-      skipBrowserRedirect: isNativeApp(), // 네이티브에서는 직접 브라우저 열기
+      skipBrowserRedirect: native,
     },
   });
 
-  if (error) throw error;
+  if (error) {
+    logAuth(`signInWithOAuth error: ${error.message}`);
+    throw error;
+  }
 
-  // 네이티브 앱에서는 인앱 브라우저로 OAuth URL 열기
-  // windowName: '_self' 는 Capacitor Browser 에서 의미가 불명확하고
-  // 일부 환경에서 딥링크 복귀를 막아 무한 로딩의 원인이 됨 — 제거
-  if (isNativeApp() && data.url) {
-    const { Browser } = await import('@capacitor/browser');
-    await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
+  if (!data?.url) {
+    // data.url 이 비었으면 흰 화면의 근본 원인. 사용자에게 에러 표시.
+    logAuth(`signInWithOAuth returned empty url (provider=${provider})`);
+    throw new Error('OAuth URL을 받지 못했어요. Supabase 설정(Site URL / Redirect URLs)을 확인해주세요.');
+  }
+
+  logAuth(`OAuth URL length=${data.url.length} starts=${data.url.slice(0, 80)}`);
+
+  // 네이티브: Capacitor Browser 로 OAuth URL 열기
+  if (native) {
+    try {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url: data.url, presentationStyle: 'fullscreen' });
+      logAuth('Browser.open success');
+    } catch (e) {
+      logAuth(`Browser.open 실패: ${e instanceof Error ? e.message : e}`);
+      // 폴백: 시스템 브라우저로
+      window.location.href = data.url;
+    }
   }
 
   return data;

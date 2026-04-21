@@ -31,6 +31,7 @@ import {
 import Onboarding from '@/components/Onboarding';
 import LazyMount from '@/components/LazyMount';
 import HomeRankingHero from '@/components/home/HomeRankingHero';
+import HealthRefreshChip from '@/components/home/HealthRefreshChip';
 import TodayLocalTop from '@/components/home/TodayLocalTop';
 import RoutinePhotoCarousel from '@/components/home/RoutinePhotoCarousel';
 import FriendsLeaderboard from '@/components/home/FriendsLeaderboard';
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   const { user, profile } = useAuth();
   const { activities, goals, loading: userDataLoading, refresh } = useUserData();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCalendarSheet, setShowCalendarSheet] = useState(false);
 
   // 차트 데이터
   const [monthlyData, setMonthlyData] = useState<PeriodDistance[]>([]);
@@ -282,6 +284,7 @@ export default function DashboardPage() {
     <div className="max-w-lg mx-auto pb-8">
       {/* ========== 홈 히어로 (경쟁·소셜 중심) ========== */}
       <HomeRankingHero />
+      <HealthRefreshChip onSynced={refresh} />
       <LiveRunningIndicator />
       <RankNeighbors />
       <OnThisDayCard />
@@ -422,8 +425,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ========== ③ 월 캘린더 ========== */}
-      <Link href="/calendar" className="block">
+      {/* ========== ③ 월 캘린더 — 클릭 시 홈 안에서 바텀시트 모달 ========== */}
+      <button type="button" onClick={() => setShowCalendarSheet(true)} className="block w-full text-left active:scale-[0.995] transition">
         <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-semibold text-[var(--foreground)]">{month}월 캘린더</h3>
@@ -460,7 +463,62 @@ export default function DashboardPage() {
             <span className="flex items-center gap-0.5"><span className="w-2.5 h-2.5 rounded bg-green-600" /> 10+</span>
           </div>
         </div>
-      </Link>
+      </button>
+
+      {/* 캘린더 바텀시트 — 홈 안에서 열리는 확대 뷰 */}
+      {showCalendarSheet && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowCalendarSheet(false)}>
+          <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] animate-slide-up max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10 h-1 rounded-full bg-[var(--card-border)] mx-auto mb-4" />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-[var(--foreground)]">{year}년 {month}월</h3>
+              <span className="text-sm font-semibold text-emerald-600">{monthlyRunDays}일 러닝</span>
+            </div>
+            <div className="grid grid-cols-7 gap-1.5 text-center text-sm mb-2">
+              {['일','월','화','수','목','금','토'].map((d, i) => (
+                <span key={d} className={`font-semibold ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {Array.from({ length: firstDay }).map((_, i) => (
+                <div key={`es-${i}`} className="aspect-square" />
+              ))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const km = dateDistanceMap.get(dateStr) || 0;
+                const bg = miniCalDistanceColor(km, dateStr);
+                return (
+                  <div key={day} className={`aspect-square rounded-lg flex flex-col items-center justify-center ${bg}`}>
+                    <span className={`text-sm font-bold ${km >= 7 ? 'text-white' : 'text-[var(--foreground)]'}`}>{day}</span>
+                    {km > 0 && (
+                      <span className={`text-[10px] font-semibold ${km >= 7 ? 'text-white/90' : 'text-[var(--muted)]'}`}>{km.toFixed(1)}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2 mt-4 justify-center text-xs text-[var(--muted)]">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-200" /> 0</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200" /> ~3km</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-400" /> ~7km</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-600" /> 10km+</span>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setShowCalendarSheet(false)} className="flex-1 py-3 rounded-xl text-[var(--muted)] font-semibold text-base">
+                닫기
+              </button>
+              <Link
+                href="/calendar"
+                onClick={() => setShowCalendarSheet(false)}
+                className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-bold text-base text-center shadow-md"
+              >
+                전체 캘린더 열기
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ========== ④ 일별 거리 추이 (최근 30일) ========== */}
       <LazyMount minHeight={260}>

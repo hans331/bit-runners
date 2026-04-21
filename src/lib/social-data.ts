@@ -284,6 +284,15 @@ export async function updateClub(clubId: string, updates: { name?: string; descr
   if (error) throw error;
 }
 
+// 클럽 삭제 — 방장(owner) 또는 앱 관리자(hans@openhan.kr). 멤버십도 함께 정리.
+export async function deleteClub(clubId: string) {
+  const supabase = getSupabase();
+  // club_members 는 ON DELETE CASCADE 로 연결됐을 가능성이 높지만, 실패를 피하기 위해 선제 제거
+  await supabase.from('club_members').delete().eq('club_id', clubId);
+  const { error } = await supabase.from('clubs').delete().eq('id', clubId);
+  if (error) throw error;
+}
+
 export async function fetchClubActivities(clubId: string, limit = 20) {
   const supabase = getSupabase();
   const { data: members } = await supabase

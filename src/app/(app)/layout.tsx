@@ -33,7 +33,7 @@ const TABS: {
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': '홈',
   '/map': '러닝 지도',
-  '/social': '소셜',
+  '/social': '랭킹',
   '/profile': '내 정보',
   '/goals': '목표 설정',
   '/history': '히스토리',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, RefreshCw, AlertCircle, ShoppingBag } from 'lucide-react';
+import { ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
 
 // Cafe24 모바일 스토어. 앱 내 iframe 임베드 - 빈 응답이면 index.html 명시 폴백.
 const SHOP_URLS = [
@@ -90,28 +90,17 @@ export default function ShopPage() {
         />
       )}
 
+      {/* 로딩 중엔 흰 배경 + 아주 옅은 스피너만 — "불러오는 중" 문구 제거로 덜 튀게 */}
       {!blocked && loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-pink-50 gap-4 z-10">
-          <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center animate-pulse">
-            <ShoppingBag size={28} className="text-orange-500" />
-          </div>
-          <div className="text-center">
-            <p className="text-base font-bold text-gray-800">루티니스트 스토어</p>
-            <p className="text-xs text-gray-500 mt-1">쇼핑몰 불러오는 중...</p>
-          </div>
-          <button
-            onClick={openExternal}
-            className="text-xs text-orange-600 underline mt-2 px-4 py-1 rounded-full"
-          >
-            외부 브라우저로 열기
-          </button>
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-10 pointer-events-none">
+          <div className="animate-spin w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full opacity-70" />
         </div>
       )}
 
       {blocked && (
-        <div className="h-full flex flex-col items-center justify-center px-6 space-y-5 bg-gradient-to-br from-orange-50 to-pink-50">
+        <div className="h-full flex flex-col items-center justify-center px-6 space-y-5 bg-gradient-to-br from-emerald-50 to-white">
           <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center">
-            <AlertCircle size={28} className="text-orange-500" />
+            <AlertCircle size={28} className="text-emerald-600" />
           </div>
           <div className="text-center space-y-2 max-w-sm">
             <h2 className="text-lg font-bold text-gray-800">쇼핑몰을 불러올 수 없어요</h2>
@@ -129,7 +118,7 @@ export default function ShopPage() {
             </button>
             <button
               onClick={openExternal}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold py-3 rounded-xl shadow-md"
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-md"
             >
               <ExternalLink size={16} /> 외부 브라우저로 열기
             </button>

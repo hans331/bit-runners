@@ -1,14 +1,20 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Share2, Download, X, ChevronLeft, ChevronRight, ImagePlus } from 'lucide-react';
+import { Share2, Download, X, ChevronLeft, ChevronRight, ImagePlus, Sparkles } from 'lucide-react';
 import { isNativeApp } from '@/lib/health-sync';
+import { useAuth } from '@/components/AuthProvider';
+import { getSupabase } from '@/lib/supabase';
 import type { Activity } from '@/types';
 
 interface ShareCardProps {
   activity: Activity;
   displayName: string;
   onClose: () => void;
+  /** true 면 루틴포토 등록 버튼을 숨김 (캘린더처럼 바깥에서 직접 등록 모달을 띄우는 경우) */
+  hideRegister?: boolean;
+  /** 등록 성공 시 호출 — 리스트 새로고침용 */
+  onRegistered?: () => void;
 }
 
 type Theme = {
@@ -246,11 +252,14 @@ function formatPc(s: number): string {
   return `${m}'${String(sec).padStart(2, '0')}"`;
 }
 
-export default function ShareCard({ activity, displayName, onClose }: ShareCardProps) {
+export default function ShareCard({ activity, displayName, onClose, hideRegister, onRegistered }: ShareCardProps) {
+  const { user } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [themeIdx, setThemeIdx] = useState(0);
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const [registerToast, setRegisterToast] = useState<string | null>(null);
 
   const generate = useCallback(() => {
     if (!canvasRef.current) return;
@@ -302,6 +311,46 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
       link.download = `routinist-${activity.activity_date}.png`;
       link.href = canvasRef.current.toDataURL('image/png');
       link.click();
+    }
+  };
+
+  // 캔버스 → blob → storage 업로드 → activity_photos + calendar_photos 등록
+  const handleRegister = async () => {
+    if (!canvasRef.current || !user) return;
+    setRegistering(true);
+    try {
+      const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(b => res(b), 'image/png'));
+      if (!blob) throw new Error('blob null');
+      const supabase = getSupabase();
+      const path = `${user.id}/routine/${activity.activity_date}-${Date.now()}.png`;
+      const { error: upErr } = await supabase.storage.from('activity-photos').upload(path, blob, { contentType: 'image/png', upsert: false });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('activity-photos').getPublicUrl(path);
+      const photoUrl = urlData.publicUrl;
+
+      await Promise.all([
+        supabase.from('calendar_photos').upsert({
+          user_id: user.id,
+          date: activity.activity_date,
+          photo_url: photoUrl,
+        }, { onConflict: 'user_id,date' }),
+        supabase.from('activity_photos').insert({
+          activity_id: activity.id,
+          user_id: user.id,
+          photo_url: photoUrl,
+          share_in_gallery: true,
+          sort_order: 0,
+        }),
+      ]);
+
+      setRegisterToast('등록 완료! 루틴포토와 캘린더에 반영됐어요');
+      setTimeout(() => { setRegisterToast(null); onRegistered?.(); onClose(); }, 1500);
+    } catch (err) {
+      console.warn('루틴포토 등록 실패:', err);
+      setRegisterToast('등록 실패. 잠시 후 다시 시도');
+      setTimeout(() => setRegisterToast(null), 2500);
+    } finally {
+      setRegistering(false);
     }
   };
 
@@ -383,15 +432,41 @@ export default function ShareCard({ activity, displayName, onClose }: ShareCardP
         </div>
 
         {/* 공유 버튼 */}
-        <div className="flex gap-3 px-4 pb-4 pt-2 flex-shrink-0">
-          <button onClick={handleDownload} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--card)] border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-sm">
-            <Download size={18} /> 저장
-          </button>
-          <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
-            <Share2 size={18} /> 공유
-          </button>
+        <div className="flex flex-col gap-2 px-4 pb-4 pt-2 flex-shrink-0">
+          {!hideRegister && (
+            <button
+              onClick={handleRegister}
+              disabled={registering}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-base shadow-md disabled:opacity-50"
+            >
+              {registering ? (
+                <>
+                  <span className="animate-spin w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full" />
+                  <span>등록 중...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={18} /> 루틴포토 + 캘린더에 등록
+                </>
+              )}
+            </button>
+          )}
+          <div className="flex gap-2">
+            <button onClick={handleDownload} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-sm">
+              <Download size={18} /> 저장
+            </button>
+            <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm">
+              <Share2 size={18} /> 공유
+            </button>
+          </div>
         </div>
       </div>
+
+      {registerToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-sm px-4 py-2.5 rounded-full shadow-lg z-[80]">
+          {registerToast}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
+/* 다크 모드 차단 — Tailwind v4의 dark variant를 @media(prefers-color-scheme)에서
+   분리해 .dark 클래스 기준으로만 활성화. html에 .dark 를 붙이지 않으므로
+   iOS 다크 모드여도 항상 라이트 톤으로 렌더. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
+  color-scheme: light;
   --background: #f8fafc;
   --foreground: #0f172a;
   --card-bg: #ffffff;
