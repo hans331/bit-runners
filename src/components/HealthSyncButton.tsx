@@ -99,7 +99,7 @@ export default function HealthSyncButton({ userId, onSyncComplete }: HealthSyncB
       <button
         onClick={handleSync}
         disabled={syncing}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold py-3.5 rounded-xl transition-all text-base shadow-sm disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-3.5 rounded-xl transition-all text-base shadow-sm disabled:opacity-50"
       >
         {syncing ? (
           <>

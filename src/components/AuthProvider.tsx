@@ -94,41 +94,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let removeUrlListener: (() => void) | null = null;
 
+    // 중복 실행 방지 — appUrlOpen + getLaunchUrl 이 동일 URL 로 2번 불릴 수 있음.
+    // 첫 시도가 code 를 소비한 뒤 두 번째 시도가 invalid_grant 로 실패 → "첫 로그인 실패" 버그의 주원인.
+    let processing = false;
+    let lastProcessedUrl = '';
+
     const processCallbackUrl = async (url: string) => {
       authLog('딥링크 수신', { url: url.slice(0, 200) });
       if (!(url.includes('auth/callback') || url.includes('access_token') || url.includes('code='))) {
         authLog('auth 관련 URL 아님 — 스킵');
         return;
       }
+      if (processing || lastProcessedUrl === url) {
+        authLog('중복 콜백 스킵', { processing, sameUrl: lastProcessedUrl === url });
+        return;
+      }
+      processing = true;
+      lastProcessedUrl = url;
+
       let resolvedSession: Session | null = null;
       let lastError: unknown = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        // exchangeCodeForSession 은 code 를 1회만 소비할 수 있으므로 재시도 없이 1번 시도.
+        // 실패 시 getSession 폴백으로 충분 (exchange 내부에서 이미 세션이 저장됐을 수 있음).
         try {
           const s = await handleOAuthCallback(url);
           if (s) {
-            authLog('OAuth 콜백 성공', { attempt: attempt + 1 });
+            authLog('OAuth 콜백 성공');
             resolvedSession = s;
-            break;
           }
         } catch (e) {
           lastError = e;
-          authLog('OAuth 콜백 에러', { attempt: attempt + 1, error: String(e) });
+          authLog('OAuth 콜백 에러', { error: String(e) });
         }
-        await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
-      }
-      if (!resolvedSession) {
-        const supabase = getSupabase();
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        resolvedSession = existingSession;
-        if (resolvedSession) authLog('폴백: 기존 세션 발견');
-      }
-      if (resolvedSession) {
-        await new Promise(r => setTimeout(r, 300));
-        if (!window.location.pathname.startsWith('/dashboard')) {
-          window.location.replace('/dashboard');
+
+        if (!resolvedSession) {
+          // 폴백: exchangeCode 가 throw 했어도 세션이 저장됐을 수 있음 (iOS WebKit 타이밍).
+          // 1~2초 간격으로 최대 3회 확인.
+          for (let i = 0; i < 3 && !resolvedSession; i++) {
+            await new Promise(r => setTimeout(r, 700));
+            const supabase = getSupabase();
+            const { data: { session: existingSession } } = await supabase.auth.getSession();
+            if (existingSession) {
+              resolvedSession = existingSession;
+              authLog('폴백: 세션 발견', { attempt: i + 1 });
+            }
+          }
         }
-      } else {
-        authLog('모든 OAuth 시도 실패', { lastError: String(lastError) });
+
+        if (resolvedSession) {
+          // onAuthStateChange 가 user 를 업데이트할 시간을 주고 이동.
+          await new Promise(r => setTimeout(r, 400));
+          if (!window.location.pathname.startsWith('/dashboard')) {
+            window.location.replace('/dashboard');
+          }
+        } else {
+          authLog('모든 OAuth 시도 실패', { lastError: String(lastError) });
+        }
+      } finally {
+        processing = false;
       }
     };
 

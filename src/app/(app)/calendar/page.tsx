@@ -244,7 +244,7 @@ export default function CalendarPage() {
 
       {uploading && (
         <div className="card p-3 text-center">
-          <div className="animate-spin w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full mx-auto" />
+          <div className="animate-spin w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto" />
           <p className="text-xs text-[var(--muted)] mt-1">사진 업로드 중...</p>
         </div>
       )}
@@ -264,7 +264,7 @@ export default function CalendarPage() {
       <div className="card p-4">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-orange-500">{monthlyDistance.toFixed(1)}</p>
+            <p className="text-2xl font-bold text-emerald-600">{monthlyDistance.toFixed(1)}</p>
             <p className="text-xs text-[var(--muted)]">km</p>
           </div>
           <div>
@@ -414,16 +414,16 @@ export default function CalendarPage() {
 
               {dayActivities.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-3">
-                    <p className="text-2xl font-extrabold text-orange-500">{dayKm.toFixed(1)}</p>
+                  <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-emerald-600">{dayKm.toFixed(1)}</p>
                     <p className="text-xs text-[var(--muted)]">km</p>
                   </div>
-                  <div className="rounded-xl bg-pink-50 dark:bg-pink-950/30 p-3">
-                    <p className="text-2xl font-extrabold text-pink-500">{dayActivities.length}</p>
+                  <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-emerald-700">{dayActivities.length}</p>
                     <p className="text-xs text-[var(--muted)]">러닝</p>
                   </div>
-                  <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-3">
-                    <p className="text-2xl font-extrabold text-amber-600">{dayDuration > 0 ? formatDuration(dayDuration) : '-'}</p>
+                  <div className="rounded-xl bg-lime-50 dark:bg-lime-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-lime-700 dark:text-lime-500">{dayDuration > 0 ? formatDuration(dayDuration) : '-'}</p>
                     <p className="text-xs text-[var(--muted)]">시간</p>
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function CalendarPage() {
                 {dayActivities.length > 0 && (
                   <button
                     onClick={() => { setShareActivityId(dayActivities[0].id); setShowDetail(null); }}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold text-sm shadow-md"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold text-sm shadow-md"
                   >
                     <Share2 size={16} />
                     공유 카드

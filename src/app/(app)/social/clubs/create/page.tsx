@@ -18,7 +18,13 @@ export default function CreateClubPage() {
     setCreating(true);
     setError('');
     try {
-      const club = await createClub(name.trim(), description.trim());
+      // 12초 타임아웃 — 이전: RLS/네트워크 이슈로 promise 가 영원히 대기하면 "생성 중..." 고정.
+      const club = await Promise.race([
+        createClub(name.trim(), description.trim()),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('요청이 지연되고 있어요. 네트워크를 확인하고 다시 시도해주세요.')), 12000)
+        ),
+      ]);
       router.replace(`/social/clubs/detail?id=${club.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -28,11 +34,12 @@ export default function CreateClubPage() {
       } else if (msg.includes('duplicate') || msg.includes('unique')) {
         setError('이미 같은 이름의 클럽이 있습니다.');
       } else {
-        setError(`클럽 생성 실패: ${msg}`);
+        setError(msg);
       }
-    } finally {
-      setCreating(false);
+      setCreating(false); // 에러 시 버튼 복귀
+      return;
     }
+    // 성공 시 router.replace 가 언마운트를 일으키므로 setCreating(false) 불필요.
   };
 
   return (

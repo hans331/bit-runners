@@ -131,11 +131,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
+  // h-[100dvh] + overflow-hidden 으로 flex 컨테이너를 뷰포트 높이에 고정.
+  // 이전 min-h-screen 구조에서 iOS WebView 의 바운스/에러 상태 시 sticky bottom 탭바가
+  // 스크롤에 밀려 올라가는 버그가 발생 — 내부 main 에서만 스크롤되도록 제한.
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--background)]">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-[var(--background)]">
       <SwipeNav />
       {/* 헤더 — 동적 타이틀 */}
-      <header className="sticky top-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
+      <header className="flex-shrink-0 z-40 border-b border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pt-[env(safe-area-inset-top)]">
         <div className="px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/dashboard"><AppLogo size={28} /></Link>
@@ -146,13 +149,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* 메인 컨텐츠 */}
-      <main className="flex-1 overflow-y-auto">
+      {/* 메인 컨텐츠 — 유일한 스크롤 영역 */}
+      <main className="flex-1 overflow-y-auto overscroll-contain">
         <UserDataProvider>{children}</UserDataProvider>
       </main>
 
-      {/* 하단 5탭 네비게이션 */}
-      <nav className="sticky bottom-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+      {/* 하단 5탭 네비게이션 — flex-shrink-0 로 고정, sticky 제거 */}
+      <nav className="flex-shrink-0 z-40 border-t border-[var(--card-border)] bg-[var(--header-bg)] backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex justify-around items-center h-16">
           {TABS.map((tab) => {
             const isActive =

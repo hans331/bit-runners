@@ -37,6 +37,7 @@ export default function HomeRankingHero() {
   const [rank, setRank] = useState<HeroRank | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -44,14 +45,15 @@ export default function HomeRankingHero() {
     setLoading(true);
     setError(false);
 
-    // 5초 안에 응답 없으면 에러 처리 — 무한 빈 카드 방지
+    // 10초 안에 응답 없으면 에러 처리 — 무한 빈 카드 방지.
+    // 초기 타임아웃 5초는 Supabase 콜드 스타트 / 셀룰러 지연 시 에러로 오인.
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
-        console.warn('[HomeRankingHero] RPC 타임아웃');
+        console.warn('[HomeRankingHero] RPC 타임아웃 (10s)');
         setError(true);
         setLoading(false);
       }
-    }, 5000);
+    }, 10000);
 
     (async () => {
       try {
@@ -73,7 +75,7 @@ export default function HomeRankingHero() {
       }
     })();
     return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [user, axis]);
+  }, [user, axis, retryKey]);
 
   if (loading) {
     return (
@@ -83,7 +85,34 @@ export default function HomeRankingHero() {
 
   const hasDemographics = !!(profile?.region_gu || profile?.birth_year || profile?.gender);
 
-  if (!hasDemographics || error || !rank) {
+  // 에러(RPC 타임아웃·실패) — 프로필은 있지만 불러오기 실패한 경우. 재시도 버튼 제공.
+  if (error && hasDemographics) {
+    return (
+      <div className="mx-4 mt-3 rounded-3xl bg-gradient-to-br from-emerald-100/80 via-white to-emerald-50 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-emerald-950/10 border border-emerald-200/60 dark:border-emerald-900/30 p-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-zinc-900 shadow-md flex items-center justify-center flex-shrink-0">
+            <Trophy size={24} className="text-emerald-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-lg font-bold text-[var(--foreground)] leading-tight">
+              랭킹 불러오기 실패
+            </p>
+            <p className="text-sm text-[var(--muted)] mt-1 leading-5">
+              네트워크가 불안정하거나 서버가 바쁠 수 있어요
+            </p>
+          </div>
+          <button
+            onClick={() => setRetryKey(k => k + 1)}
+            className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-bold shadow-sm active:scale-95 transition"
+          >
+            다시
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasDemographics || !rank) {
     return (
       <Link
         href="/profile/edit"

@@ -307,7 +307,7 @@ export default function DashboardPage() {
 
       {/* Apple Health 미연동 배너 */}
       {activities.length === 0 && (
-        <Link href="/connect" className="block card p-3 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 border-0">
+        <Link href="/connect" className="block card p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30 border-0">
           <div className="flex items-center gap-3">
             <span className="text-2xl">❤️</span>
             <div className="flex-1">
@@ -357,7 +357,7 @@ export default function DashboardPage() {
             <p className="text-xs text-[var(--muted)] mt-0.5">이달 km</p>
           </div>
           <div>
-            <p className="text-2xl font-extrabold text-orange-500">{monthlyRunDays}</p>
+            <p className="text-2xl font-extrabold text-lime-600 dark:text-lime-500">{monthlyRunDays}</p>
             <p className="text-xs text-[var(--muted)] mt-0.5">이달 일수</p>
           </div>
         </div>

@@ -29,13 +29,18 @@ export default function PhotoUploader({ children, className, onUploaded }: Props
     try {
       const supabase = getSupabase();
       const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase
+      // 6초 타임아웃 — 네트워크 지연 시 "확인 중..." 고정되는 문제 방지
+      const queryPromise = supabase
         .from('activities')
         .select('*')
         .eq('user_id', user.id)
         .eq('activity_date', today)
         .order('created_at', { ascending: false })
         .limit(1);
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 6000)
+      );
+      const { data } = await Promise.race([queryPromise, timeoutPromise]) as { data: Activity[] | null };
 
       const act = (data?.[0] as Activity | undefined) ?? null;
       if (!act) {
@@ -64,7 +69,7 @@ export default function PhotoUploader({ children, className, onUploaded }: Props
         {loading ? (
           <>
             <span className="animate-spin w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full" />
-            <span>불러오는 중...</span>
+            <span>오늘 러닝 확인 중…</span>
           </>
         ) : (
           children

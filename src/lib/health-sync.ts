@@ -63,6 +63,7 @@ async function syncFromHealthKit(userId: string, deepSync = false): Promise<Sync
     // 러닝 + 걷기 모두 동기화
     const workoutTypes = ['running', 'walking'] as const;
     let allWorkouts: any[] = [];
+    const queryErrors: string[] = [];
 
     for (const wType of workoutTypes) {
       try {
@@ -76,11 +77,20 @@ async function syncFromHealthKit(userId: string, deepSync = false): Promise<Sync
         if (workouts?.length) {
           allWorkouts.push(...workouts.map(w => ({ ...w, _type: wType })));
         }
-      } catch {}
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn(`[health-sync] queryWorkouts(${wType}) 실패:`, msg);
+        queryErrors.push(`${wType}: ${msg}`);
+      }
     }
 
     if (allWorkouts.length === 0) {
-      return await syncViaDistance(userId, startDate, endDate);
+      // 워크아웃이 아예 없으면 거리 데이터 폴백. 모든 쿼리가 에러였으면 진짜 실패로 보고.
+      const fallback = await syncViaDistance(userId, startDate, endDate);
+      if (!fallback.success && queryErrors.length === workoutTypes.length) {
+        return { success: false, message: `Apple Health 조회 실패: ${queryErrors[0]}`, synced: 0 };
+      }
+      return fallback;
     }
 
     // 배치 중복 체크 — 기존 루프 방식이 N건 × 쿼리로 느렸음
