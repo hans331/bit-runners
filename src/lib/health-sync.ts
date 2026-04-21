@@ -44,15 +44,20 @@ export async function connectHealthKit(): Promise<SyncResult> {
   }
 }
 
-// 데이터 동기화 (백그라운드) — activities 테이블에 저장
-async function syncFromHealthKit(userId: string): Promise<SyncResult> {
+// 데이터 동기화 (백그라운드) — activities 테이블에 저장.
+// 성능 최적화(2026-04-21): 기본 90일만 동기화, 심박/칼로리 개별 루프 제거.
+// 전체 3년치가 필요하면 deepSync=true 로 호출. 앱 로드 시 자동 sync 는 항상 얕게.
+async function syncFromHealthKit(userId: string, deepSync = false): Promise<SyncResult> {
   try {
     const { Health } = await import('@capgo/capacitor-health');
 
-    // 3년치 데이터 가져오기
-    const threeYearsAgo = new Date();
-    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-    const startDate = threeYearsAgo.toISOString();
+    const startDt = new Date();
+    if (deepSync) {
+      startDt.setFullYear(startDt.getFullYear() - 3);
+    } else {
+      startDt.setDate(startDt.getDate() - 90);
+    }
+    const startDate = startDt.toISOString();
     const endDate = new Date().toISOString();
 
     // 러닝 + 걷기 모두 동기화
@@ -65,7 +70,7 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
           workoutType: wType,
           startDate,
           endDate,
-          limit: 3000,
+          limit: deepSync ? 3000 : 500,
           ascending: false,
         });
         if (workouts?.length) {
@@ -78,8 +83,23 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
       return await syncViaDistance(userId, startDate, endDate);
     }
 
-    let syncedCount = 0;
+    // 배치 중복 체크 — 기존 루프 방식이 N건 × 쿼리로 느렸음
     const supabase = getSupabase();
+    const { data: existingAll } = await supabase
+      .from('activities')
+      .select('activity_date, distance_km')
+      .eq('user_id', userId)
+      .eq('source', 'health_kit')
+      .gte('activity_date', startDate.slice(0, 10));
+    const existingMap = new Map<string, number[]>();
+    (existingAll ?? []).forEach(row => {
+      const arr = existingMap.get(row.activity_date) ?? [];
+      arr.push(Number(row.distance_km));
+      existingMap.set(row.activity_date, arr);
+    });
+
+    let syncedCount = 0;
+    const toInsert: Record<string, any>[] = [];
 
     for (const workout of allWorkouts) {
       const activityDate = workout.startDate.split('T')[0];
@@ -91,54 +111,12 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
       const activityType = workout._type === 'walking' ? 'walking' : 'running';
 
       if (distanceKm < 0.1) continue;
-      // 걷기는 최소 0.5km
       if (activityType === 'walking' && distanceKm < 0.5) continue;
 
-      // 중복 확인: 같은 날짜 + 유사한 거리
-      const { data: existing } = await supabase
-        .from('activities')
-        .select('id, distance_km')
-        .eq('user_id', userId)
-        .eq('activity_date', activityDate)
-        .eq('source', 'health_kit');
-
-      const isDuplicate = (existing || []).some(
-        (e) => Math.abs(Number(e.distance_km) - distanceKm) < 0.1
-      );
+      // 배치 중복 체크
+      const existingDistances = existingMap.get(activityDate) ?? [];
+      const isDuplicate = existingDistances.some(d => Math.abs(d - distanceKm) < 0.1);
       if (isDuplicate) continue;
-
-      // 심박수 데이터 가져오기 (해당 운동 시간 범위)
-      let heartRateAvg: number | null = null;
-      let heartRateMax: number | null = null;
-      try {
-        const { samples: hrSamples } = await Health.readSamples({
-          dataType: 'heartRate',
-          startDate: workout.startDate,
-          endDate: workout.endDate || endDate,
-          limit: 1000,
-        });
-        if (hrSamples?.length) {
-          const hrValues = hrSamples.map(s => s.value).filter(v => v > 0);
-          if (hrValues.length > 0) {
-            heartRateAvg = Math.round(hrValues.reduce((s, v) => s + v, 0) / hrValues.length);
-            heartRateMax = Math.round(Math.max(...hrValues));
-          }
-        }
-      } catch {}
-
-      // 활동 에너지 가져오기
-      let activeEnergy: number | null = null;
-      try {
-        const { samples: energySamples } = await Health.readSamples({
-          dataType: 'calories',
-          startDate: workout.startDate,
-          endDate: workout.endDate || endDate,
-          limit: 100,
-        });
-        if (energySamples?.length) {
-          activeEnergy = Math.round(energySamples.reduce((s, e) => s + e.value, 0));
-        }
-      } catch {}
 
       const insertData: Record<string, any> = {
         user_id: userId,
@@ -146,23 +124,31 @@ async function syncFromHealthKit(userId: string): Promise<SyncResult> {
         distance_km: Math.round(distanceKm * 100) / 100,
         duration_seconds: durationSeconds && durationSeconds > 0 ? durationSeconds : null,
         pace_avg_sec_per_km: paceAvg,
-        calories: activeEnergy || (workout.totalEnergyBurned ? Math.round(workout.totalEnergyBurned) : null),
+        // 심박/칼로리 루프 쿼리 제거 — workout 자체의 집계값만 사용 (훨씬 빠름)
+        calories: workout.totalEnergyBurned ? Math.round(workout.totalEnergyBurned) : null,
         source: 'health_kit',
         memo: `Apple Health ${activityType === 'walking' ? '걷기' : '러닝'} 동기화`,
         started_at: workout.startDate,
         ended_at: workout.endDate || null,
       };
 
-      // 새 컬럼이 있으면 추가 (DB에 없으면 무시됨)
-      if (heartRateAvg) insertData.heart_rate_avg = heartRateAvg;
-      if (heartRateMax) insertData.heart_rate_max = heartRateMax;
-      if (activeEnergy) insertData.active_energy_kcal = activeEnergy;
+      if (workout.totalEnergyBurned) insertData.active_energy_kcal = Math.round(workout.totalEnergyBurned);
       if (activityType === 'walking') insertData.activity_type = 'walking';
 
-      const { error } = await supabase.from('activities').insert(insertData);
+      toInsert.push(insertData);
+      existingDistances.push(distanceKm);
+      existingMap.set(activityDate, existingDistances);
+    }
 
-      if (!error) {
-        syncedCount++;
+    // 벌크 insert — 한 번의 왕복으로 전체 처리
+    if (toInsert.length > 0) {
+      // 100건씩 청크로 나눠 insert (supabase row 제한 방지)
+      for (let i = 0; i < toInsert.length; i += 100) {
+        const chunk = toInsert.slice(i, i + 100);
+        const { error, count } = await supabase.from('activities').insert(chunk, { count: 'exact' });
+        if (!error) {
+          syncedCount += count ?? chunk.length;
+        }
       }
     }
 

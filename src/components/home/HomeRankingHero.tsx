@@ -43,6 +43,16 @@ export default function HomeRankingHero() {
     let cancelled = false;
     setLoading(true);
     setError(false);
+
+    // 5초 안에 응답 없으면 에러 처리 — 무한 빈 카드 방지
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        console.warn('[HomeRankingHero] RPC 타임아웃');
+        setError(true);
+        setLoading(false);
+      }
+    }, 5000);
+
     (async () => {
       try {
         const supabase = getSupabase();
@@ -51,6 +61,7 @@ export default function HomeRankingHero() {
           time_axis: axis,
         });
         if (cancelled) return;
+        clearTimeout(timeoutId);
         if (rpcError) throw rpcError;
         const row = Array.isArray(data) ? data[0] : data;
         setRank(row ? (row as HeroRank) : null);
@@ -61,7 +72,7 @@ export default function HomeRankingHero() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(timeoutId); };
   }, [user, axis]);
 
   if (loading) {
