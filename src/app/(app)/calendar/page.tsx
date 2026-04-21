@@ -6,8 +6,7 @@ import { useUserData } from '@/components/UserDataProvider';
 import { getMonthlyDistance, formatDuration } from '@/lib/routinist-data';
 import { getSupabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Camera, Share2 } from 'lucide-react';
-import type { ActivityPhoto } from '@/types';
+import { ChevronLeft, ChevronRight, Camera, Share2, Sparkles } from 'lucide-react';
 import ShareCard from '@/components/activity/ShareCard';
 
 // Git 잔디 스타일 — 초록 단일 그라데이션
@@ -16,9 +15,7 @@ function distanceColor(km: number, dateStr: string): string {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const cellDate = new Date(dateStr + 'T00:00:00');
-    // 미래 날짜: 아주 연한 연두
     if (cellDate > today) return 'bg-green-50 dark:bg-green-950/20';
-    // 오늘 이전 미러닝: 연한 회색
     return 'bg-gray-100 dark:bg-zinc-800/50';
   }
   if (km < 3) return 'bg-green-200 dark:bg-green-900/40';
@@ -33,6 +30,14 @@ function distanceTextColor(km: number): string {
   return 'text-[var(--foreground)]';
 }
 
+interface PendingUpload {
+  date: string;
+  photoUrl: string;
+  activityId: string | null;  // 러닝 활동 없는 날은 null
+  applyToCalendar: boolean;
+  shareToRoutinePhotos: boolean;
+}
+
 export default function CalendarPage() {
   const { user } = useAuth();
   const { activities, loading } = useUserData();
@@ -40,19 +45,18 @@ export default function CalendarPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
 
-  // 사진 데이터
   const [photos, setPhotos] = useState<Map<string, string>>(new Map());
   const [customPhotos, setCustomPhotos] = useState<Map<string, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [showDetail, setShowDetail] = useState<string | null>(null); // 날짜 상세 모달
-  const [shareActivityId, setShareActivityId] = useState<string | null>(null); // 사진 꾸미기 공유 카드
-  // 업로드 후 루티니스트 갤러리 공유 유도 프롬프트
-  const [galleryPrompt, setGalleryPrompt] = useState<{ date: string; photoUrl: string; activityId: string } | null>(null);
-  const [gallerySharing, setGallerySharing] = useState(false);
+  const [showDetail, setShowDetail] = useState<string | null>(null);
+  const [shareActivityId, setShareActivityId] = useState<string | null>(null);
 
-  // 월간 활동 데이터
+  // 업로드 완료 후 옵션 모달 (체크박스 통합)
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
+  const [applying, setApplying] = useState(false);
+
   const monthlyActivities = useMemo(() =>
     activities.filter(a => {
       const d = new Date(a.activity_date);
@@ -61,7 +65,6 @@ export default function CalendarPage() {
     [activities, year, month]
   );
 
-  // 날짜별 거리 합산
   const dateDistanceMap = useMemo(() => {
     const map = new Map<string, number>();
     monthlyActivities.forEach(a => {
@@ -71,7 +74,6 @@ export default function CalendarPage() {
     return map;
   }, [monthlyActivities]);
 
-  // 날짜별 활동 ID (상세 이동용)
   const dateActivityMap = useMemo(() => {
     const map = new Map<string, string[]>();
     monthlyActivities.forEach(a => {
@@ -82,7 +84,6 @@ export default function CalendarPage() {
     return map;
   }, [monthlyActivities]);
 
-  // 사진 로드
   const loadPhotos = useCallback(async () => {
     if (!user || monthlyActivities.length === 0) return;
     const supabase = getSupabase();
@@ -96,7 +97,6 @@ export default function CalendarPage() {
 
     if (!data?.length) return;
 
-    // activity_id → activity_date 매핑
     const actDateMap = new Map<string, string>();
     monthlyActivities.forEach(a => actDateMap.set(a.id, a.activity_date));
 
@@ -113,7 +113,6 @@ export default function CalendarPage() {
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
 
-  // 커스텀 캘린더 사진 로드
   const loadCustomPhotos = useCallback(async () => {
     if (!user) return;
     const supabase = getSupabase();
@@ -133,12 +132,12 @@ export default function CalendarPage() {
 
   useEffect(() => { loadCustomPhotos(); }, [loadCustomPhotos]);
 
-  // 사진 선택 핸들러
   const handlePhotoSelect = (dateStr: string) => {
     setSelectedDate(dateStr);
     fileInputRef.current?.click();
   };
 
+  // 파일 선택 시: storage 업로드만 하고 체크박스 모달을 띄움. 실제 적용은 모달 confirm 에서.
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !selectedDate) return;
@@ -147,38 +146,24 @@ export default function CalendarPage() {
     try {
       const supabase = getSupabase();
       const ext = file.name.split('.').pop() || 'jpg';
-      // RLS 정책이 첫 폴더명 = auth.uid() 를 요구하므로 경로 최상단을 userId 로
       const path = `${user.id}/calendar/${selectedDate}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('activity-photos')
         .upload(path, file, { upsert: true, contentType: file.type });
-      if (uploadError) {
-        console.error('[Calendar] 업로드 실패:', uploadError);
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage.from('activity-photos').getPublicUrl(path);
       const photoUrl = urlData.publicUrl + '?t=' + Date.now();
 
-      // calendar_photos 테이블에 저장 (upsert)
-      await supabase.from('calendar_photos').upsert({
-        user_id: user.id,
-        date: selectedDate,
-        photo_url: photoUrl,
-      }, { onConflict: 'user_id,date' });
-
-      setCustomPhotos(prev => {
-        const next = new Map(prev);
-        next.set(selectedDate, photoUrl);
-        return next;
-      });
-
-      // 업로드한 날짜에 활동이 있으면 "루티니스트 갤러리에도 공유" 프롬프트
       const activityIds = dateActivityMap.get(selectedDate) ?? [];
-      if (activityIds.length > 0) {
-        setGalleryPrompt({ date: selectedDate, photoUrl, activityId: activityIds[0] });
-      }
+      setPendingUpload({
+        date: selectedDate,
+        photoUrl,
+        activityId: activityIds[0] ?? null,
+        applyToCalendar: true,
+        shareToRoutinePhotos: activityIds.length > 0,  // 러닝 있는 날만 공유 가능 (기본 체크)
+      });
     } catch (err) {
       console.warn('사진 업로드 실패:', err);
     } finally {
@@ -188,23 +173,42 @@ export default function CalendarPage() {
     }
   };
 
-  const handleShareToGallery = async () => {
-    if (!galleryPrompt || !user) return;
-    setGallerySharing(true);
+  // 체크박스 모달 확인 — 선택된 옵션 적용
+  const applyPendingUpload = async () => {
+    if (!pendingUpload || !user) return;
+    setApplying(true);
     try {
       const supabase = getSupabase();
-      await supabase.from('activity_photos').insert({
-        activity_id: galleryPrompt.activityId,
-        user_id: user.id,
-        photo_url: galleryPrompt.photoUrl,
-        share_in_gallery: true,
-        sort_order: 0,
-      });
-      setGalleryPrompt(null);
+
+      if (pendingUpload.applyToCalendar) {
+        await supabase.from('calendar_photos').upsert({
+          user_id: user.id,
+          date: pendingUpload.date,
+          photo_url: pendingUpload.photoUrl,
+        }, { onConflict: 'user_id,date' });
+
+        setCustomPhotos(prev => {
+          const next = new Map(prev);
+          next.set(pendingUpload.date, pendingUpload.photoUrl);
+          return next;
+        });
+      }
+
+      if (pendingUpload.shareToRoutinePhotos && pendingUpload.activityId) {
+        await supabase.from('activity_photos').insert({
+          activity_id: pendingUpload.activityId,
+          user_id: user.id,
+          photo_url: pendingUpload.photoUrl,
+          share_in_gallery: true,
+          sort_order: 0,
+        });
+      }
+
+      setPendingUpload(null);
     } catch (err) {
-      console.warn('갤러리 공유 실패:', err);
+      console.warn('사진 적용 실패:', err);
     } finally {
-      setGallerySharing(false);
+      setApplying(false);
     }
   };
 
@@ -214,6 +218,10 @@ export default function CalendarPage() {
 
   const firstDay = new Date(year, month - 1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
+
+  // 이전달 말일 옅게 표시 (피드백 — 첫 주 빈 칸 어색함 제거)
+  const prevMonthLastDay = new Date(year, month - 1, 0).getDate();
+  const prevMonthFillDays = Array.from({ length: firstDay }, (_, i) => prevMonthLastDay - firstDay + i + 1);
 
   const prevMonth = () => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
@@ -226,7 +234,6 @@ export default function CalendarPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
-      {/* 숨겨진 파일 입력 */}
       <input
         ref={fileInputRef}
         type="file"
@@ -237,37 +244,8 @@ export default function CalendarPage() {
 
       {uploading && (
         <div className="card p-3 text-center">
-          <div className="animate-spin w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full mx-auto" />
+          <div className="animate-spin w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full mx-auto" />
           <p className="text-xs text-[var(--muted)] mt-1">사진 업로드 중...</p>
-        </div>
-      )}
-
-      {galleryPrompt && (
-        <div className="card p-4 bg-gradient-to-r from-[var(--accent)]/10 to-emerald-500/10 border-[var(--accent)]/30">
-          <div className="flex items-center gap-3 mb-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={galleryPrompt.photoUrl} alt="" className="w-14 h-14 rounded-lg object-cover" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-[var(--foreground)]">루티니스트 갤러리에 공유할까요?</p>
-              <p className="text-xs text-[var(--muted)] mt-0.5">다른 러너들에게도 노출돼요</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setGalleryPrompt(null)}
-              disabled={gallerySharing}
-              className="flex-1 py-2 rounded-lg bg-[var(--card)] text-[var(--muted)] text-sm font-medium disabled:opacity-50"
-            >
-              나중에
-            </button>
-            <button
-              onClick={handleShareToGallery}
-              disabled={gallerySharing}
-              className="flex-1 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-semibold disabled:opacity-50"
-            >
-              {gallerySharing ? '공유 중...' : '공유하기'}
-            </button>
-          </div>
         </div>
       )}
 
@@ -286,7 +264,7 @@ export default function CalendarPage() {
       <div className="card p-4">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-[var(--accent)]">{monthlyDistance.toFixed(1)}</p>
+            <p className="text-2xl font-bold text-orange-500">{monthlyDistance.toFixed(1)}</p>
             <p className="text-xs text-[var(--muted)]">km</p>
           </div>
           <div>
@@ -300,28 +278,28 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* ========== DayOne 스타일 캘린더 ========== */}
       <div className="card p-4">
-        {/* 요일 헤더 */}
         <div className="grid grid-cols-7 gap-1 text-center text-sm mb-2">
           {['일','월','화','수','목','금','토'].map((d, i) => (
             <span key={d} className={`py-1 font-semibold ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-[var(--muted)]'}`}>{d}</span>
           ))}
         </div>
 
-        {/* 날짜 그리드 */}
         <div className="grid grid-cols-7 gap-1">
-          {/* 빈 칸 */}
-          {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-square" />
+          {/* 이전달 말일 — 옅게 표시 (첫 주 빈칸 어색함 제거) */}
+          {prevMonthFillDays.map((d) => (
+            <div
+              key={`prev-${d}`}
+              className="aspect-square rounded-lg flex items-center justify-center bg-gray-50 dark:bg-zinc-900/40 opacity-40"
+            >
+              <span className="text-xs text-[var(--muted)]">{d}</span>
+            </div>
           ))}
 
-          {/* 날짜 */}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const km = dateDistanceMap.get(dateStr) || 0;
-            const actIds = dateActivityMap.get(dateStr);
             const photoUrl = customPhotos.get(dateStr) || photos.get(dateStr);
             const hasPhoto = !!photoUrl;
             const bgColor = distanceColor(km, dateStr);
@@ -333,26 +311,20 @@ export default function CalendarPage() {
                   hasPhoto ? '' : bgColor
                 } ${km > 0 ? 'ring-1 ring-green-300/50' : ''}`}
               >
-                {/* 사진 배경 */}
                 {hasPhoto && (
                   <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/30" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   </>
                 )}
 
-                {/* 날짜 */}
-                <span className={`text-sm font-semibold relative z-10 ${
-                  hasPhoto ? 'text-white' : textColor
-                }`}>
+                <span className={`text-sm font-semibold relative z-10 ${hasPhoto ? 'text-white drop-shadow' : textColor}`}>
                   {day}
                 </span>
 
-                {/* 거리 */}
                 {km > 0 && (
-                  <span className={`text-sm font-medium relative z-10 ${
-                    hasPhoto ? 'text-white/90' : 'text-[var(--muted)]'
-                  }`}>
+                  <span className={`text-[11px] font-medium relative z-10 ${hasPhoto ? 'text-white/90 drop-shadow' : 'text-[var(--muted)]'}`}>
                     {km.toFixed(1)}
                   </span>
                 )}
@@ -361,18 +333,18 @@ export default function CalendarPage() {
                 {km > 0 && !hasPhoto && (
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handlePhotoSelect(dateStr); }}
-                    className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-black/20 flex items-center justify-center z-20"
+                    className="absolute bottom-0.5 right-0.5 w-5 h-5 rounded-full bg-white/80 flex items-center justify-center z-20 shadow-sm"
+                    aria-label="사진 추가"
                   >
-                    <Camera size={8} className="text-white" />
+                    <Camera size={9} className="text-gray-700" />
                   </button>
                 )}
               </div>
             );
 
-            // 활동이 있으면 상세 모달 열기
             if (km > 0) {
               return (
-                <div key={day} onClick={() => setShowDetail(dateStr)} className="cursor-pointer">
+                <div key={day} onClick={() => setShowDetail(dateStr)} className="cursor-pointer active:scale-95 transition-transform">
                   {cell}
                 </div>
               );
@@ -381,7 +353,7 @@ export default function CalendarPage() {
           })}
         </div>
 
-        {/* 범례 — git 잔디 블록 스타일 */}
+        {/* 범례 */}
         <div className="flex items-center gap-1.5 mt-4 justify-center text-xs text-[var(--muted)]">
           <span>0</span>
           <span className="w-4 h-4 rounded-sm bg-gray-100 dark:bg-zinc-800/50" />
@@ -417,7 +389,8 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
-      {/* ========== 날짜 상세 모달 ========== */}
+
+      {/* 날짜 상세 모달 — 액션 중심 디자인 (피드백 #2: 바로 액션) */}
       {showDetail && (() => {
         const dayActivities = monthlyActivities.filter(a => a.activity_date === showDetail);
         const dayKm = dayActivities.reduce((s, a) => s + Number(a.distance_km), 0);
@@ -429,32 +402,28 @@ export default function CalendarPage() {
         return (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowDetail(null)}>
             <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4 animate-slide-up" onClick={e => e.stopPropagation()}>
-              {/* 핸들 */}
               <div className="w-10 h-1 rounded-full bg-[var(--card-border)] mx-auto" />
-
-              {/* 날짜 */}
               <h3 className="text-lg font-bold text-[var(--foreground)] text-center">{dateLabel}</h3>
 
-              {/* 사진 미리보기 */}
               {dayPhoto && (
-                <div className="rounded-2xl overflow-hidden h-40">
+                <div className="rounded-2xl overflow-hidden h-44 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={dayPhoto} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
 
-              {/* 통계 */}
               {dayActivities.length > 0 ? (
                 <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="card p-3">
-                    <p className="text-2xl font-extrabold text-[var(--accent)]">{dayKm.toFixed(1)}</p>
+                  <div className="rounded-xl bg-orange-50 dark:bg-orange-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-orange-500">{dayKm.toFixed(1)}</p>
                     <p className="text-xs text-[var(--muted)]">km</p>
                   </div>
-                  <div className="card p-3">
-                    <p className="text-2xl font-extrabold text-[var(--foreground)]">{dayActivities.length}</p>
+                  <div className="rounded-xl bg-pink-50 dark:bg-pink-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-pink-500">{dayActivities.length}</p>
                     <p className="text-xs text-[var(--muted)]">러닝</p>
                   </div>
-                  <div className="card p-3">
-                    <p className="text-2xl font-extrabold text-[var(--foreground)]">{dayDuration > 0 ? formatDuration(dayDuration) : '-'}</p>
+                  <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-3">
+                    <p className="text-2xl font-extrabold text-amber-600">{dayDuration > 0 ? formatDuration(dayDuration) : '-'}</p>
                     <p className="text-xs text-[var(--muted)]">시간</p>
                   </div>
                 </div>
@@ -462,12 +431,11 @@ export default function CalendarPage() {
                 <p className="text-center text-sm text-[var(--muted)]">이 날은 러닝 기록이 없습니다</p>
               )}
 
-              {/* 활동 리스트 */}
               {dayActivities.map(a => (
                 <Link
                   key={a.id}
                   href={`/activity?id=${a.id}`}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[var(--card-border)]/30"
+                  className="flex items-center justify-between p-3 rounded-xl bg-[var(--card-border)]/30 hover:bg-[var(--card-border)]/50"
                   onClick={() => setShowDetail(null)}
                 >
                   <div>
@@ -478,25 +446,25 @@ export default function CalendarPage() {
                 </Link>
               ))}
 
-              {/* 사진으로 꾸미기: ShareCard 모달 (사진 배경 + 지도 + 거리 공유) */}
-              {dayActivities.length > 0 && (
+              {/* 통합된 액션: 사진으로 꾸미기 (ShareCard) + 사진 배경 업로드 */}
+              <div className="flex gap-2">
+                {dayActivities.length > 0 && (
+                  <button
+                    onClick={() => { setShareActivityId(dayActivities[0].id); setShowDetail(null); }}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold text-sm shadow-md"
+                  >
+                    <Share2 size={16} />
+                    공유 카드
+                  </button>
+                )}
                 <button
-                  onClick={() => { setShareActivityId(dayActivities[0].id); setShowDetail(null); }}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm"
+                  onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white dark:bg-zinc-900 border border-[var(--card-border)] text-[var(--foreground)] font-semibold text-sm"
                 >
-                  <Share2 size={16} />
-                  사진으로 꾸미기
+                  <Camera size={16} />
+                  {dayPhoto ? '사진 변경' : '사진 넣기'}
                 </button>
-              )}
-
-              {/* 날짜 셀 배경 이미지 (선택): 캘린더 장식용 */}
-              <button
-                onClick={() => { handlePhotoSelect(showDetail); setShowDetail(null); }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--card-border)] text-[var(--muted)] text-xs"
-              >
-                <Camera size={14} />
-                {dayPhoto ? '날짜 배경 변경' : '날짜 배경 사진'}
-              </button>
+              </div>
 
               <button
                 onClick={() => setShowDetail(null)}
@@ -509,7 +477,79 @@ export default function CalendarPage() {
         );
       })()}
 
-      {/* 사진 꾸미기 공유 카드 */}
+      {/* 업로드 후 옵션 모달 — 캘린더 배경 + 루틴포토 등록 체크박스 통합 */}
+      {pendingUpload && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-4 animate-slide-up">
+            <div className="w-10 h-1 rounded-full bg-[var(--card-border)] mx-auto" />
+            <div className="text-center space-y-1">
+              <div className="inline-flex w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-pink-500 items-center justify-center shadow-md">
+                <Sparkles size={22} className="text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-[var(--foreground)]">사진을 어떻게 사용할까요?</h3>
+              <p className="text-xs text-[var(--muted)]">원하는 옵션을 선택하세요</p>
+            </div>
+
+            {/* 사진 미리보기 */}
+            <div className="rounded-2xl overflow-hidden h-32">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={pendingUpload.photoUrl} alt="" className="w-full h-full object-cover" />
+            </div>
+
+            {/* 체크박스 1: 캘린더 배경 */}
+            <label className="flex items-start gap-3 p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 cursor-pointer active:scale-[0.99] transition">
+              <input
+                type="checkbox"
+                checked={pendingUpload.applyToCalendar}
+                onChange={e => setPendingUpload(p => p ? { ...p, applyToCalendar: e.target.checked } : p)}
+                className="mt-0.5 w-5 h-5 rounded accent-orange-500"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[var(--foreground)]">📅 내 캘린더 배경에 반영</p>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">이 날짜 셀의 배경으로 표시됩니다</p>
+              </div>
+            </label>
+
+            {/* 체크박스 2: 루틴포토 등록 (러닝 있는 날만 활성) */}
+            <label className={`flex items-start gap-3 p-4 rounded-2xl bg-pink-50 dark:bg-pink-950/20 cursor-pointer active:scale-[0.99] transition ${!pendingUpload.activityId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <input
+                type="checkbox"
+                checked={pendingUpload.shareToRoutinePhotos}
+                disabled={!pendingUpload.activityId}
+                onChange={e => setPendingUpload(p => p ? { ...p, shareToRoutinePhotos: e.target.checked } : p)}
+                className="mt-0.5 w-5 h-5 rounded accent-pink-500"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-bold text-[var(--foreground)]">📸 루틴포토에 등록하기</p>
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">
+                  {pendingUpload.activityId
+                    ? '다른 러너들과 공유되고 좋아요 받을 수 있어요'
+                    : '러닝 기록이 있는 날만 공유할 수 있어요'}
+                </p>
+              </div>
+            </label>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setPendingUpload(null)}
+                disabled={applying}
+                className="flex-1 py-3 rounded-xl text-[var(--muted)] font-medium text-sm"
+              >
+                취소
+              </button>
+              <button
+                onClick={applyPendingUpload}
+                disabled={applying || (!pendingUpload.applyToCalendar && !pendingUpload.shareToRoutinePhotos)}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm shadow-md disabled:opacity-50"
+              >
+                {applying ? '적용 중...' : '확인'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ShareCard */}
       {shareActivityId && (() => {
         const shareAct = activities.find(a => a.id === shareActivityId);
         if (!shareAct) return null;

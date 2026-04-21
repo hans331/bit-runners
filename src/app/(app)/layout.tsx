@@ -96,12 +96,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   if (loading) {
-    // 로그인 화면 AppLogo size=80 과 동일한 크기로 통일 — 화면 전환 시 아이콘이 커졌다 작아졌다 하지 않도록
+    // 로그인 화면과 로고 사이즈 통일. 슬로건 포함 — 스플래시 공백 축소 + 브랜드 강화
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] gap-4">
-        <AppLogo size={80} />
-        <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Routinist</h1>
-        <div className="animate-spin w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full mt-2" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-white to-pink-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-orange-950/20 gap-3 px-6">
+        <div className="animate-[fadeInUp_0.4s_ease-out]">
+          <AppLogo size={80} />
+        </div>
+        <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">Routinist</h1>
+        <p className="text-sm font-semibold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+          Run Your Routine!
+        </p>
+        <div className="animate-spin w-5 h-5 border-2 border-orange-400 border-t-transparent rounded-full mt-1" />
       </div>
     );
   }

@@ -123,27 +123,12 @@ export default function LoginPage() {
           <AppLogo size={80} />
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Routinist</h1>
-        <p className="text-sm text-gray-500 mt-2">Run your routine!</p>
+        <p className="text-sm text-gray-500 mt-2">Run Your Routine!</p>
       </div>
 
       <div className="w-full max-w-sm relative z-10">
         {mode === 'social' && (
           <div className="space-y-3">
-            <button
-              onClick={() => handleSocialLogin('kakao')}
-              disabled={loadingProvider !== null}
-              className="w-full flex items-center justify-center gap-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-semibold py-3.5 rounded-xl transition-all text-base disabled:opacity-50"
-            >
-              {loadingProvider === 'kakao' ? (
-                <div className="animate-spin w-5 h-5 border-2 border-[#191919] border-t-transparent rounded-full" />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#191919">
-                  <path d="M12 3C6.48 3 2 6.36 2 10.44c0 2.62 1.75 4.93 4.38 6.24l-1.12 4.12c-.1.36.3.65.62.45l4.9-3.22c.4.04.8.06 1.22.06 5.52 0 10-3.36 10-7.65C22 6.36 17.52 3 12 3z"/>
-                </svg>
-              )}
-              {loadingProvider === 'kakao' ? '카카오로 이동 중...' : '카카오로 시작하기'}
-            </button>
-
             <button
               onClick={() => handleSocialLogin('google')}
               disabled={loadingProvider !== null}

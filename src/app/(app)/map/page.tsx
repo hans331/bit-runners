@@ -85,41 +85,41 @@ function buildSegmentMap(activities: Activity[]): Map<string, Segment> {
   return segments;
 }
 
-// 크레파스 색상 스케일: 덧칠할수록 진해지고, 30+는 검정 계열
-// '전체' 모드는 전 세계 지도(초록 육지)에서 초록 트레이스가 안 보이므로 붉은 계열로 대비 상승.
+// 지도 크레파스 팔레트 — 주황/코랄 계열로 통일 (달력은 초록이므로 의도적으로 다른 색조).
+// '전체' 모드는 저밀도 경로도 한눈에 보이도록 더 진한 톤부터 시작 + 최종 블랙.
 function chipStyle(visits: number, mode: FilterMode = '7d'): { color: string; weight: number; opacity: number } {
   if (mode === 'all') {
-    if (visits <= 1)  return { color: '#FECACA', weight: 2.5, opacity: 0.8 };
-    if (visits <= 3)  return { color: '#FCA5A5', weight: 3.0, opacity: 0.85 };
-    if (visits <= 7)  return { color: '#F87171', weight: 3.5, opacity: 0.9 };
-    if (visits <= 15) return { color: '#EF4444', weight: 4.0, opacity: 0.95 };
-    if (visits <= 30) return { color: '#B91C1C', weight: 4.5, opacity: 1.0 };
-    return              { color: '#7F1D1D', weight: 5.0, opacity: 1.0 };
+    if (visits <= 1)  return { color: '#FB923C', weight: 2.5, opacity: 0.85 };
+    if (visits <= 3)  return { color: '#F97316', weight: 3.0, opacity: 0.9 };
+    if (visits <= 7)  return { color: '#EA580C', weight: 3.5, opacity: 0.95 };
+    if (visits <= 15) return { color: '#C2410C', weight: 4.0, opacity: 1.0 };
+    if (visits <= 30) return { color: '#9A3412', weight: 4.5, opacity: 1.0 };
+    return              { color: '#1F2937', weight: 5.0, opacity: 1.0 };
   }
-  if (visits <= 1)  return { color: '#B8F5D8', weight: 2.0, opacity: 0.7 };
-  if (visits <= 3)  return { color: '#6EE7B7', weight: 2.5, opacity: 0.8 };
-  if (visits <= 7)  return { color: '#22C55E', weight: 3.0, opacity: 0.85 };
-  if (visits <= 15) return { color: '#15803D', weight: 3.5, opacity: 0.9 };
-  if (visits <= 30) return { color: '#14532D', weight: 4.0, opacity: 0.95 };
-  return              { color: '#0F172A', weight: 4.5, opacity: 1.0 }; // 30+ (1년 기준 많이 달린 곳)
+  if (visits <= 1)  return { color: '#FED7AA', weight: 2.0, opacity: 0.75 };
+  if (visits <= 3)  return { color: '#FDBA74', weight: 2.5, opacity: 0.85 };
+  if (visits <= 7)  return { color: '#FB923C', weight: 3.0, opacity: 0.9 };
+  if (visits <= 15) return { color: '#F97316', weight: 3.5, opacity: 0.95 };
+  if (visits <= 30) return { color: '#C2410C', weight: 4.0, opacity: 1.0 };
+  return              { color: '#7C2D12', weight: 4.5, opacity: 1.0 };
 }
 
-const CHIP_LEGEND_GREEN = [
-  { label: '1', color: '#B8F5D8' },
-  { label: '~3', color: '#6EE7B7' },
-  { label: '~7', color: '#22C55E' },
-  { label: '~15', color: '#15803D' },
-  { label: '~30', color: '#14532D' },
-  { label: '30+', color: '#0F172A' },
+const CHIP_LEGEND = [
+  { label: '1', color: '#FED7AA' },
+  { label: '~3', color: '#FDBA74' },
+  { label: '~7', color: '#FB923C' },
+  { label: '~15', color: '#F97316' },
+  { label: '~30', color: '#C2410C' },
+  { label: '30+', color: '#7C2D12' },
 ];
 
-const CHIP_LEGEND_RED = [
-  { label: '1', color: '#FECACA' },
-  { label: '~3', color: '#FCA5A5' },
-  { label: '~7', color: '#F87171' },
-  { label: '~15', color: '#EF4444' },
-  { label: '~30', color: '#B91C1C' },
-  { label: '30+', color: '#7F1D1D' },
+const CHIP_LEGEND_ALL = [
+  { label: '1', color: '#FB923C' },
+  { label: '~3', color: '#F97316' },
+  { label: '~7', color: '#EA580C' },
+  { label: '~15', color: '#C2410C' },
+  { label: '~30', color: '#9A3412' },
+  { label: '30+', color: '#1F2937' },
 ];
 
 export default function MapPage() {
@@ -280,7 +280,7 @@ export default function MapPage() {
           <div className="card px-3 py-2">
             <div className="flex items-center justify-center gap-1 text-xs text-[var(--muted)]">
               <span className="mr-1">덧칠 횟수</span>
-              {(filterMode === 'all' ? CHIP_LEGEND_RED : CHIP_LEGEND_GREEN).map(c => (
+              {(filterMode === 'all' ? CHIP_LEGEND_ALL : CHIP_LEGEND).map(c => (
                 <div key={c.label} className="flex items-center gap-0.5">
                   <span className="w-3.5 h-3.5 rounded-sm" style={{ background: c.color }} />
                   <span className="text-[10px]">{c.label}</span>

@@ -52,6 +52,59 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
   const code = hashParams.get('code') || queryParams.get('code');
   const oauthError = queryParams.get('error') || hashParams.get('error');
 
+  if (oauthError) {
+    if (isNativeApp()) {
+      try { const { Browser } = await import('@capacitor/browser'); await Browser.close(); } catch {}
+    }
+    const desc = queryParams.get('error_description') || hashParams.get('error_description') || '';
+    throw new Error(`OAuth 프로바이더 에러: ${oauthError} ${desc}`);
+  }
+
+  // 세션 교환을 **먼저** 처리하고 Browser.close() 는 마지막에 호출 —
+  // 첫 실행 시 Browser.close() 가 webview 포커스 전환을 일으켜 exchangeCodeForSession 타이밍에
+  // 영향을 주는 케이스를 차단.
+  let resolvedSession: Session | null = null;
+
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      if (isNativeApp()) {
+        try { const { Browser } = await import('@capacitor/browser'); await Browser.close(); } catch {}
+      }
+      console.error('[Auth] exchangeCode 실패:', error.message);
+      throw new Error(`exchangeCode 실패: ${error.message}`);
+    }
+    resolvedSession = data.session;
+  } else if (accessToken && refreshToken) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) {
+      if (isNativeApp()) {
+        try { const { Browser } = await import('@capacitor/browser'); await Browser.close(); } catch {}
+      }
+      console.error('[Auth] setSession 실패:', error.message);
+      throw new Error(`setSession 실패: ${error.message}`);
+    }
+    resolvedSession = data.session;
+  }
+
+  // 세션이 실제로 storage 에 persist 되었는지 확인 (iOS WebKit localStorage 가 간혹 지연됨)
+  if (resolvedSession) {
+    for (let i = 0; i < 3; i++) {
+      const { data: { session: verify } } = await supabase.auth.getSession();
+      if (verify) { resolvedSession = verify; break; }
+      await new Promise(r => setTimeout(r, 200));
+    }
+  } else {
+    // 폴백: 이미 세션이 붙어 있는지 확인
+    await new Promise(r => setTimeout(r, 800));
+    const { data: { session } } = await supabase.auth.getSession();
+    resolvedSession = session;
+  }
+
+  // 세션 확정 후 Browser.close() — 포커스 전환이 AuthProvider 의 상태 업데이트를 방해하지 않도록
   if (isNativeApp()) {
     try {
       const { Browser } = await import('@capacitor/browser');
@@ -59,41 +112,10 @@ export async function handleOAuthCallback(url: string): Promise<Session | null> 
     } catch {}
   }
 
-  if (oauthError) {
-    const desc = queryParams.get('error_description') || hashParams.get('error_description') || '';
-    throw new Error(`OAuth 프로바이더 에러: ${oauthError} ${desc}`);
+  if (!resolvedSession) {
+    console.warn('[Auth] OAuth callback에서 토큰/코드를 찾을 수 없음:', url);
   }
-
-  // PKCE 우선: code 가 있으면 exchangeCodeForSession (Supabase 기본 흐름)
-  if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      console.error('[Auth] exchangeCode 실패:', error.message);
-      throw new Error(`exchangeCode 실패: ${error.message}`);
-    }
-    return data.session;
-  }
-
-  // 레거시 implicit flow 폴백
-  if (accessToken && refreshToken) {
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    if (error) {
-      console.error('[Auth] setSession 실패:', error.message);
-      throw new Error(`setSession 실패: ${error.message}`);
-    }
-    return data.session;
-  }
-
-  // 폴백: 이미 세션이 붙어 있는지 확인
-  await new Promise(r => setTimeout(r, 800));
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) return session;
-
-  console.warn('[Auth] OAuth callback에서 토큰/코드를 찾을 수 없음:', url);
-  return null;
+  return resolvedSession;
 }
 
 // 이메일/비밀번호 회원가입

@@ -132,6 +132,33 @@ body {
 .confetti-emoji:nth-child(4) { animation-delay: 0.75s; }
 .confetti-emoji:nth-child(5) { animation-delay: 1s; }
 
+/* fadeInUp — 스플래시/온보딩 진입 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 숫자 카운트업 (경쟁 장치 — 랭킹 변동) */
+@keyframes numberCountUp {
+  from { opacity: 0; transform: translateY(-8px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-count-up { animation: numberCountUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* 스크롤바 숨김 (가로 캐러셀) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* 하트 펄스 (좋아요) */
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.animate-heart-pulse { animation: heartPulse 0.35s ease-out; }
+
 /* 달성 배너 그라데이션 sweep */
 @keyframes shimmer {
   0% { background-position: -200% 0; }

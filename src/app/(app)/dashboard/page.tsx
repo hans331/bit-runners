@@ -30,10 +30,13 @@ import {
 } from 'recharts';
 import Onboarding from '@/components/Onboarding';
 import LazyMount from '@/components/LazyMount';
-import MatchedRankBanner from '@/components/home/MatchedRankBanner';
+import HomeRankingHero from '@/components/home/HomeRankingHero';
 import TodayLocalTop from '@/components/home/TodayLocalTop';
-import RoutinistGallery from '@/components/home/RoutinistGallery';
+import RoutinePhotoCarousel from '@/components/home/RoutinePhotoCarousel';
 import FriendsLeaderboard from '@/components/home/FriendsLeaderboard';
+import OnThisDayCard from '@/components/home/OnThisDayCard';
+import LiveRunningIndicator from '@/components/home/LiveRunningIndicator';
+import RankNeighbors from '@/components/home/RankNeighbors';
 import Link from 'next/link';
 import {
   ChevronRight, Flag, MapPin, Zap, Trophy, Flame, Clock, Calendar,
@@ -277,8 +280,11 @@ export default function DashboardPage() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="max-w-lg mx-auto pb-8">
-      {/* ========== 상단 매칭 랭킹 + 오늘의 동네 TOP + 친구 비교 — 소셜 엔트리 포인트 ========== */}
-      <MatchedRankBanner />
+      {/* ========== 홈 히어로 (경쟁·소셜 중심) ========== */}
+      <HomeRankingHero />
+      <LiveRunningIndicator />
+      <RankNeighbors />
+      <OnThisDayCard />
       <TodayLocalTop />
       <FriendsLeaderboard />
 
@@ -901,9 +907,9 @@ export default function DashboardPage() {
       )}
       </div>
 
-      {/* ========== 하단 루티니스트 갤러리 ========== */}
-      <LazyMount rootMargin="400px" minHeight={160}>
-        <RoutinistGallery />
+      {/* ========== 하단 루틴포토 인기 캐러셀 (친구×1.5, 동네×1.3 가중치) ========== */}
+      <LazyMount rootMargin="400px" minHeight={220}>
+        <RoutinePhotoCarousel />
       </LazyMount>
     </div>
     </PullToRefresh>
