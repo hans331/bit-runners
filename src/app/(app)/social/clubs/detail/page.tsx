@@ -17,11 +17,18 @@ import {
   fetchClubFeed, createClubPost, deleteClubPost, toggleClubPostNotice, toggleClubPostLike,
   fetchClubPostComments, createClubPostComment, uploadClubPostPhoto, type ClubPost, type ClubPostComment,
 } from '@/lib/club-posts';
+import {
+  fetchClubChallenges, createClubChallenge, deleteClubChallenge, getClubChallengeProgress,
+  fetchClubEvents, createClubEvent, deleteClubEvent, rsvpClubEvent,
+  fetchActivityCheers, toggleCheer, fetchClubWeeklyMvp, CHEER_EMOJIS,
+  type ClubChallenge, type ChallengeProgress, type ClubEvent, type CheerEmoji, type CheerAgg, type WeeklyMvp,
+} from '@/lib/club-activation';
+import InviteQRCard from '@/components/clubs/InviteQRCard';
 import Link from 'next/link';
 import type { Club, ClubMember } from '@/types';
 import AppLogo from '@/components/AppLogo';
 
-type TabId = 'dashboard' | 'feed' | 'members' | 'activity' | 'settings';
+type TabId = 'dashboard' | 'feed' | 'challenges' | 'members' | 'activity' | 'settings';
 
 function ClubDetail() {
   const searchParams = useSearchParams();
@@ -63,6 +70,40 @@ function ClubDetail() {
   const [composing, setComposing] = useState(false);
   const [openComments, setOpenComments] = useState<Record<string, ClubPostComment[] | null>>({});
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
+
+  // 챌린지 & 이벤트
+  const [challenges, setChallenges] = useState<ClubChallenge[]>([]);
+  const [challengeProgress, setChallengeProgress] = useState<Record<string, ChallengeProgress[]>>({});
+  const [events, setEvents] = useState<ClubEvent[]>([]);
+  const [chOpen, setChOpen] = useState(false);
+  const [chTitle, setChTitle] = useState('');
+  const [chDesc, setChDesc] = useState('');
+  const [chTargetKm, setChTargetKm] = useState('');
+  const [chTargetCount, setChTargetCount] = useState('');
+  const [chStart, setChStart] = useState(() => new Date().toISOString().slice(0, 10));
+  const [chEnd, setChEnd] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 6);
+    return d.toISOString().slice(0, 10);
+  });
+  const [evOpen, setEvOpen] = useState(false);
+  const [evTitle, setEvTitle] = useState('');
+  const [evDesc, setEvDesc] = useState('');
+  const [evDate, setEvDate] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(19, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
+  const [evLocation, setEvLocation] = useState('');
+  const [evMax, setEvMax] = useState('');
+
+  // 주간 MVP
+  const [weeklyMvp, setWeeklyMvp] = useState<WeeklyMvp[]>([]);
+
+  // 응원 이모지
+  const [cheersMap, setCheersMap] = useState<Map<string, CheerAgg[]>>(new Map());
+  const [cheerOpen, setCheerOpen] = useState<string | null>(null);
+
+  // 초대 QR
+  const [qrOpen, setQrOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!clubId) return;
@@ -186,6 +227,7 @@ function ClubDetail() {
   const tabs: { id: TabId; label: string; show: boolean }[] = [
     { id: 'dashboard', label: '대시보드', show: isMember },
     { id: 'feed', label: '피드', show: isMember },
+    { id: 'challenges', label: '챌린지·모임', show: isMember },
     { id: 'members', label: `멤버 (${members.length})`, show: true },
     { id: 'activity', label: '활동', show: isMember },
     { id: 'settings', label: '설정', show: isAdmin || isAppAdmin },
@@ -277,6 +319,125 @@ function ClubDetail() {
     }
   };
 
+  // ========== 챌린지 ==========
+  const loadChallenges = useCallback(async () => {
+    if (!clubId) return;
+    try {
+      const list = await fetchClubChallenges(clubId);
+      setChallenges(list);
+      const progressEntries = await Promise.all(list.map(async ch => [ch.id, await getClubChallengeProgress(ch.id)] as const));
+      const next: Record<string, ChallengeProgress[]> = {};
+      progressEntries.forEach(([id, p]) => { next[id] = p; });
+      setChallengeProgress(next);
+    } catch (e) { console.warn('챌린지 로드 실패', e); }
+  }, [clubId]);
+
+  const handleCreateChallenge = async () => {
+    if (!clubId || !user || !chTitle.trim() || (!chTargetKm && !chTargetCount)) return;
+    try {
+      await createClubChallenge({
+        clubId, authorId: user.id,
+        title: chTitle.trim(),
+        description: chDesc.trim() || undefined,
+        targetKm: chTargetKm ? Number(chTargetKm) : undefined,
+        targetRunCount: chTargetCount ? Number(chTargetCount) : undefined,
+        startDate: chStart, endDate: chEnd,
+      });
+      setChOpen(false); setChTitle(''); setChDesc(''); setChTargetKm(''); setChTargetCount('');
+      await loadChallenges();
+    } catch (e) { alert(e instanceof Error ? e.message : '챌린지 등록 실패'); }
+  };
+
+  const handleDeleteChallenge = async (id: string) => {
+    if (!confirm('챌린지를 삭제할까요?')) return;
+    try { await deleteClubChallenge(id); await loadChallenges(); }
+    catch (e) { alert(e instanceof Error ? e.message : '삭제 실패'); }
+  };
+
+  // ========== 이벤트 ==========
+  const loadEvents = useCallback(async () => {
+    if (!clubId) return;
+    try { setEvents(await fetchClubEvents(clubId)); }
+    catch (e) { console.warn('이벤트 로드 실패', e); }
+  }, [clubId]);
+
+  const handleCreateEvent = async () => {
+    if (!clubId || !user || !evTitle.trim() || !evDate) return;
+    try {
+      await createClubEvent({
+        clubId, authorId: user.id,
+        title: evTitle.trim(),
+        description: evDesc.trim() || undefined,
+        eventAt: new Date(evDate).toISOString(),
+        location: evLocation.trim() || undefined,
+        maxParticipants: evMax ? Number(evMax) : undefined,
+      });
+      setEvOpen(false); setEvTitle(''); setEvDesc(''); setEvLocation(''); setEvMax('');
+      await loadEvents();
+    } catch (e) { alert(e instanceof Error ? e.message : '이벤트 등록 실패'); }
+  };
+
+  const handleRsvp = async (eventId: string, status: 'going' | 'maybe' | 'no') => {
+    if (!user) return;
+    try { await rsvpClubEvent(eventId, user.id, status); await loadEvents(); }
+    catch (e) { alert(e instanceof Error ? e.message : 'RSVP 실패'); }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    if (!confirm('이벤트를 삭제할까요?')) return;
+    try { await deleteClubEvent(id); await loadEvents(); }
+    catch (e) { alert(e instanceof Error ? e.message : '삭제 실패'); }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'challenges') { loadChallenges(); loadEvents(); }
+  }, [activeTab, loadChallenges, loadEvents]);
+
+  // ========== 주간 MVP (대시보드 진입 시) ==========
+  useEffect(() => {
+    if (activeTab !== 'dashboard' || !clubId) return;
+    fetchClubWeeklyMvp(clubId).then(setWeeklyMvp).catch(() => {});
+  }, [activeTab, clubId]);
+
+  // ========== 응원 이모지 (활동 탭 진입 시 + activities 로드 후) ==========
+  useEffect(() => {
+    if (activeTab !== 'activity' || activities.length === 0) return;
+    const ids = activities.map(a => a.id).filter(Boolean) as string[];
+    fetchActivityCheers(ids).then(setCheersMap).catch(() => {});
+  }, [activeTab, activities]);
+
+  const handleToggleCheer = async (activityId: string, emoji: CheerEmoji) => {
+    if (!user) return;
+    const cheerList = cheersMap.get(activityId) ?? [];
+    const existing = cheerList.find(c => c.emoji === emoji);
+    const currentlyCheered = existing?.cheered_by_me ?? false;
+    // optimistic
+    setCheersMap(prev => {
+      const next = new Map(prev);
+      const list = [...(next.get(activityId) ?? [])];
+      const idx = list.findIndex(c => c.emoji === emoji);
+      if (idx >= 0) {
+        list[idx] = {
+          ...list[idx],
+          total: list[idx].total + (currentlyCheered ? -1 : 1),
+          cheered_by_me: !currentlyCheered,
+        };
+        if (list[idx].total <= 0) list.splice(idx, 1);
+      } else {
+        list.push({ activity_id: activityId, emoji, total: 1, cheered_by_me: true });
+      }
+      next.set(activityId, list);
+      return next;
+    });
+    try { await toggleCheer(activityId, user.id, emoji, currentlyCheered); }
+    catch {
+      if (activities.length > 0) {
+        const ids = activities.map(a => a.id).filter(Boolean) as string[];
+        fetchActivityCheers(ids).then(setCheersMap).catch(() => {});
+      }
+    }
+  };
+
   const handleSubmitComment = async (postId: string) => {
     if (!user) return;
     const body = (commentDraft[postId] ?? '').trim();
@@ -347,22 +508,28 @@ function ClubDetail() {
         )}
       </div>
 
-      {/* 초대 링크 배너 */}
+      {/* 초대 링크 + QR 카드 */}
       {isMember && (
-        <button
-          onClick={handleCopyInvite}
-          className="w-full card p-3 mb-4 flex items-center gap-3 text-left"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
-            {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} className="text-[var(--accent)]" />}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              {copied ? '복사됨!' : '초대 링크 복사'}
-            </p>
-            <p className="text-xs text-[var(--muted)] truncate">링크를 친구에게 보내면 바로 가입할 수 있어요</p>
-          </div>
-        </button>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <button onClick={handleCopyInvite} className="card p-3 flex items-center gap-2 text-left">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              {copied ? <Check size={18} className="text-green-500" /> : <Copy size={18} className="text-emerald-600" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--foreground)]">{copied ? '복사됨!' : '초대 링크'}</p>
+              <p className="text-xs text-[var(--muted)] truncate">URL 복사</p>
+            </div>
+          </button>
+          <button onClick={() => setQrOpen(true)} className="card p-3 flex items-center gap-2 text-left">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+              <Share2 size={18} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-[var(--foreground)]">QR 카드</p>
+              <p className="text-xs text-[var(--muted)] truncate">이미지로 공유</p>
+            </div>
+          </button>
+        </div>
       )}
 
       {/* 탭 */}
@@ -383,6 +550,41 @@ function ClubDetail() {
       {/* 대시보드 탭 */}
       {activeTab === 'dashboard' && (
         <div className="space-y-4">
+          {/* 이번 주 MVP */}
+          {weeklyMvp.length > 0 && (
+            <div className="card p-5 bg-gradient-to-br from-amber-50 via-white to-emerald-50 border border-amber-200/60">
+              <h3 className="text-base font-bold text-[var(--foreground)] mb-3 flex items-center gap-1.5">
+                <Trophy size={18} className="text-amber-500" /> 이번 주 MVP
+              </h3>
+              <div className="space-y-2.5">
+                {weeklyMvp.map(mvp => (
+                  <Link key={mvp.category} href={`/social/user?id=${mvp.winner_id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/70 active:scale-[0.99] transition">
+                    <span className="text-2xl">{mvp.emoji}</span>
+                    <div className="w-10 h-10 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
+                      {mvp.winner_avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={mvp.winner_avatar} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--muted)]">
+                          {mvp.winner_name.slice(0, 1)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-[var(--muted)]">{mvp.label}</p>
+                      <p className="text-base font-bold text-[var(--foreground)] truncate">{mvp.winner_name}</p>
+                    </div>
+                    <span className="text-lg font-extrabold text-emerald-600">
+                      {mvp.category === 'distance' ? `${Number(mvp.value).toFixed(1)}km`
+                        : mvp.category === 'runs' ? `${mvp.value}회`
+                        : `${mvp.value}일`}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {dashLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
@@ -722,6 +924,205 @@ function ClubDetail() {
         </div>
       )}
 
+      {/* 챌린지·모임 탭 */}
+      {activeTab === 'challenges' && (
+        <div className="space-y-5">
+          {/* 섹션: 챌린지 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-bold text-[var(--foreground)] flex items-center gap-1.5">
+                <Flame size={18} className="text-emerald-600" /> 챌린지
+              </h3>
+              {isAdmin && (
+                <button onClick={() => setChOpen(true)} className="text-sm font-semibold text-emerald-600 flex items-center gap-0.5">
+                  <TrendingUp size={14} /> 만들기
+                </button>
+              )}
+            </div>
+            {challenges.length === 0 ? (
+              <div className="card p-5 text-center text-sm text-[var(--muted)]">
+                {isAdmin ? '첫 챌린지를 만들어 보세요 (예: "이번 주 10km")' : '진행 중인 챌린지가 없어요'}
+              </div>
+            ) : challenges.map(ch => {
+              const today = new Date().toISOString().slice(0, 10);
+              const isActive = ch.start_date <= today && today <= ch.end_date;
+              const isPast = today > ch.end_date;
+              const prog = challengeProgress[ch.id] ?? [];
+              return (
+                <div key={ch.id} className={`card p-4 mb-2 ${isActive ? 'border-emerald-300 bg-emerald-50/30' : ''}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-500 text-white' : isPast ? 'bg-[var(--card-border)] text-[var(--muted)]' : 'bg-amber-100 text-amber-700'}`}>
+                          {isActive ? '진행중' : isPast ? '종료' : '예정'}
+                        </span>
+                        <p className="text-base font-bold text-[var(--foreground)] truncate">{ch.title}</p>
+                      </div>
+                      {ch.description && <p className="text-sm text-[var(--muted)] mt-1">{ch.description}</p>}
+                      <p className="text-xs text-[var(--muted)] mt-1">
+                        {ch.start_date} ~ {ch.end_date}
+                        {ch.target_km && ` · ${ch.target_km}km`}
+                        {ch.target_run_count && ` · ${ch.target_run_count}회`}
+                      </p>
+                    </div>
+                    {(isAdmin || ch.created_by === user?.id) && (
+                      <button onClick={() => handleDeleteChallenge(ch.id)} className="text-[var(--muted)] hover:text-rose-500 flex-shrink-0">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                  {/* 진행도 */}
+                  {prog.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-[var(--card-border)] space-y-2">
+                      {prog.slice(0, 5).map(p => {
+                        const pct = p.km_pct ?? p.count_pct ?? 0;
+                        return (
+                          <div key={p.user_id}>
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="font-semibold text-[var(--foreground)]">
+                                {p.display_name}{p.completed ? ' ✅' : ''}
+                              </span>
+                              <span className="text-[var(--muted)]">
+                                {ch.target_km ? `${Number(p.distance_km).toFixed(1)}/${ch.target_km}km` : `${p.run_count}/${ch.target_run_count}회`}
+                              </span>
+                            </div>
+                            <div className="h-2 bg-[var(--card-border)] rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${p.completed ? 'bg-emerald-500' : 'bg-emerald-400/70'}`}
+                                style={{ width: `${Math.min(pct, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 섹션: 이벤트 */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-bold text-[var(--foreground)] flex items-center gap-1.5">
+                <Zap size={18} className="text-amber-500" /> 모임
+              </h3>
+              <button onClick={() => setEvOpen(true)} className="text-sm font-semibold text-emerald-600 flex items-center gap-0.5">
+                <TrendingUp size={14} /> 모임 만들기
+              </button>
+            </div>
+            {events.length === 0 ? (
+              <div className="card p-5 text-center text-sm text-[var(--muted)]">
+                예정된 모임이 없어요. "주말 한강 러닝" 같은 모임을 만들어보세요!
+              </div>
+            ) : events.map(ev => {
+              const isPast = new Date(ev.event_at) < new Date();
+              const myStatus = ev.my_status;
+              return (
+                <div key={ev.id} className={`card p-4 mb-2 ${isPast ? 'opacity-70' : ''}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-bold text-[var(--foreground)]">{ev.title}</p>
+                      <p className="text-sm text-emerald-700 font-semibold mt-0.5">
+                        📅 {new Date(ev.event_at).toLocaleString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      {ev.location && <p className="text-sm text-[var(--muted)] mt-0.5">📍 {ev.location}</p>}
+                      {ev.description && <p className="text-sm text-[var(--foreground)] mt-2 whitespace-pre-wrap">{ev.description}</p>}
+                      <p className="text-xs text-[var(--muted)] mt-2">
+                        {ev.created_by_name} · 참석 <b className="text-emerald-600">{ev.going_count}</b>
+                        {ev.maybe_count > 0 && ` · 관심 ${ev.maybe_count}`}
+                        {ev.max_participants && ` / ${ev.max_participants}명`}
+                      </p>
+                    </div>
+                    {(isAdmin || ev.created_by === user?.id) && (
+                      <button onClick={() => handleDeleteEvent(ev.id)} className="text-[var(--muted)] hover:text-rose-500 flex-shrink-0">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                  {!isPast && (
+                    <div className="mt-3 pt-3 border-t border-[var(--card-border)] flex gap-2">
+                      <button onClick={() => handleRsvp(ev.id, 'going')}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${myStatus === 'going' ? 'bg-emerald-500 text-white' : 'bg-[var(--card-border)]/40 text-[var(--muted)]'}`}>
+                        참석 ✊
+                      </button>
+                      <button onClick={() => handleRsvp(ev.id, 'maybe')}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${myStatus === 'maybe' ? 'bg-amber-400 text-white' : 'bg-[var(--card-border)]/40 text-[var(--muted)]'}`}>
+                        관심
+                      </button>
+                      <button onClick={() => handleRsvp(ev.id, 'no')}
+                        className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${myStatus === 'no' ? 'bg-rose-400 text-white' : 'bg-[var(--card-border)]/40 text-[var(--muted)]'}`}>
+                        불참
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 챌린지 작성 모달 */}
+          {chOpen && (
+            <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setChOpen(false)}>
+              <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-3 animate-slide-up" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-[var(--foreground)]">새 챌린지</h3>
+                  <button onClick={() => setChOpen(false)}><X size={20} className="text-[var(--muted)]" /></button>
+                </div>
+                <input value={chTitle} onChange={e => setChTitle(e.target.value)} placeholder="제목 (예: 이번 주 10km 챌린지)" maxLength={60}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40" />
+                <textarea value={chDesc} onChange={e => setChDesc(e.target.value.slice(0, 300))} placeholder="설명 (선택)" rows={2}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={chTargetKm} onChange={e => setChTargetKm(e.target.value)} type="number" step="0.1" placeholder="목표 km"
+                    className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40" />
+                  <input value={chTargetCount} onChange={e => setChTargetCount(e.target.value)} type="number" placeholder="목표 횟수"
+                    className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40" />
+                </div>
+                <p className="text-xs text-[var(--muted)]">둘 중 하나 이상 입력. 둘 다 달성해야 완료.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="date" value={chStart} onChange={e => setChStart(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-sm" />
+                  <input type="date" value={chEnd} onChange={e => setChEnd(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-sm" />
+                </div>
+                <button onClick={handleCreateChallenge} disabled={!chTitle.trim() || (!chTargetKm && !chTargetCount)}
+                  className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-base disabled:opacity-50">
+                  챌린지 시작
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 이벤트 작성 모달 */}
+          {evOpen && (
+            <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setEvOpen(false)}>
+              <div className="w-full max-w-lg bg-[var(--card-bg)] rounded-t-3xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-3 animate-slide-up" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-[var(--foreground)]">새 모임</h3>
+                  <button onClick={() => setEvOpen(false)}><X size={20} className="text-[var(--muted)]" /></button>
+                </div>
+                <input value={evTitle} onChange={e => setEvTitle(e.target.value)} placeholder="모임 제목 (예: 한강 5km 러닝)" maxLength={80}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40" />
+                <input type="datetime-local" value={evDate} onChange={e => setEvDate(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base" />
+                <input value={evLocation} onChange={e => setEvLocation(e.target.value)} placeholder="장소 (예: 반포 한강공원)" maxLength={120}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/40" />
+                <input value={evMax} onChange={e => setEvMax(e.target.value)} type="number" placeholder="최대 인원 (비우면 제한 없음)"
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-base" />
+                <textarea value={evDesc} onChange={e => setEvDesc(e.target.value.slice(0, 500))} placeholder="소개 (선택)" rows={3}
+                  className="w-full p-3 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-sm resize-none" />
+                <button onClick={handleCreateEvent} disabled={!evTitle.trim() || !evDate}
+                  className="w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-base disabled:opacity-50">
+                  모임 만들기
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 멤버 탭 */}
       {activeTab === 'members' && (
         <div className="card px-4">
@@ -780,30 +1181,94 @@ function ClubDetail() {
               <p className="text-xs text-[var(--muted)]">아직 클럽 활동이 없습니다</p>
             </div>
           ) : (
-            activities.map((a: any) => (
-              <Link key={a.id} href={`/activity?id=${a.id}`} className="card p-4 flex items-center gap-3 block">
-                <div className="w-9 h-9 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
-                  {a.profiles?.avatar_url ? (
-                    <img src={a.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>
+            activities.map((a: any) => {
+              const cheers = cheersMap.get(a.id) ?? [];
+              const isMine = a.user_id === user?.id;
+              const showCheerBar = cheerOpen === a.id;
+              return (
+                <div key={a.id} className="card p-4">
+                  <Link href={`/activity?id=${a.id}`} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[var(--card-border)] overflow-hidden flex-shrink-0">
+                      {a.profiles?.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={a.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center"><AppLogo size={18} /></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[var(--foreground)]">
+                        {a.profiles?.display_name ?? '러너'}
+                        <span className="text-[var(--muted)] font-normal ml-2">{Number(a.distance_km).toFixed(2)}km</span>
+                      </p>
+                      <p className="text-xs text-[var(--muted)]">
+                        {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
+                        {a.duration_seconds ? ` · ${formatDuration(a.duration_seconds)}` : ''}
+                        {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
+                      </p>
+                    </div>
+                  </Link>
+
+                  {/* 응원 이모지 바 */}
+                  <div className="mt-3 pt-3 border-t border-[var(--card-border)] flex items-center gap-1.5 flex-wrap">
+                    {cheers.map(c => (
+                      <button
+                        key={c.emoji}
+                        onClick={() => !isMine && handleToggleCheer(a.id, c.emoji as CheerEmoji)}
+                        disabled={isMine}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-semibold transition-all ${
+                          c.cheered_by_me ? 'bg-emerald-100 border-2 border-emerald-400' : 'bg-[var(--card-border)]/30'
+                        } ${isMine ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+                      >
+                        <span>{c.emoji}</span>
+                        <span className="text-xs">{c.total}</span>
+                      </button>
+                    ))}
+                    {!isMine && (
+                      <button
+                        onClick={() => setCheerOpen(showCheerBar ? null : a.id)}
+                        className="px-2.5 py-1 rounded-full bg-[var(--card-border)]/30 text-[var(--muted)] text-sm active:scale-95 transition"
+                      >
+                        + 응원
+                      </button>
+                    )}
+                    {isMine && cheers.length === 0 && (
+                      <span className="text-xs text-[var(--muted)]">내 활동은 클럽원의 응원을 받을 수 있어요</span>
+                    )}
+                  </div>
+                  {showCheerBar && !isMine && (
+                    <div className="mt-2 flex gap-1.5">
+                      {CHEER_EMOJIS.map(em => {
+                        const existing = cheers.find(c => c.emoji === em);
+                        const active = existing?.cheered_by_me;
+                        return (
+                          <button
+                            key={em}
+                            onClick={() => { handleToggleCheer(a.id, em); setCheerOpen(null); }}
+                            className={`flex-1 py-2 rounded-lg text-2xl transition-all active:scale-90 ${active ? 'bg-emerald-100 ring-2 ring-emerald-400' : 'bg-[var(--card-border)]/30 hover:bg-[var(--card-border)]/60'}`}
+                          >
+                            {em}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {a.profiles?.display_name ?? '러너'}
-                    <span className="text-[var(--muted)] font-normal ml-2">{Number(a.distance_km).toFixed(2)}km</span>
-                  </p>
-                  <p className="text-xs text-[var(--muted)]">
-                    {new Date(a.activity_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', weekday: 'short' })}
-                    {a.duration_seconds ? ` · ${formatDuration(a.duration_seconds)}` : ''}
-                    {a.pace_avg_sec_per_km ? ` · ${formatPace(a.pace_avg_sec_per_km)}/km` : ''}
-                  </p>
-                </div>
-              </Link>
-            ))
+              );
+            })
           )}
         </div>
+      )}
+
+      {/* 초대 QR 카드 모달 */}
+      {qrOpen && club && (
+        <InviteQRCard
+          clubName={club.name}
+          clubDescription={club.description ?? null}
+          memberCount={club.member_count}
+          inviteUrl={typeof window !== 'undefined' ? `${window.location.origin}/social/clubs/detail?id=${clubId}` : ''}
+          onClose={() => setQrOpen(false)}
+        />
       )}
 
       {/* 설정 탭 */}
