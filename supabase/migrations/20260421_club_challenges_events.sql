@@ -346,15 +346,15 @@ LANGUAGE SQL STABLE SECURITY INVOKER AS $$
     WHERE cm.club_id = p_club_id
     GROUP BY cm.user_id, pr.display_name, pr.avatar_url
   )
-  SELECT 'distance'::TEXT, '🏆', '최장 거리',
-         user_id, display_name, avatar_url, total_km
-  FROM agg WHERE total_km > 0 ORDER BY total_km DESC LIMIT 1
+  (SELECT 'distance'::TEXT, '🏆'::TEXT, '최장 거리'::TEXT,
+          user_id, display_name, avatar_url, total_km
+   FROM agg WHERE total_km > 0 ORDER BY total_km DESC LIMIT 1)
   UNION ALL
-  SELECT 'runs'::TEXT, '🔥', '최다 러닝',
-         user_id, display_name, avatar_url, total_runs
-  FROM agg WHERE total_runs > 0 ORDER BY total_runs DESC LIMIT 1
+  (SELECT 'runs'::TEXT, '🔥'::TEXT, '최다 러닝'::TEXT,
+          user_id, display_name, avatar_url, total_runs
+   FROM agg WHERE total_runs > 0 ORDER BY total_runs DESC LIMIT 1)
   UNION ALL
-  SELECT 'streak'::TEXT, '📅', '가장 꾸준',
-         user_id, display_name, avatar_url, total_days
-  FROM agg WHERE total_days > 0 ORDER BY total_days DESC, total_km DESC LIMIT 1;
+  (SELECT 'streak'::TEXT, '📅'::TEXT, '가장 꾸준'::TEXT,
+          user_id, display_name, avatar_url, total_days
+   FROM agg WHERE total_days > 0 ORDER BY total_days DESC, total_km DESC LIMIT 1);
 $$;
