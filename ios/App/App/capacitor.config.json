@@ -30,6 +30,7 @@
 		"CAPBrowserPlugin",
 		"FilesystemPlugin",
 		"SharePlugin",
-		"HealthPlugin"
+		"HealthPlugin",
+		"SocialLoginPlugin"
 	]
 }

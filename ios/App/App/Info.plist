@@ -68,6 +68,14 @@
 				<string>routinist</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.947408039210-ot86ap8tj2095noj2tfq9mkmbrh5me8b</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

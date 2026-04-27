@@ -20,15 +20,25 @@ function logAuth(message: string) {
 }
 
 // 소셜 로그인
+// 네이티브(iOS) 환경에서는 OS 네이티브 SDK로 idToken 직접 발급 → Supabase signInWithIdToken
+// 웹 환경에서는 기존 OAuth 리다이렉트 플로우 유지
 export async function signInWithProvider(provider: Provider) {
   const supabase = getSupabase();
-
   const native = isNativeApp();
+
+  logAuth(`signInWithProvider(${provider}) native=${native}`);
+
+  if (native && provider === 'google') {
+    return await signInWithGoogleNative();
+  }
+  if (native && provider === 'apple') {
+    return await signInWithAppleNative();
+  }
+
+  // 웹 + 카카오(아직 네이티브 SDK 미도입) → 기존 OAuth 플로우
   const redirectTo = native
     ? 'routinist://auth/callback'
     : `${window.location.origin}/auth/callback`;
-
-  logAuth(`signInWithProvider(${provider}) native=${native} redirectTo=${redirectTo}`);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -44,14 +54,12 @@ export async function signInWithProvider(provider: Provider) {
   }
 
   if (!data?.url) {
-    // data.url 이 비었으면 흰 화면의 근본 원인. 사용자에게 에러 표시.
     logAuth(`signInWithOAuth returned empty url (provider=${provider})`);
     throw new Error('OAuth URL을 받지 못했어요. Supabase 설정(Site URL / Redirect URLs)을 확인해주세요.');
   }
 
   logAuth(`OAuth URL length=${data.url.length} starts=${data.url.slice(0, 80)}`);
 
-  // 네이티브: Capacitor Browser 로 OAuth URL 열기
   if (native) {
     try {
       const { Browser } = await import('@capacitor/browser');
@@ -59,12 +67,119 @@ export async function signInWithProvider(provider: Provider) {
       logAuth('Browser.open success');
     } catch (e) {
       logAuth(`Browser.open 실패: ${e instanceof Error ? e.message : e}`);
-      // 폴백: 시스템 브라우저로
       window.location.href = data.url;
     }
   }
 
   return data;
+}
+
+// SocialLogin 플러그인 초기화 — 한 번만 호출되도록 캐시
+let socialLoginInitialized: Promise<void> | null = null;
+async function initSocialLogin() {
+  if (socialLoginInitialized) return socialLoginInitialized;
+  socialLoginInitialized = (async () => {
+    const { SocialLogin } = await import('@capgo/capacitor-social-login');
+    await SocialLogin.initialize({
+      google: {
+        iOSClientId: process.env.NEXT_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+        iOSServerClientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+        webClientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+        mode: 'online',
+      },
+    });
+    logAuth('SocialLogin.initialize OK');
+  })();
+  return socialLoginInitialized;
+}
+
+// Google 네이티브 로그인 (iOS) — @capgo/capacitor-social-login
+async function signInWithGoogleNative() {
+  const supabase = getSupabase();
+  try {
+    await initSocialLogin();
+    const { SocialLogin } = await import('@capgo/capacitor-social-login');
+
+    const { result } = await SocialLogin.login({
+      provider: 'google',
+      options: { scopes: ['email', 'profile'] },
+    });
+
+    if (result.responseType !== 'online') {
+      throw new Error(`예상치 못한 Google 응답 타입: ${result.responseType}`);
+    }
+    const idToken = result.idToken;
+    if (!idToken) {
+      throw new Error('Google idToken을 받지 못했어요.');
+    }
+    logAuth(`Google login OK email=${result.profile?.email ?? '?'}`);
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    });
+    if (error) {
+      logAuth(`signInWithIdToken(google) error: ${error.message}`);
+      throw error;
+    }
+    logAuth('Google 네이티브 로그인 완료');
+    return data;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logAuth(`Google 네이티브 실패: ${msg}`);
+    throw new Error(`Google 로그인 실패: ${msg}`);
+  }
+}
+
+// Apple 네이티브 로그인 (iOS) — @capgo/capacitor-social-login
+async function signInWithAppleNative() {
+  const supabase = getSupabase();
+  try {
+    await initSocialLogin();
+    const { SocialLogin } = await import('@capgo/capacitor-social-login');
+
+    // nonce: raw 를 Apple 에 전달, Supabase 가 idToken 의 hashed nonce 와 비교 검증
+    // → Apple 에는 raw, Supabase 의 signInWithIdToken 에는 raw 그대로 전달
+    const rawNonce = generateNonce();
+
+    const { result } = await SocialLogin.login({
+      provider: 'apple',
+      options: { scopes: ['email', 'name'], nonce: rawNonce },
+    });
+
+    const identityToken = result.idToken;
+    if (!identityToken) {
+      throw new Error('Apple identityToken을 받지 못했어요.');
+    }
+    logAuth(`Apple login OK user=${result.profile?.user?.slice(0, 12)}…`);
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: identityToken,
+      nonce: rawNonce,
+    });
+    if (error) {
+      logAuth(`signInWithIdToken(apple) error: ${error.message}`);
+      throw error;
+    }
+    logAuth('Apple 네이티브 로그인 완료');
+    return data;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    logAuth(`Apple 네이티브 실패: ${msg}`);
+    throw new Error(`Apple 로그인 실패: ${msg}`);
+  }
+}
+
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Capacitor 딥링크에서 세션 토큰 추출 및 설정
