@@ -5,7 +5,7 @@ import type { Provider, Session, User } from '@supabase/supabase-js';
 // Capacitor 네이티브 앱 여부 확인
 function isNativeApp(): boolean {
   return typeof window !== 'undefined' &&
-    (window as any).Capacitor !== undefined;
+    (window as Window & { Capacitor?: unknown }).Capacitor !== undefined;
 }
 
 // 진단 로그 기록 — /login?debug=1 에서 확인 가능
@@ -87,13 +87,21 @@ async function initSocialLogin() {
         webClientId: process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID,
         mode: 'online',
       },
+      apple: {
+        clientId: 'com.routinist.app',
+        redirectUrl: '',
+      },
     });
     logAuth('SocialLogin.initialize OK');
   })();
   return socialLoginInitialized;
 }
 
-// Google 네이티브 로그인 (iOS) — @capgo/capacitor-social-login
+// Apple nonce 처리: Supabase 의 signInWithIdToken 은 sha256(nonce) 를 토큰의 nonce 클레임과 비교.
+// 따라서 capgo (→ Apple SDK) 에는 **hashed** nonce 를 전달해 토큰에 hashed 가 박히게 하고,
+// Supabase 에는 **raw** nonce 를 전달해 서버가 sha256 처리해서 비교하도록 함.
+
+// Google 네이티브 로그인 (iOS)
 async function signInWithGoogleNative() {
   const supabase = getSupabase();
   try {
@@ -109,14 +117,19 @@ async function signInWithGoogleNative() {
       throw new Error(`예상치 못한 Google 응답 타입: ${result.responseType}`);
     }
     const idToken = result.idToken;
+    const accessToken = result.accessToken?.token;
     if (!idToken) {
       throw new Error('Google idToken을 받지 못했어요.');
+    }
+    if (!accessToken) {
+      throw new Error('Google accessToken을 받지 못했어요.');
     }
     logAuth(`Google login OK email=${result.profile?.email ?? '?'}`);
 
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: idToken,
+      access_token: accessToken,
     });
     if (error) {
       logAuth(`signInWithIdToken(google) error: ${error.message}`);
@@ -131,20 +144,19 @@ async function signInWithGoogleNative() {
   }
 }
 
-// Apple 네이티브 로그인 (iOS) — @capgo/capacitor-social-login
+// Apple 네이티브 로그인 (iOS)
 async function signInWithAppleNative() {
   const supabase = getSupabase();
   try {
     await initSocialLogin();
     const { SocialLogin } = await import('@capgo/capacitor-social-login');
 
-    // nonce: raw 를 Apple 에 전달, Supabase 가 idToken 의 hashed nonce 와 비교 검증
-    // → Apple 에는 raw, Supabase 의 signInWithIdToken 에는 raw 그대로 전달
     const rawNonce = generateNonce();
+    const hashedNonce = await sha256(rawNonce);
 
     const { result } = await SocialLogin.login({
       provider: 'apple',
-      options: { scopes: ['email', 'name'], nonce: rawNonce },
+      options: { scopes: ['email', 'name'], nonce: hashedNonce },
     });
 
     const identityToken = result.idToken;
@@ -181,6 +193,7 @@ async function sha256(input: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
 
 // Capacitor 딥링크에서 세션 토큰 추출 및 설정
 export async function handleOAuthCallback(url: string): Promise<Session | null> {
