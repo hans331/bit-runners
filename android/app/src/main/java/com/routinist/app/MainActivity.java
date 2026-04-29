@@ -1,4 +1,4 @@
-package com.bitrunners.app;
+package com.routinist.app;
 
 import com.getcapacitor.BridgeActivity;
 

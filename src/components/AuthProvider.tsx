@@ -6,6 +6,10 @@ import { getProfile, handleOAuthCallback } from '@/lib/auth';
 import type { Profile } from '@/types';
 import type { User, Session } from '@supabase/supabase-js';
 
+type CapacitorWindow = Window & {
+  Capacitor?: unknown;
+};
+
 interface AuthState {
   user: User | null;
   profile: Profile | null;
@@ -89,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Capacitor 딥링크 처리 — OAuth 콜백 URL을 받아서 세션 설정
   useEffect(() => {
     const isNative = typeof window !== 'undefined' &&
-      (window as any).Capacitor !== undefined;
+      (window as CapacitorWindow).Capacitor !== undefined;
     if (!isNative) return;
 
     let removeUrlListener: (() => void) | null = null;

@@ -9,6 +9,9 @@ import Link from 'next/link';
 
 // 로그인 화면은 브랜드 톤(라이트) 고정 — 다크모드 시스템 설정과 무관하게 일관된 온보딩 경험
 type Mode = 'social' | 'email-login' | 'email-signup';
+type CapacitorWindow = Window & {
+  Capacitor?: unknown;
+};
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -38,7 +41,7 @@ export default function LoginPage() {
   // Safari/인앱 브라우저에서 앱으로 복귀(= 포그라운드 진입) 감지 → 로딩 스피너 리셋
   // 사용자가 OAuth 취소/뒤로가기한 경우에도 UI가 즉시 풀림
   useEffect(() => {
-    const isNative = typeof window !== 'undefined' && (window as any).Capacitor !== undefined;
+    const isNative = typeof window !== 'undefined' && (window as CapacitorWindow).Capacitor !== undefined;
     if (!isNative) return;
     let remove: (() => void) | null = null;
     import('@capacitor/app').then(({ App }) => {

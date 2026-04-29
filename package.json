@@ -11,6 +11,7 @@
     "open:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.1",
     "@capacitor/app": "^8.1.0",
     "@capacitor/browser": "^8.0.3",
     "@capacitor/core": "^8.3.0",
@@ -18,7 +19,6 @@
     "@capacitor/ios": "^8.3.0",
     "@capacitor/share": "^8.0.1",
     "@capgo/capacitor-health": "^8.4.5",
-    "@capgo/capacitor-social-login": "^8.3.20",
     "@supabase/supabase-js": "^2.101.1",
     "@vis.gl/react-google-maps": "^1.8.3",
     "date-fns": "^4.1.0",

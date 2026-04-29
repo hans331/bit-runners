@@ -32,8 +32,15 @@ npm run open:ios
 ## Xcode에서 할 일
 1. 좌측에서 **App** 프로젝트 선택
 2. **Signing & Capabilities** 탭 → Apple Developer 계정 연결
-3. **Bundle Identifier**: `com.bitrunners.app`
+3. **Bundle Identifier**: `com.routinist.app`
 4. iPhone 연결 후 Run (▶)
+
+## Apple 로그인 설정
+
+Apple Developer의 **Services ID**와 Supabase Apple Provider 설정이 맞지 않으면 Apple OAuth 화면에서
+`invalid_request` / `Invalid client id or web redirect url.` 오류가 발생합니다.
+
+자세한 설정값은 [APPLE-OAUTH-SETUP.md](./APPLE-OAUTH-SETUP.md)를 확인하세요.
 
 ## HealthKit 설정 (Xcode에서)
 1. **Signing & Capabilities** → **+ Capability** → **HealthKit** 추가

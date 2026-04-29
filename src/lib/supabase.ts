@@ -2,8 +2,20 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let _supabase: SupabaseClient | null = null;
 
+type CapacitorWindow = Window & {
+  Capacitor?: {
+    getPlatform?: () => string;
+    isNativePlatform?: () => boolean;
+  };
+};
+
 function isNativeApp(): boolean {
-  return typeof window !== 'undefined' && (window as any).Capacitor !== undefined;
+  if (typeof window === 'undefined') return false;
+  const capacitor = (window as CapacitorWindow).Capacitor;
+  if (!capacitor) return false;
+  if (capacitor.isNativePlatform?.()) return true;
+  const platform = capacitor.getPlatform?.();
+  return platform === 'ios' || platform === 'android';
 }
 
 export function getSupabase(): SupabaseClient {
