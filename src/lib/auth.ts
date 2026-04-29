@@ -227,22 +227,29 @@ export async function sendPasswordResetEmail(email: string) {
 }
 
 // 로그아웃
+// 주의: scope:'global' 은 토큰이 무효한 경우 401 + 네트워크 hang 으로 멈춤.
+// 로컬 세션만 비우는 'local' 로 호출 + 3초 timeout + 어떤 실패도 swallow → 항상 빠르게 완료.
+// 호출부에서는 await signOut() 후 무조건 /login 으로 이동하면 OK.
 export async function signOut() {
   const supabase = getSupabase();
   logAuth('signOut start');
+
+  // Browser.close 는 fire-and-forget — 닫혀있어도 OK, 못 닫혀도 흐름 막지 않음
   if (isNativeApp()) {
-    try {
-      const { Browser } = await import('@capacitor/browser');
-      await Browser.close();
-      logAuth('Browser.close before signOut success');
-    } catch {}
+    import('@capacitor/browser')
+      .then(({ Browser }) => Browser.close().catch(() => {}))
+      .catch(() => {});
   }
-  const { error } = await supabase.auth.signOut({ scope: 'global' });
-  if (error) {
-    logAuth(`signOut error: ${error.message}`);
-    throw error;
+
+  try {
+    await Promise.race([
+      supabase.auth.signOut({ scope: 'local' }),
+      new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+    ]);
+    logAuth('signOut done');
+  } catch (e) {
+    logAuth(`signOut swallowed: ${e instanceof Error ? e.message : e}`);
   }
-  logAuth('signOut success');
 }
 
 // 현재 세션

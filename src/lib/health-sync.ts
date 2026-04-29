@@ -60,12 +60,10 @@ async function syncFromHealthKit(userId: string, deepSync = false): Promise<Sync
     const startDate = startDt.toISOString();
     const endDate = new Date().toISOString();
 
-    // 러닝 + 걷기 모두 동기화
+    // 러닝 + 걷기 병렬 fetch — 순차 호출 대비 절반 시간
     const workoutTypes = ['running', 'walking'] as const;
-    let allWorkouts: any[] = [];
     const queryErrors: string[] = [];
-
-    for (const wType of workoutTypes) {
+    const queryResults = await Promise.all(workoutTypes.map(async (wType) => {
       try {
         const { workouts } = await Health.queryWorkouts({
           workoutType: wType,
@@ -74,15 +72,15 @@ async function syncFromHealthKit(userId: string, deepSync = false): Promise<Sync
           limit: deepSync ? 3000 : 500,
           ascending: false,
         });
-        if (workouts?.length) {
-          allWorkouts.push(...workouts.map(w => ({ ...w, _type: wType })));
-        }
+        return workouts?.length ? workouts.map(w => ({ ...w, _type: wType })) : [];
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         console.warn(`[health-sync] queryWorkouts(${wType}) 실패:`, msg);
         queryErrors.push(`${wType}: ${msg}`);
+        return [];
       }
-    }
+    }));
+    const allWorkouts: any[] = queryResults.flat();
 
     if (allWorkouts.length === 0) {
       // 워크아웃이 아예 없으면 거리 데이터 폴백. 모든 쿼리가 에러였으면 진짜 실패로 보고.
@@ -332,6 +330,8 @@ async function syncRouteData(userId: string): Promise<number> {
 }
 
 // 메인 동기화 함수 — userId(auth.users id)를 받음
+// 사용자가 보는 spinner 는 핵심 워크아웃 동기화만 기다림.
+// 통산 집계 갱신과 GPS 경로 매칭은 백그라운드로 분리해 즉각 응답.
 export async function syncHealthData(userId: string): Promise<SyncResult> {
   if (!isNativeApp()) {
     return {
@@ -344,13 +344,10 @@ export async function syncHealthData(userId: string): Promise<SyncResult> {
   const platform = getPlatform();
   if (platform === 'ios') {
     const result = await syncFromHealthKit(userId);
-    await updateProfileTotals(userId);
 
-    // GPS 경로도 동기화
-    const routeCount = await syncRouteData(userId);
-    if (routeCount > 0) {
-      result.message += ` (GPS 경로 ${routeCount}건 추가)`;
-    }
+    // 후처리는 fire-and-forget — UI spinner 막지 않음
+    void updateProfileTotals(userId).catch((e) => console.warn('[health-sync] updateProfileTotals 백그라운드 실패', e));
+    void syncRouteData(userId).catch((e) => console.warn('[health-sync] syncRouteData 백그라운드 실패', e));
 
     return result;
   }
