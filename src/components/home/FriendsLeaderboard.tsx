@@ -85,9 +85,7 @@ export default function FriendsLeaderboard() {
     })();
   }, [user, profile]);
 
-  if (!rows) {
-    return <div className="mx-4 mt-3 h-32 rounded-2xl bg-[var(--card)] animate-pulse" />;
-  }
+  if (!rows) return null;
 
   if (rows.length <= 1) {
     return (

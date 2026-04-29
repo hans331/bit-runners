@@ -44,9 +44,7 @@ export default function TodayLocalTop() {
   }, [profile?.region_gu]);
 
   if (!profile?.region_gu) return null;
-  if (loading) {
-    return <div className="mx-4 mt-3 h-[130px] rounded-2xl bg-[var(--card)] animate-pulse" />;
-  }
+  if (loading) return null;
   if (runners.length === 0) {
     return (
       <div className="mx-4 mt-3 rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-4">

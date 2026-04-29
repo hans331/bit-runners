@@ -20,12 +20,14 @@ interface Neighbor {
 }
 
 export default function RankNeighbors() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [rows, setRows] = useState<Neighbor[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
+    // 지역 정보 없으면 동네 비교 자체가 불가 — RPC 호출 의미 없음
+    if (!profile?.region_gu) { setLoading(false); return; }
     let cancelled = false;
     (async () => {
       try {
@@ -43,13 +45,10 @@ export default function RankNeighbors() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, profile?.region_gu]);
 
-  if (loading) {
-    return <div className="mx-4 mt-4 h-[200px] rounded-3xl bg-[var(--card-border)]/30 animate-pulse" />;
-  }
-
-  if (rows.length <= 1) return null;
+  // 로딩/빈 상태에선 자리 차지 없이 사라짐 — 신규 사용자 첫 인상 개선
+  if (loading || rows.length <= 1) return null;
 
   const meIdx = rows.findIndex(r => r.is_me);
   const ahead = rows.slice(0, meIdx);

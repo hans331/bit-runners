@@ -39,8 +39,12 @@ export default function HomeRankingHero() {
   const [error, setError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
 
+  const hasDemographics = !!(profile?.region_gu || profile?.birth_year || profile?.gender);
+
   useEffect(() => {
     if (!user) return;
+    // 데모그래픽이 하나도 없으면 RPC 호출 의미 없음 — 바로 CTA 카드 표시
+    if (!hasDemographics) { setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
     setError(false);
@@ -75,15 +79,13 @@ export default function HomeRankingHero() {
       }
     })();
     return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [user, axis, retryKey]);
+  }, [user, axis, retryKey, hasDemographics]);
 
   if (loading) {
     return (
-      <div className="mx-4 mt-3 rounded-3xl bg-gradient-to-br from-emerald-100/70 via-white to-emerald-50/40 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/30 p-5 h-[200px] animate-pulse" />
+      <div className="mx-4 mt-3 rounded-3xl bg-gradient-to-br from-emerald-100/70 via-white to-emerald-50/40 dark:from-emerald-950/30 dark:via-zinc-900 dark:to-emerald-950/10 border border-emerald-200/50 dark:border-emerald-900/30 p-5 h-[120px] animate-pulse" />
     );
   }
-
-  const hasDemographics = !!(profile?.region_gu || profile?.birth_year || profile?.gender);
 
   // 에러(RPC 타임아웃·실패) — 프로필은 있지만 불러오기 실패한 경우. 재시도 버튼 제공.
   if (error && hasDemographics) {
